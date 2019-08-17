@@ -6,7 +6,7 @@ import java.io.OutputStream;
 /**
  * JNI用バッファ.
  */
-public final class JniBuffer extends OutputStream {
+public class JniBuffer extends OutputStream {
     
     /** クリア時のバッファ保持領域最大長. **/
     protected static final int CLEAR_BY_MAX_BUFFER = 65535 ;

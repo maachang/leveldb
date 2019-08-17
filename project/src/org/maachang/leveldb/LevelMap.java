@@ -49,14 +49,14 @@ public class LevelMap implements Map<Object, Object> {
 	/**
 	 * デストラクタ.
 	 */
-	protected final void finalize() throws Exception {
+	protected void finalize() throws Exception {
 		close();
 	}
 
 	/**
 	 * オブジェクトクローズ.
 	 */
-	public final void close() {
+	public void close() {
 		leveldb.close();
 	}
 
@@ -65,7 +65,7 @@ public class LevelMap implements Map<Object, Object> {
 	 * 
 	 * @return boolean [true]の場合、クローズしています.
 	 */
-	public final boolean isClose() {
+	public boolean isClose() {
 		return leveldb.isClose();
 	}
 
@@ -74,7 +74,7 @@ public class LevelMap implements Map<Object, Object> {
 	 * 
 	 * @return Leveldb Leveldbオブジェクトが返却されます.
 	 */
-	public final Leveldb getLeveldb() {
+	public Leveldb getLeveldb() {
 		return leveldb;
 	}
 
@@ -83,7 +83,7 @@ public class LevelMap implements Map<Object, Object> {
 	 * 
 	 * @return LevelOption オプションが返却されます.
 	 */
-	public final LevelOption getOption() {
+	public LevelOption getOption() {
 		return leveldb.getOption();
 	}
 
@@ -92,7 +92,7 @@ public class LevelMap implements Map<Object, Object> {
 	 * 
 	 * @return int キータイプが返却されます.
 	 */
-	public final int getType() {
+	public int getType() {
 		return type;
 	}
 
@@ -100,7 +100,7 @@ public class LevelMap implements Map<Object, Object> {
 	 * 情報クリア. ※Iteratorで処理をするので、件数が多い場合は、処理に時間がかかります.
 	 * この処理を呼び出すと、対象のLeveldbに登録されている すべての要素をすべてクリアします.
 	 */
-	public final void clear() {
+	public void clear() {
 		JniBuffer key = null;
 		try {
 
@@ -131,7 +131,7 @@ public class LevelMap implements Map<Object, Object> {
 	 * @param toMerge
 	 *            追加対象のMapを設定します.
 	 */
-	public final void putAll(Map toMerge) {
+	public void putAll(Map toMerge) {
 		Object k;
 		Iterator it = toMerge.keySet().iterator();
 		while (it.hasNext()) {
@@ -146,7 +146,7 @@ public class LevelMap implements Map<Object, Object> {
 	 *            対象のValueを設定します.
 	 * @return boolean trueの場合、一致する条件が存在します.
 	 */
-	public final boolean containsValue(Object value) {
+	public boolean containsValue(Object value) {
 
 		// Iteratorで、存在するまでチェック(超遅い).
 		JniBuffer v = null;
@@ -212,7 +212,7 @@ public class LevelMap implements Map<Object, Object> {
 	 *            List、Map、Set、Serializableオブジェクト以外をセットすると、 エラーととなります.
 	 * @return Object [null]が返却されます.
 	 */
-	public final Object put(Object key, Object twoKey, Object value) {
+	public Object put(Object key, Object twoKey, Object value) {
 		if (value != null && value instanceof LevelMap) {
 			throw new LeveldbException("要素にLevelMap要素は設定できません");
 		}
@@ -251,7 +251,7 @@ public class LevelMap implements Map<Object, Object> {
 	 *            List、Map、Set、Serializableオブジェクト以外をセットすると、 エラーととなります.
 	 * @return Object [null]が返却されます.
 	 */
-	public final Object put(Object key, Object value) {
+	public Object put(Object key, Object value) {
 		return put(key, null, value);
 	}
 
@@ -265,7 +265,7 @@ public class LevelMap implements Map<Object, Object> {
 	 *            対象のキー群を設定します.
 	 * @return Object [null]が返却されます.
 	 */
-	public final Object putMultiKey(Object value, Object... keys) {
+	public Object putMultiKey(Object value, Object... keys) {
 		if (type != LevelOption.TYPE_MULTI) {
 			throw new LeveldbException("Leveldb定義のキータイプはマルチキーではありません");
 		}
@@ -281,7 +281,7 @@ public class LevelMap implements Map<Object, Object> {
 	 *            対象のセカンドキーを設定します.
 	 * @return boolean [true]の場合、存在します.
 	 */
-	public final boolean containsKey(Object key, Object twoKey) {
+	public boolean containsKey(Object key, Object twoKey) {
 		JniBuffer keyBuf = null;
 		JniBuffer valBuf = null;
 		try {
@@ -310,7 +310,7 @@ public class LevelMap implements Map<Object, Object> {
 	 *            対象のキーを設定します.
 	 * @return boolean [true]の場合、存在します.
 	 */
-	public final boolean containsKey(Object key) {
+	public boolean containsKey(Object key) {
 		return containsKey(key, null);
 	}
 
@@ -321,7 +321,7 @@ public class LevelMap implements Map<Object, Object> {
 	 *            対象のキー群を設定します.
 	 * @return boolean [true]の場合、存在します.
 	 */
-	public final boolean containsMultiKey(Object... keys) {
+	public boolean containsMultiKey(Object... keys) {
 		if (type != LevelOption.TYPE_MULTI) {
 			throw new LeveldbException("Leveldb定義のキータイプはマルチキーではありません");
 		}
@@ -339,7 +339,7 @@ public class LevelMap implements Map<Object, Object> {
 	 *            対象のセカンドキーを設定します.
 	 * @return boolean [true]の場合、セットされました.
 	 */
-	public final boolean getBuffer(JniBuffer buf, Object key, Object twoKey) {
+	public boolean getBuffer(JniBuffer buf, Object key, Object twoKey) {
 		boolean ret = false;
 		JniBuffer keyBuf = null;
 		try {
@@ -372,7 +372,7 @@ public class LevelMap implements Map<Object, Object> {
 	 *            対象のキー群を設定します.
 	 * @return boolean [true]の場合、セットされました.
 	 */
-	public final boolean getBufferMultiKey(JniBuffer buf, Object... keys) {
+	public boolean getBufferMultiKey(JniBuffer buf, Object... keys) {
 		if (type != LevelOption.TYPE_MULTI) {
 			throw new LeveldbException("Leveldb定義のキータイプはマルチキーではありません");
 		}
@@ -388,7 +388,7 @@ public class LevelMap implements Map<Object, Object> {
 	 *            対象のセカンドキーを設定します.
 	 * @return Object 対象の要素が返却されます.
 	 */
-	public final Object get(Object key, Object twoKey) {
+	public Object get(Object key, Object twoKey) {
 		JniBuffer buf = null;
 		try {
 			buf = LevelBuffer.value();
@@ -414,7 +414,7 @@ public class LevelMap implements Map<Object, Object> {
 	 *            対象のキーを設定します.
 	 * @return Object 対象の要素が返却されます.
 	 */
-	public final Object get(Object key) {
+	public Object get(Object key) {
 		return get(key, null);
 	}
 
@@ -425,7 +425,7 @@ public class LevelMap implements Map<Object, Object> {
 	 *            対象のキー群を設定します.
 	 * @return Object 対象の要素が返却されます.
 	 */
-	public final Object getMultiKey(Object... keys) {
+	public Object getMultiKey(Object... keys) {
 		if (type != LevelOption.TYPE_MULTI) {
 			throw new LeveldbException("Leveldb定義のキータイプはマルチキーではありません");
 		}
@@ -441,7 +441,7 @@ public class LevelMap implements Map<Object, Object> {
 	 *            対象のセカンドキーを設定します.
 	 * @return Object 削除できた場合[true]が返却されます.
 	 */
-	public final boolean remove(Object key, Object twoKey) {
+	public boolean remove(Object key, Object twoKey) {
 		JniBuffer keyBuf = null;
 		try {
 			keyBuf = LevelBuffer.key(type, key, twoKey);
@@ -464,7 +464,7 @@ public class LevelMap implements Map<Object, Object> {
 	 *            対象のキーを設定します.
 	 * @return Object 削除できた場合[true]が返却されます.
 	 */
-	public final Object remove(Object key) {
+	public Object remove(Object key) {
 		return remove(key, null);
 	}
 
@@ -475,7 +475,7 @@ public class LevelMap implements Map<Object, Object> {
 	 *            対象のキー群を設定します.
 	 * @return Object 削除できた場合[true]が返却されます.
 	 */
-	public final Object removeMultiKey(Object... keys) {
+	public Object removeMultiKey(Object... keys) {
 		if (type != LevelOption.TYPE_MULTI) {
 			throw new LeveldbException("Leveldb定義のキータイプはマルチキーではありません");
 		}
@@ -485,7 +485,7 @@ public class LevelMap implements Map<Object, Object> {
 	/**
 	 * 情報が空かチェック. return boolean [false]が返却されます.
 	 */
-	public final boolean isEmpty() {
+	public boolean isEmpty() {
 		try {
 			// 1件以上のIteratorが存在する場合は[false].
 			LeveldbIterator it = leveldb.iterator();
@@ -507,7 +507,7 @@ public class LevelMap implements Map<Object, Object> {
 	 * 
 	 * @return Set Setオブジェクトが返却されます.
 	 */
-	public final Set keySet() {
+	public Set keySet() {
 		if (set == null) {
 			set = new LevelMapSet(this);
 		}
@@ -518,7 +518,7 @@ public class LevelMap implements Map<Object, Object> {
 	 * 登録データ数を取得. ※Iteratorでカウントするので、件数が多い場合は、処理に時間がかかります. return int
 	 * 登録データ数が返却されます.
 	 */
-	public final int size() {
+	public int size() {
 		try {
 			int ret = 0;
 
@@ -543,7 +543,7 @@ public class LevelMap implements Map<Object, Object> {
 	 * @param set
 	 *            例外が発生します.
 	 */
-	public final void getAllKey(Set set) {
+	public void getAllKey(Set set) {
 		throw new LeveldbException("サポートされていません");
 	}
 
@@ -553,7 +553,7 @@ public class LevelMap implements Map<Object, Object> {
 	 * @param set
 	 *            例外が発生します.
 	 */
-	public final void getAllValues(Set set) {
+	public void getAllValues(Set set) {
 		throw new LeveldbException("サポートされていません");
 	}
 
@@ -562,7 +562,7 @@ public class LevelMap implements Map<Object, Object> {
 	 * 
 	 * @return String 空文字が返却されます.
 	 */
-	public final String toString() {
+	public String toString() {
 
 		// 何もしない.
 		return "";
@@ -573,7 +573,7 @@ public class LevelMap implements Map<Object, Object> {
 	 * 
 	 * @return String Leveldbパス名が返却されます.
 	 */
-	public final String getPath() {
+	public String getPath() {
 		return leveldb.getPath();
 	}
 
@@ -582,7 +582,7 @@ public class LevelMap implements Map<Object, Object> {
 	 * 
 	 * @return LevelMapIterator LevelMapIteratorが返却されます.
 	 */
-	public final LevelMapIterator iterator() {
+	public LevelMapIterator iterator() {
 		return _iterator();
 	}
 
@@ -591,34 +591,34 @@ public class LevelMap implements Map<Object, Object> {
 	 * 
 	 * @return LevelMapIterator LevelMapIteratorが返却されます.
 	 */
-	public final LevelMapIterator snapshot() {
+	public LevelMapIterator snapshot() {
 		return _snapShot();
 	}
 
 	/** iterator作成. **/
-	protected final LevelMapIterator _iterator() {
+	protected LevelMapIterator _iterator() {
 		return new LevelMapIterator(this, type, leveldb.iterator());
 	}
 
 	/** snapShort用のIteratorを作成. **/
-	protected final LevelMapIterator _snapShot() {
+	protected LevelMapIterator _snapShot() {
 		return new LevelMapIterator(this, type, leveldb.snapShot());
 	}
 
 	/** LevelMapSet. **/
-	protected static final class LevelMapSet implements Set {
-		private final LevelMap map;
+	protected static class LevelMapSet implements Set {
+		private LevelMap map;
 
 		public LevelMapSet(LevelMap map) {
 			this.map = map;
 		}
 
-		public final boolean add(Object arg0) {
+		public boolean add(Object arg0) {
 			map.put(arg0, null);
 			return false;
 		}
 
-		public final boolean addAll(Collection arg0) {
+		public boolean addAll(Collection arg0) {
 			Iterator it = arg0.iterator();
 			while (it.hasNext()) {
 				add(it.next());
@@ -626,15 +626,15 @@ public class LevelMap implements Map<Object, Object> {
 			return true;
 		}
 
-		public final void clear() {
+		public void clear() {
 			map.clear();
 		}
 
-		public final boolean contains(Object arg0) {
+		public boolean contains(Object arg0) {
 			return map.containsKey(arg0);
 		}
 
-		public final boolean containsAll(Collection arg0) {
+		public boolean containsAll(Collection arg0) {
 			Iterator it = arg0.iterator();
 			while (it.hasNext()) {
 				if (map.containsKey(it.next())) {
@@ -645,19 +645,19 @@ public class LevelMap implements Map<Object, Object> {
 			return true;
 		}
 
-		public final boolean isEmpty() {
+		public boolean isEmpty() {
 			return map.isEmpty();
 		}
 
-		public final Iterator<Object> iterator() {
+		public Iterator<Object> iterator() {
 			return map._iterator();
 		}
 
-		public final boolean remove(Object arg0) {
+		public boolean remove(Object arg0) {
 			return (Boolean) map.remove(arg0);
 		}
 
-		public final boolean removeAll(Collection arg0) {
+		public boolean removeAll(Collection arg0) {
 			boolean ret = false;
 			Iterator it = arg0.iterator();
 			while (it.hasNext()) {
@@ -668,19 +668,19 @@ public class LevelMap implements Map<Object, Object> {
 			return ret;
 		}
 
-		public final boolean retainAll(Collection arg0) {
+		public boolean retainAll(Collection arg0) {
 			throw new LeveldbException("サポートされていません");
 		}
 
-		public final int size() {
+		public int size() {
 			return map.size();
 		}
 
-		public final Object[] toArray() {
+		public Object[] toArray() {
 			throw new LeveldbException("サポートされていません");
 		}
 
-		public final Object[] toArray(Object[] arg0) {
+		public Object[] toArray(Object[] arg0) {
 			throw new LeveldbException("サポートされていません");
 		}
 	}

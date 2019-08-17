@@ -8,7 +8,7 @@ import java.util.NoSuchElementException;
  * LevelMap用Iterator.
  */
 @SuppressWarnings({"rawtypes"})
-public final class LevelMapIterator implements Iterator<Object> {
+public class LevelMapIterator implements Iterator<Object> {
 	private Map map;
 	private LeveldbIterator itr;
 	private Object nowKey;
@@ -33,7 +33,7 @@ public final class LevelMapIterator implements Iterator<Object> {
 	/**
 	 * クローズ処理.
 	 */
-	public final void close() {
+	public void close() {
 		if (itr != null) {
 			itr.close();
 			itr = null;
@@ -48,7 +48,7 @@ public final class LevelMapIterator implements Iterator<Object> {
 	 *            対象の内容を検索します.
 	 * @return LevelMapIterator オブジェクトが返却されます.
 	 */
-	public final LevelMapIterator search(Object key) {
+	public LevelMapIterator search(Object key) {
 		return search(key, null);
 	}
 
@@ -59,7 +59,7 @@ public final class LevelMapIterator implements Iterator<Object> {
 	 *            対象の内容を検索します.
 	 * @return LevelMapIterator オブジェクトが返却されます.
 	 */
-	public final LevelMapIterator search(Object key, Object key2) {
+	public LevelMapIterator search(Object key, Object key2) {
 		if (itr == null) {
 			return this;
 		}
@@ -85,7 +85,7 @@ public final class LevelMapIterator implements Iterator<Object> {
 	/**
 	 * 最初のカーソルに移動.
 	 */
-	public final void first() {
+	public void first() {
 		if (itr == null) {
 			return;
 		}
@@ -95,7 +95,7 @@ public final class LevelMapIterator implements Iterator<Object> {
 	/**
 	 * 最後のカーソルに移動.
 	 */
-	public final void last() {
+	public void last() {
 		if (itr == null) {
 			return;
 		}
@@ -107,7 +107,7 @@ public final class LevelMapIterator implements Iterator<Object> {
 	 * 
 	 * @return boolean [true]の場合、存在します.
 	 */
-	public final boolean hasNext() {
+	public boolean hasNext() {
 		if (itr == null || !itr.valid()) {
 			nowKey = null;
 			return false;
@@ -120,7 +120,7 @@ public final class LevelMapIterator implements Iterator<Object> {
 	 * 
 	 * @return Object 次の要素が返却されます.
 	 */
-	public final Object next() {
+	public Object next() {
 		if (itr == null || !itr.valid()) {
 			nowKey = null;
 			throw new NoSuchElementException("終端まで読まれました");
@@ -130,7 +130,7 @@ public final class LevelMapIterator implements Iterator<Object> {
 	}
 
 	/** 情報を取得. **/
-	private final void _next() {
+	private void _next() {
 		if (itr == null || !itr.valid()) {
 			throw new NoSuchElementException("終端まで読まれました");
 		}
@@ -161,7 +161,7 @@ public final class LevelMapIterator implements Iterator<Object> {
 	/**
 	 * 対象情報を削除します.
 	 */
-	public final void remove() {
+	public void remove() {
 		if (nowKey != null) {
 			map.remove(nowKey);
 		} else {
@@ -175,7 +175,7 @@ public final class LevelMapIterator implements Iterator<Object> {
 	 * 
 	 * @return int 対象タイプが返却されます.
 	 */
-	public final int getType() {
+	public int getType() {
 		return type;
 	}
 }

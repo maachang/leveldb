@@ -3,7 +3,7 @@ package org.maachang.leveldb;
 /**
  * Leveldb-Iterator.
  */
-public final class LeveldbIterator {
+public class LeveldbIterator {
 	protected LeveldbIterator() {
 	}
 
@@ -68,12 +68,12 @@ public final class LeveldbIterator {
 	 * 
 	 * @return boolean [true]の場合、クローズしています.
 	 */
-	public final boolean isClose() {
+	public boolean isClose() {
 		return parent.closeFlag || addr == 0L;
 	}
 
 	/** check. **/
-	protected final void check() {
+	protected void check() {
 		if (parent.closeFlag || addr == 0L) {
 			throw new LeveldbException("既にクローズされています");
 		}
@@ -82,7 +82,7 @@ public final class LeveldbIterator {
 	/**
 	 * カーソル位置を先頭に移動.
 	 */
-	public final void first() {
+	public void first() {
 		check();
 		jni.leveldb_itr_first(addr);
 	}
@@ -90,7 +90,7 @@ public final class LeveldbIterator {
 	/**
 	 * カーソル位置を最後に移動.
 	 */
-	public final void last() {
+	public void last() {
 		check();
 		jni.leveldb_itr_last(addr);
 	}
@@ -101,7 +101,7 @@ public final class LeveldbIterator {
 	 * @param key
 	 *            対象のキーを設定します.
 	 */
-	public final void seek(final JniBuffer key) {
+	public void seek(final JniBuffer key) {
 		check();
 		if (key == null || key.position() == 0) {
 			throw new LeveldbException("キー情報が設定されていません");
@@ -113,7 +113,7 @@ public final class LeveldbIterator {
 	 * 次のカーソル位置に移動. ※通常のIteratorとは違い、開始位置が0番目(-1番目でない)ので、 単純にwhile( hasNext() )
 	 * next() のような呼び出しができないので注意.
 	 */
-	public final void next() {
+	public void next() {
 		check();
 		jni.leveldb_itr_next(addr);
 	}
@@ -121,7 +121,7 @@ public final class LeveldbIterator {
 	/**
 	 * 前のカーソル位置に移動.
 	 */
-	public final void before() {
+	public void before() {
 		check();
 		jni.leveldb_itr_before(addr);
 	}
@@ -131,7 +131,7 @@ public final class LeveldbIterator {
 	 * 
 	 * @return boolean [true]の場合、存在します.
 	 */
-	public final boolean valid() {
+	public boolean valid() {
 		check();
 		return jni.leveldb_itr_valid(addr) == 1;
 	}
@@ -143,7 +143,7 @@ public final class LeveldbIterator {
 	 *            格納先のJniBufferを設定します.
 	 * @return int サイズが返却されます.
 	 */
-	public final int key(final JniBuffer out) {
+	public int key(final JniBuffer out) {
 		check();
 		if (out == null) {
 			return -1;
@@ -174,7 +174,7 @@ public final class LeveldbIterator {
 	 *            格納先のJniBufferを設定します.
 	 * @return int サイズが返却されます.
 	 */
-	public final int value(final JniBuffer out) {
+	public int value(final JniBuffer out) {
 		check();
 		if (out == null) {
 			return -1;
@@ -197,5 +197,4 @@ public final class LeveldbIterator {
 		}
 		return len;
 	}
-
 }

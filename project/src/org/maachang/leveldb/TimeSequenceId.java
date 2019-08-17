@@ -103,7 +103,7 @@ public class TimeSequenceId {
 	 * 
 	 * @return long シーケンスIDが返却されます.
 	 */
-	public final long get() {
+	public long get() {
 		long now, seq, ret;
 
 		// AtomicでシーケンスIDを生成する。
@@ -147,7 +147,7 @@ public class TimeSequenceId {
 	 * 
 	 * @return long 現在のシーケンスIDが返却されます. また１度も取得していない場合は-1が返却されます.
 	 */
-	public final long now() {
+	public long now() {
 		return beforeId;
 	}
 
@@ -157,7 +157,7 @@ public class TimeSequenceId {
 	 * @param id
 	 *            対象のIDを設定します.
 	 */
-	public final void set(long id) {
+	public void set(long id) {
 		nowId.set(((id & TIME_MASK) + (1L << 22L)) | (machineId << 13L));
 	}
 
@@ -166,7 +166,7 @@ public class TimeSequenceId {
 	 * 
 	 * @return long 設定されている基本時間が返却されます.
 	 */
-	public final long getBaseTime() {
+	public long getBaseTime() {
 		return baseTime;
 	}
 
@@ -175,7 +175,7 @@ public class TimeSequenceId {
 	 * 
 	 * @return int 設定されているマシンIDが返却されます.
 	 */
-	public final int getMachineId() {
+	public int getMachineId() {
 		return (int) machineId;
 	}
 }

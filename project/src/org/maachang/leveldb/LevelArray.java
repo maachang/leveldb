@@ -12,7 +12,7 @@ import org.maachang.leveldb.util.Utils;
  * Leveldb配列オブジェクト. 読み込みに特化した、MapライクなLevedb専用の配列オブジェクト.
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
-public final class LevelArray {
+public class LevelArray {
 
 	/** 配列追加長. **/
 	protected static final int ADD_LEN = 4;

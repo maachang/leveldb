@@ -5,7 +5,7 @@ import org.maachang.leveldb.util.OList;
 /**
  * マルチID. バイナリキー系の複数ID管理.
  */
-public final class MultiId {
+public class MultiId {
 	private static final int TYPE_STRING = 0;
 	private static final int TYPE_INT = 1;
 	private static final int TYPE_LONG = 2;
@@ -87,7 +87,7 @@ public final class MultiId {
 	 *            指定以下の値の場合は、この値で配列を作成します.
 	 * @return MultiId オブジェクトが返却されます.
 	 */
-	public final MultiId clear(int len) {
+	public MultiId clear(int len) {
 		list.clear(len);
 		binaryLength = 0;
 		return this;
@@ -98,7 +98,7 @@ public final class MultiId {
 	 * 
 	 * @return MultiId オブジェクトが返却されます.
 	 */
-	public final MultiId clear() {
+	public MultiId clear() {
 		list.clear();
 		binaryLength = 0;
 		return this;
@@ -111,7 +111,7 @@ public final class MultiId {
 	 *            対象の情報を設定します.
 	 * @return MultiId オブジェクトが返却されます.
 	 */
-	public final MultiId add(Object... args) {
+	public MultiId add(Object... args) {
 		Object o;
 		int len = (args == null || args.length == 0) ? 0 : args.length;
 		for (int i = 0; i < len; i++) {
@@ -141,7 +141,7 @@ public final class MultiId {
 	 *            対象の情報を設定します.
 	 * @return MultiId オブジェクトが返却されます.
 	 */
-	public final MultiId add(String n) {
+	public MultiId add(String n) {
 		if (n == null) {
 			n = "";
 		}
@@ -157,7 +157,7 @@ public final class MultiId {
 	 *            対象の情報を設定します.
 	 * @return MultiId オブジェクトが返却されます.
 	 */
-	public final MultiId add(Integer n) {
+	public MultiId add(Integer n) {
 		if (n == null) {
 			n = 0;
 		}
@@ -173,7 +173,7 @@ public final class MultiId {
 	 *            対象の情報を設定します.
 	 * @return MultiId オブジェクトが返却されます.
 	 */
-	public final MultiId add(Float n) {
+	public MultiId add(Float n) {
 		if (n == null) {
 			n = 0.0f;
 		}
@@ -189,7 +189,7 @@ public final class MultiId {
 	 *            対象の情報を設定します.
 	 * @return MultiId オブジェクトが返却されます.
 	 */
-	public final MultiId add(Long n) {
+	public MultiId add(Long n) {
 		if (n == null) {
 			n = 0L;
 		}
@@ -205,7 +205,7 @@ public final class MultiId {
 	 *            対象の情報を設定します.
 	 * @return MultiId オブジェクトが返却されます.
 	 */
-	public final MultiId add(Double n) {
+	public MultiId add(Double n) {
 		if (n == null) {
 			n = 0.0d;
 		}
@@ -221,7 +221,7 @@ public final class MultiId {
 	 *            対象の項番を設定します.
 	 * @return Object 情報が返却されます.
 	 */
-	public final Object get(int no) {
+	public Object get(int no) {
 		return list.get(no);
 	}
 
@@ -230,7 +230,7 @@ public final class MultiId {
 	 * 
 	 * @return int 登録情報数が返却されます.
 	 */
-	public final int size() {
+	public int size() {
 		return list.size();
 	}
 
@@ -239,7 +239,7 @@ public final class MultiId {
 	 * 
 	 * @return byte[] バイナリが返却されます.
 	 */
-	public final byte[] toBinary() {
+	public byte[] toBinary() {
 		int len = list.size();
 		if (len == 0) {
 			return null;
@@ -309,7 +309,7 @@ public final class MultiId {
 	 * @param out
 	 *            出力先のJniBufferを設定します.
 	 */
-	public final void toBinary(JniBuffer out) {
+	public void toBinary(JniBuffer out) {
 		int len = list.size();
 		if (len == 0) {
 			out.clear();
@@ -385,7 +385,7 @@ public final class MultiId {
 	 *            対象のバイナリを設定します.
 	 * @return MultiId オブジェクトが返却されます.
 	 */
-	public final MultiId toObject(byte[] binary) {
+	public MultiId toObject(byte[] binary) {
 		if (binary == null || binary.length == 0) {
 			if (list == null) {
 				list = new OList<Object>();
@@ -477,7 +477,7 @@ public final class MultiId {
 	 *            対象のJniBufferオブジェクトを設定します.
 	 * @return MultiId オブジェクトが返却されます.
 	 */
-	public final MultiId toObject(JniBuffer buf) {
+	public MultiId toObject(JniBuffer buf) {
 		if (buf.position == 0) {
 			if (list == null) {
 				list = new OList<Object>();

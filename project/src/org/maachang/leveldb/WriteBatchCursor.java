@@ -3,23 +3,38 @@ package org.maachang.leveldb;
 /**
  * Leveldbバッチカーソル. WriteBatchで書き込み中の情報を 閲覧できる.
  */
-public final class WriteBatchCursor {
+public class WriteBatchCursor {
 
 	// この機能は、Leveldbを拡張して処理している。
 	// よって、以下の３つのメソッドの追加が必要となる.
 	//
+	// <db/write_batch.cc>
+	// // [START]add maachang.
 	// WriteBatch::WriteBatch( const size_t size ) {
-	// rep_.clear();
-	// rep_.reserve(size);
+	//   Clear( size ) ;
+	// }
+	// void WriteBatch::Clear( const size_t size ) {
+	//   rep_.clear() ;
+	//   rep_.reserve(size) ;
+	//   rep_.resize(kHeader) ;
 	// }
 	// const char* WriteBatch::Values() {
-	// return &(rep_[0]) ;
+	//     return &(rep_[0]) ;
 	// }
-	// const size_t WriteBatch::ValuesSize() {
-	// return rep_.size() ;
+	// size_t WriteBatch::ValuesSize() {
+	//     return rep_.size() ;
 	// }
+	// [END]add maachang.
 	//
-	// 上記内容は、db/write_batch.cc /include/write_batch.h
+	// </include/leveldb/write_batch.h>
+	//
+	// // [START]add maachang.
+	//   WriteBatch( const size_t size );
+	//   void Clear( const size_t size );
+	//   const char* Values() ;
+	//   size_t ValuesSize() ;
+	// // [END]add maachang.
+	//
 	// それぞれに追加が必須.
 	//
 
@@ -106,7 +121,7 @@ public final class WriteBatchCursor {
 	/**
 	 * 情報クリア.
 	 */
-	public final void clear() {
+	public void clear() {
 		if (keyBuf != null) {
 			keyBuf.clear(true);
 			keyBuf = null;
@@ -126,7 +141,7 @@ public final class WriteBatchCursor {
 	 * 
 	 * @return boolean [true]の場合、情報が取得できました.
 	 */
-	public final boolean next() {
+	public boolean next() {
 		if (count >= length) {
 			return false;
 		}
@@ -197,7 +212,7 @@ public final class WriteBatchCursor {
 	 * 
 	 * @return boolean [true]の場合、読み込み可能です.
 	 */
-	public final boolean hasNext() {
+	public boolean hasNext() {
 		return count < length;
 	}
 
@@ -206,7 +221,7 @@ public final class WriteBatchCursor {
 	 * 
 	 * @return int モードが返却されます. [PUT]の場合は、モードはPutです. [DELETE]の場合は、モードはDeleteです.
 	 */
-	public final int getMode() {
+	public int getMode() {
 		return mode;
 	}
 
@@ -215,7 +230,7 @@ public final class WriteBatchCursor {
 	 * 
 	 * @return JniBuffer Key情報が格納されたJniBufferが返却されます.
 	 */
-	public final JniBuffer getKey() {
+	public JniBuffer getKey() {
 		return keyBuf;
 	}
 
@@ -224,7 +239,7 @@ public final class WriteBatchCursor {
 	 * 
 	 * @return JniBuffer Value情報が格納されたJniBufferが返却されます.
 	 */
-	public final JniBuffer getValue() {
+	public JniBuffer getValue() {
 		return valueBuf;
 	}
 
@@ -242,7 +257,7 @@ public final class WriteBatchCursor {
 	 * 
 	 * @return int データ長が返却されます.
 	 */
-	public final int getMax() {
+	public int getMax() {
 		return length;
 	}
 
@@ -251,7 +266,7 @@ public final class WriteBatchCursor {
 	 * 
 	 * @return long シーケンスIDが返却されます.
 	 */
-	public final long getSequenceId() {
+	public long getSequenceId() {
 		return seqId;
 	}
 
@@ -260,7 +275,7 @@ public final class WriteBatchCursor {
 	 * 
 	 * @return int バイナリ長が返却されます.
 	 */
-	public final int getBinaryLength() {
+	public int getBinaryLength() {
 		return max;
 	}
 }

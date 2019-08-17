@@ -3,7 +3,7 @@ package org.maachang.leveldb;
 /**
  * Leveldbバッチ書き込み.
  */
-public final class WriteBatch {
+public class WriteBatch {
 	protected long addr = 0L;
 	protected int count = 0;
 	protected int deleteCount = 0;
@@ -33,14 +33,14 @@ public final class WriteBatch {
 	/**
 	 * デストラクタ.
 	 */
-	public final void finalize() throws Exception {
+	public void finalize() throws Exception {
 		close();
 	}
 
 	/**
 	 * バッチ書き込み情報のクローズ.
 	 */
-	public final void close() {
+	public void close() {
 		if (addr != 0L) {
 			jni.leveldb_wb_destroy(addr);
 			addr = 0L;
@@ -56,7 +56,7 @@ public final class WriteBatch {
 	 * @param length
 	 *            WriteBatchの格納用バッファ長を設定します.
 	 */
-	public final void clear(int length) {
+	public void clear(int length) {
 		if (addr != 0L) {
 			if (length <= 0) {
 				jni.leveldb_wb_clear(addr);
@@ -72,7 +72,7 @@ public final class WriteBatch {
 	/**
 	 * バッチ書き込みのクリア.
 	 */
-	public final void clear() {
+	public void clear() {
 		clear(0);
 	}
 
@@ -81,12 +81,12 @@ public final class WriteBatch {
 	 * 
 	 * @return boolean [true]の場合、クローズしています.
 	 */
-	public final boolean isClose() {
+	public boolean isClose() {
 		return addr == 0L;
 	}
 
 	/** check. **/
-	protected final void check() {
+	protected void check() {
 		if (addr == 0L) {
 			throw new LeveldbException("既にクローズされています");
 		}
@@ -100,7 +100,7 @@ public final class WriteBatch {
 	 * @param value
 	 *            対象の要素を設定します.
 	 */
-	public final void put(final JniBuffer key, final JniBuffer value) {
+	public void put(JniBuffer key, JniBuffer value) {
 		check();
 		if (key == null || value == null || key.position() == 0
 				|| value.position() == 0) {
@@ -124,8 +124,8 @@ public final class WriteBatch {
 	 * @param valueLen
 	 *            対象の要素長を設定します.
 	 */
-	public final void put(final long key, final int keyLen, final long value,
-			final int valueLen) {
+	public void put(long key, int keyLen, long value,
+			int valueLen) {
 		check();
 		jni.leveldb_wb_put(addr, key, keyLen, value, valueLen);
 		count++;
@@ -138,7 +138,7 @@ public final class WriteBatch {
 	 * @param key
 	 *            対象のキーを設定します.
 	 */
-	public final void remove(final JniBuffer key) {
+	public void remove(JniBuffer key) {
 		check();
 		if (key == null || key.position() == 0) {
 			throw new LeveldbException("キー情報が設定されていません");
@@ -154,7 +154,7 @@ public final class WriteBatch {
 	 * @param db
 	 *            書き込み先のLeveldbオブジェクトを設定します.
 	 */
-	public final void flush(final Leveldb db) {
+	public void flush(Leveldb db) {
 		check();
 		if (db == null || db.isClose()) {
 			throw new LeveldbException("書き込み先のLeveldbオブジェクトはクローズされているか無効です");
@@ -174,7 +174,7 @@ public final class WriteBatch {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public final WriteBatchCursor getCursor() throws Exception {
+	public WriteBatchCursor getCursor() throws Exception {
 		check();
 		return new WriteBatchCursor(this);
 	}

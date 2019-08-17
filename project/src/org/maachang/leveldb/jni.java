@@ -12,7 +12,7 @@ import java.util.Locale;
 /**
  * jni.
  */
-class jni {
+final class jni {
 	private jni() {
 	}
 
