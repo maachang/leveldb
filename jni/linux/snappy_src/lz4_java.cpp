@@ -6,7 +6,7 @@
 
 /* lz4 max compress length */
 size_t _lz4MaxCompressedLength(size_t one_compress_length) {
-    return LZ4_COMPRESSBOUND(one_compress_length) ;
+    return LZ4_COMPRESSBOUND(one_compress_length) + 4 ;
 }
 
 /** lz4 uncompress length */
@@ -25,8 +25,8 @@ void _lz4UncompressLength(const char* dest, size_t* result) {
 /* lz4 compress */
 int _lz4Compress(const char* src, char* dest, int srcLen) {
     //int ret = LZ4_compress(src, dest+4, srcLen) ;
-    //int ret = LZ4_compress_default(src, dest+4, srcLen, LZ4_COMPRESSBOUND(srcLen)) ;
-    int ret = LZ4_compress_fast(src, dest+4, srcLen, LZ4_COMPRESSBOUND(srcLen), 1);
+    //int ret = LZ4_compress_default(src, dest+4, srcLen, LZ4_COMPRESSBOUND(srcLen) + 4) ;
+    int ret = LZ4_compress_fast(src, dest+4, srcLen, LZ4_COMPRESSBOUND(srcLen) + 4, 1);
     if(ret <= 0) {
         return ret ;
     }
@@ -54,7 +54,7 @@ int _lz4Uncompress(const char* src,const size_t length,char* dest) {
         ( ( src[ 3 ] & 0x000000ff ) << 24 ) ) ;
 #endif
     //int res = LZ4_decompress_fast(src+4, dest, dest_len) ;
-    int res = LZ4_decompress_safe(src+4, dest, length, dest_len);
+    int res = LZ4_decompress_safe(src+4, dest, length - 4, dest_len);
     if(res < 0) {
         return -1 ;
     }
@@ -64,7 +64,7 @@ int _lz4Uncompress(const char* src,const size_t length,char* dest) {
 /* lz4 un compress */
 int _lz4UncompressOnly(const char* src,const size_t length,char* dest,int dest_len) {
     //int res = LZ4_decompress_fast(src+4, dest, dest_len) ;
-    int res = LZ4_decompress_safe(src+4, dest, length, dest_len);
+    int res = LZ4_decompress_safe(src+4, dest, length - 4, dest_len);
     if(res < 0) {
         return -1 ;
     }
