@@ -1,0 +1,4 @@
+.DS_Store
+
+leveldb-*.jar
+project/classes
