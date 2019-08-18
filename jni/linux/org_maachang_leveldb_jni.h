@@ -163,6 +163,34 @@ JNIEXPORT jint JNICALL Java_org_maachang_leveldb_jni_snappyDecompress
 
 /*
  * Class:     org_maachang_leveldb_jni
+ * Method:    lz4MaxCompressedLength
+ */
+JNIEXPORT jint JNICALL Java_org_maachang_leveldb_jni_lz4MaxCompressedLength
+  (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     org_maachang_leveldb_jni
+ * Method:    lz4UncompressLength
+ */
+JNIEXPORT jint JNICALL Java_org_maachang_leveldb_jni_lz4UncompressLength
+  (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     org_maachang_leveldb_jni
+ * Method:    lz4Compress
+ */
+JNIEXPORT jint JNICALL Java_org_maachang_leveldb_jni_lz4Compress
+  (JNIEnv *, jclass, jlong, jint, jlong, jintArray);
+
+/*
+ * Class:     org_maachang_leveldb_jni
+ * Method:    lz4Decompress
+ */
+JNIEXPORT jint JNICALL Java_org_maachang_leveldb_jni_lz4Decompress
+  (JNIEnv *, jclass, jlong, jint, jlong, jintArray);
+
+/*
+ * Class:     org_maachang_leveldb_jni
  * Method:    leveldb_destroy
  */
 JNIEXPORT void JNICALL Java_org_maachang_leveldb_jni_leveldb_1destroy

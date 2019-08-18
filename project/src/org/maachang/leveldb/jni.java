@@ -118,12 +118,12 @@ final class jni {
 	}
 
 	/** ライブラリの読み込みができたかチェック. **/
-	protected static final boolean isInit() {
+	public static final boolean isInit() {
 		return initFlag;
 	}
 
 	/** 文字列をNativeバイナリに変換. **/
-	protected static final byte[] nativeString(String s) {
+	public static final byte[] nativeString(String s) {
 		if (s == null || (s = s.trim()).length() <= 0) {
 			return new byte[1];
 		}
@@ -136,7 +136,7 @@ final class jni {
 	}
 
 	/** 対象OSの最適なライブラリを読み込む. **/
-	private static final String targetDynamincLib(boolean mode, String lib) {
+	public static final String targetDynamincLib(boolean mode, String lib) {
 		String sp = System.getProperty("file.separator");
 		File targetDir = null;
 		targetDir = new File(new StringBuilder().append(
@@ -268,134 +268,144 @@ final class jni {
 	}
 
 	// memory-i/o.
-	protected static native long malloc(int size);
+	public static native long malloc(int size);
 
-	protected static native long realloc(long address, int size);
+	public static native long realloc(long address, int size);
 
-	protected static native void free(long address);
+	public static native void free(long address);
 
-	protected static native void memset(long address, byte code, int size);
+	public static native void memset(long address, byte code, int size);
 
-	protected static native void memcpy(long destAddr, long srcAddr, int size);
+	public static native void memcpy(long destAddr, long srcAddr, int size);
 
-	protected static native int memcmp(long aAddr, long bAddr, int len);
+	public static native int memcmp(long aAddr, long bAddr, int len);
 
-	protected static native byte getByte(long address);
+	public static native byte getByte(long address);
 
-	protected static native void putByte(long address, byte value);
+	public static native void putByte(long address, byte value);
 
-	protected static native void getBinary(long address, byte[] binary,
-			int off, int len);
+	public static native void getBinary(long address, byte[] binary,
+		int off, int len);
 
-	protected static native void putBinary(long address, byte[] binary,
-			int off, int len);
+	public static native void putBinary(long address, byte[] binary,
+		int off, int len);
 
-	protected static native void putChar(long address, char value);
+	public static native void putChar(long address, char value);
 
-	protected static native char getChar(long address);
+	public static native char getChar(long address);
 
-	protected static native void putShort(long address, short value);
+	public static native void putShort(long address, short value);
 
-	protected static native short getShort(long address);
+	public static native short getShort(long address);
 
-	protected static native void putInt(long address, int value);
+	public static native void putInt(long address, int value);
 
-	protected static native int getInt(long address);
+	public static native int getInt(long address);
 
-	protected static native void putLong(long address, long value);
+	public static native void putLong(long address, long value);
 
-	protected static native long getLong(long address);
+	public static native long getLong(long address);
 
-	protected static native int eq(long srcAddr, long destAddr, int len);
+	public static native int eq(long srcAddr, long destAddr, int len);
 
 	// snappy.
-	protected static native int snappyMaxCompressedLength(int oneCompressLength);
+	public static native int snappyMaxCompressedLength(int oneCompressLength);
 
-	protected static native int snappyCompress(long src, int src_len, long dst,
+	public static native int snappyCompress(long src, int src_len, long dst,
 			int[] dst_len);
 
-	protected static native int snappyDecompress(long src, int src_len,
+	public static native int snappyDecompress(long src, int src_len,
+			long dst, int[] dst_len);
+	
+	// lz4.
+	public static native int lz4MaxCompressedLength(int oneCompressLength);
+
+	public static native int lz4UncompressLength(long src);
+
+	public static native int lz4Compress(long src, int src_len, long dst,
+			int[] dst_len);
+
+	public static native int lz4Decompress(long src, int src_len,
 			long dst, int[] dst_len);
 
 	// leveldb.
-	protected static native void leveldb_destroy(long name, int type,
+	public static native void leveldb_destroy(long name, int type,
 			int write_buffer_size, int max_open_files, int block_size,
 			int block_restart_interval);
 
-	protected static native void leveldb_repair(long name, int type,
+	public static native void leveldb_repair(long name, int type,
 			int write_buffer_size, int max_open_files, int block_size,
 			int block_restart_interval);
 
-	protected static native long leveldb_open(long name, int type,
+	public static native long leveldb_open(long name, int type,
 			int write_buffer_size, int max_open_files, int block_size,
 			int block_restart_interval, int block_cache);
 
 	// leveldb-i/o.
-	protected static native void leveldb_close(long db);
+	public static native void leveldb_close(long db);
 
-	protected static native int leveldb_put(long db, long key, int kLen,
+	public static native int leveldb_put(long db, long key, int kLen,
 			long value, int vLen);
 
-	protected static native int leveldb_get(long db, long key, int len,
+	public static native int leveldb_get(long db, long key, int len,
 			long[] buf, int bufLen);
 
-	protected static native int leveldb_remove(long db, long key, int len);
+	public static native int leveldb_remove(long db, long key, int len);
 
-	protected static native long leveldb_iterator(long db);
+	public static native long leveldb_iterator(long db);
 
-	protected static native int leveldb_property(long db, long cmd, int cmdLen,
+	public static native int leveldb_property(long db, long cmd, int cmdLen,
 			long[] buf, int bufLen);
 
-	protected static native int leveldb_vacuum(long db, long start,
+	public static native int leveldb_vacuum(long db, long start,
 			int startLen, long end, int endLen);
 
 	// leveldb-iterator.
-	protected static native void leveldb_itr_delete(long itr); // iterator
-																// close.
+	public static native void leveldb_itr_delete(long itr); // iterator close.
 
-	protected static native void leveldb_itr_first(long itr);
+	public static native void leveldb_itr_first(long itr);
 
-	protected static native void leveldb_itr_last(long itr);
+	public static native void leveldb_itr_last(long itr);
 
-	protected static native void leveldb_itr_seek(long itr, long key, int len);
+	public static native void leveldb_itr_seek(long itr, long key, int len);
 
-	protected static native int leveldb_itr_valid(long itr);
+	public static native int leveldb_itr_valid(long itr);
 
-	protected static native void leveldb_itr_next(long itr);
+	public static native void leveldb_itr_next(long itr);
 
-	protected static native void leveldb_itr_before(long itr);
+	public static native void leveldb_itr_before(long itr);
 
-	protected static native int leveldb_itr_key(long itr, long[] buf, int bufLen);
+	public static native int leveldb_itr_key(long itr, long[] buf, int bufLen);
 
-	protected static native int leveldb_itr_value(long itr, long[] buf,
+	public static native int leveldb_itr_value(long itr, long[] buf,
 			int bufLen);
 
 	// Write-Batch.
-	protected static native long leveldb_wb_create();
+	public static native long leveldb_wb_create();
 
-	protected static native long leveldb_wb_create_by_size(int len);
+	public static native long leveldb_wb_create_by_size(int len);
 
-	protected static native void leveldb_wb_destroy(long wb);
+	public static native void leveldb_wb_destroy(long wb);
 
-	protected static native void leveldb_wb_clear_by_size(long wb, int len);
+	public static native void leveldb_wb_clear_by_size(long wb, int len);
 
-	protected static native void leveldb_wb_clear(long wb);
+	public static native void leveldb_wb_clear(long wb);
 
-	protected static native void leveldb_wb_put(long wb, long key, int kLen,
+	public static native void leveldb_wb_put(long wb, long key, int kLen,
 			long value, int vLen);
 
-	protected static native void leveldb_wb_remove(long wb, long key, int len);
+	public static native void leveldb_wb_remove(long wb, long key, int len);
 
-	protected static native long leveldb_wb_values(long wb);
+	public static native long leveldb_wb_values(long wb);
 
-	protected static native int leveldb_wb_values_size(long wb);
+	public static native int leveldb_wb_values_size(long wb);
 
-	protected static native int leveldb_wb_flush(long db, long wb);
+	public static native int leveldb_wb_flush(long db, long wb);
 
 	// SnapShort.
-	protected static native long leveldb_ss_create(long db);
+	public static native long leveldb_ss_create(long db);
 
-	protected static native void leveldb_ss_destroy(long db, long ss);
+	public static native void leveldb_ss_destroy(long db, long ss);
 
-	protected static native long leveldb_ss_iterator(long db, long ss);
+	public static native long leveldb_ss_iterator(long db, long ss);
 }

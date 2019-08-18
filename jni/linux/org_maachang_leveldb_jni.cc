@@ -3,6 +3,7 @@
 
 #include "leveldb_src/include/javaLeveldb.h"
 #include "snappy_src/snappy_java.h"
+#include "snappy_src/lz4_java.h"
 #include "org_maachang_leveldb_jni.h"
 
 /** malloc. **/
@@ -156,6 +157,40 @@ JNIEXPORT jint JNICALL Java_org_maachang_leveldb_jni_snappyDecompress
         return -1 ;
     }
     env->SetIntArrayRegion( dst_len,0,1,(const jint*)&out ) ;
+    return 0 ;
+}
+
+/** lz4圧縮バッファサイズの計算. **/
+JNIEXPORT jint JNICALL Java_org_maachang_leveldb_jni_lz4MaxCompressedLength
+  (JNIEnv* env, jclass c, jint oneCompressLength ) {
+    return (jint)_lz4MaxCompressedLength((size_t)oneCompressLength);
+}
+
+/** lz4解凍バッファサイズの取得. **/
+JNIEXPORT jint JNICALL Java_org_maachang_leveldb_jni_lz4UncompressLength
+  (JNIEnv* env, jclass c, jlong src ) {
+    size_t out;
+    _lz4UncompressLength((char*)src, &out);
+    return (jint)out;
+}
+
+/** lz4圧縮. **/
+JNIEXPORT jint JNICALL Java_org_maachang_leveldb_jni_lz4Compress
+  (JNIEnv* env, jclass c, jlong src, jint src_len, jlong dst, jintArray dst_len) {
+    int out;
+    out = _lz4Compress((char*)src,(char*)dst, (int)src_len );
+    env->SetIntArrayRegion(dst_len, 0, 1, &out);
+    return (jint)0 ;
+}
+
+/** lz4解凍. **/
+JNIEXPORT jint JNICALL Java_org_maachang_leveldb_jni_lz4Decompress
+  (JNIEnv* env, jclass c, jlong src, jint src_len, jlong dst, jintArray dst_len) {
+    size_t out = _lz4Uncompress((char*)src, src_len,(char*)dst) ;
+    if( out == -1 ) {
+        return -1 ;
+    }
+    env->SetIntArrayRegion(dst_len, 0, 1, (const jint*)&out) ;
     return 0 ;
 }
 

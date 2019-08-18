@@ -25,8 +25,8 @@ void _lz4UncompressLength(const char* dest, size_t* result) {
 /* lz4 compress */
 int _lz4Compress(const char* src, char* dest, int srcLen) {
     //int ret = LZ4_compress(src, dest+4, srcLen) ;
-    //int ret = LZ4_compress_default(src, dest+4, srcLen, LZ4_COMPRESSBOUND(srcLen) + 4) ;
-    int ret = LZ4_compress_fast(src, dest+4, srcLen, LZ4_COMPRESSBOUND(srcLen) + 4, 1);
+    //int ret = LZ4_compress_default(src, dest+4, srcLen, _lz4MaxCompressedLength(srcLen)) ;
+    int ret = LZ4_compress_fast(src, dest + 4, srcLen, _lz4MaxCompressedLength(srcLen), 1);
     if(ret <= 0) {
         return ret ;
     }
