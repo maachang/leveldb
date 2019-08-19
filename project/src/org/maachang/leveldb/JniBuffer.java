@@ -1,6 +1,8 @@
 package org.maachang.leveldb ;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
@@ -15,6 +17,31 @@ public class JniBuffer extends OutputStream {
     public long address ;
     public int length ;
     public int position ;
+    
+    /**
+     * ファイル内容を読み込んで取得.
+     * @param out
+     * @param name
+     * @throws IOException
+     */
+    public static final void readFile(JniBuffer out, String name)
+        throws IOException {
+        int len;
+        byte[] bin = new byte[1024];
+        InputStream in = null;
+        try {
+            in = new FileInputStream(name);
+            while((len = in.read(bin)) != -1) {
+                out.write(bin, 0, len);
+            }
+            in.close();
+            in = null;
+        } finally {
+            if(in != null) {
+                try { in.close(); } catch(Exception e) {}
+            }
+        }
+    }
     
     /**
      * コンストラクタ.
@@ -765,4 +792,15 @@ public class JniBuffer extends OutputStream {
             append( position ).toString() ;
     }
     
+    /**
+     * 内容が一致しているかチェック.
+     * @param b
+     * @return
+     */
+    public boolean equals(JniBuffer b) {
+        if(b != null && position == b.position) {
+            return JniIO.equals(address, position, b.address, b.position);
+        }
+        return false;
+    }
 }
