@@ -92,7 +92,7 @@ public final class LevelId {
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2)
-					throws Exception {
+				throws Exception {
 
 				buf.setString(value == null ? "" : Utils
 						.convertString(value));
@@ -103,7 +103,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf)
-					throws Exception {
+				throws Exception {
 				out[0] = buf.getString();
 			}
 		},
@@ -117,7 +117,7 @@ public final class LevelId {
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2)
-					throws Exception {
+				throws Exception {
 				if (Utils.isNumeric(value)) {
 					buf.setInt(Utils.convertInt(value));
 				} else {
@@ -130,7 +130,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf)
-					throws Exception {
+				throws Exception {
 				out[0] = buf.getIntE();
 			}
 		},
@@ -144,7 +144,7 @@ public final class LevelId {
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2)
-					throws Exception {
+				throws Exception {
 				if (Utils.isNumeric(value)) {
 					buf.setLong(Utils.convertLong(value));
 				} else {
@@ -157,7 +157,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf)
-					throws Exception {
+				throws Exception {
 				out[0] = buf.getLongE();
 			}
 		},
@@ -168,7 +168,7 @@ public final class LevelId {
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2)
-					throws Exception {
+				throws Exception {
 				value = (value != null) ? Utils.convertString(value) : "";
 				value2 = (value2 != null) ? Utils.convertString(value2)
 						: "";
@@ -180,7 +180,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf)
-					throws Exception {
+				throws Exception {
 				int len = buf.position();
 				long addr = buf.address;
 
@@ -208,7 +208,7 @@ public final class LevelId {
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2)
-					throws Exception {
+				throws Exception {
 				value = (value != null) ? Utils.convertString(value) : "";
 				value2 = Utils.isNumeric(value2) ? Utils.convertInt(value2)
 						: 0;
@@ -220,7 +220,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf)
-					throws Exception {
+				throws Exception {
 				long addr = buf.address;
 
 				// one.
@@ -242,7 +242,7 @@ public final class LevelId {
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2)
-					throws Exception {
+				throws Exception {
 				value = (value != null) ? Utils.convertString(value) : "";
 				value2 = Utils.isNumeric(value2) ? Utils
 						.convertLong(value2) : 0L;
@@ -254,7 +254,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf)
-					throws Exception {
+				throws Exception {
 				long addr = buf.address;
 
 				// one.
@@ -276,7 +276,7 @@ public final class LevelId {
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2)
-					throws Exception {
+				throws Exception {
 				value = Utils.isNumeric(value) ? Utils.convertInt(value)
 						: 0;
 				value2 = (value2 != null) ? Utils.convertString(value2)
@@ -289,7 +289,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf)
-					throws Exception {
+				throws Exception {
 				int len = buf.position();
 				long addr = buf.address;
 
@@ -311,7 +311,7 @@ public final class LevelId {
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2)
-					throws Exception {
+				throws Exception {
 				value = Utils.isNumeric(value) ? Utils.convertInt(value)
 						: 0;
 				value2 = Utils.isNumeric(value2) ? Utils.convertInt(value2)
@@ -324,7 +324,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf)
-					throws Exception {
+				throws Exception {
 				long addr = buf.address;
 
 				// one.
@@ -341,7 +341,7 @@ public final class LevelId {
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2)
-					throws Exception {
+				throws Exception {
 				value = Utils.isNumeric(value) ? Utils.convertInt(value)
 						: 0;
 				value2 = Utils.isNumeric(value2) ? Utils
@@ -354,7 +354,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf)
-					throws Exception {
+				throws Exception {
 				long addr = buf.address;
 
 				// one.
@@ -371,7 +371,7 @@ public final class LevelId {
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2)
-					throws Exception {
+				throws Exception {
 				value = Utils.isNumeric(value) ? Utils.convertLong(value)
 						: 0L;
 				value2 = (value2 != null) ? Utils.convertString(value2)
@@ -384,7 +384,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf)
-					throws Exception {
+				throws Exception {
 				int len = buf.position();
 				long addr = buf.address;
 
@@ -406,7 +406,7 @@ public final class LevelId {
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2)
-					throws Exception {
+				throws Exception {
 				value = Utils.isNumeric(value) ? Utils.convertLong(value)
 						: 0L;
 				value2 = Utils.isNumeric(value2) ? Utils.convertInt(value2)
@@ -419,7 +419,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf)
-					throws Exception {
+				throws Exception {
 				long addr = buf.address;
 
 				// one.
@@ -436,7 +436,7 @@ public final class LevelId {
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2)
-					throws Exception {
+				throws Exception {
 				value = Utils.isNumeric(value) ? Utils.convertLong(value)
 						: 0L;
 				value2 = Utils.isNumeric(value2) ? Utils
@@ -449,7 +449,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf)
-					throws Exception {
+				throws Exception {
 				long addr = buf.address;
 
 				// one.
@@ -466,7 +466,7 @@ public final class LevelId {
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2)
-					throws Exception {
+				throws Exception {
 				value = value != null ? Utils.convertString(value) : "";
 				value2 = value2 == null || !(value2 instanceof byte[]) ? TwoKey.NONE
 						: value2;
@@ -478,7 +478,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf)
-					throws Exception {
+				throws Exception {
 				int len = buf.position();
 				long addr = buf.address;
 
@@ -508,7 +508,7 @@ public final class LevelId {
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2)
-					throws Exception {
+				throws Exception {
 				value = Utils.isNumeric(value) ? Utils.convertInt(value)
 						: 0;
 				value2 = value2 == null || !(value2 instanceof byte[]) ? TwoKey.NONE
@@ -521,7 +521,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf)
-					throws Exception {
+				throws Exception {
 				int len = buf.position();
 				long addr = buf.address;
 
@@ -545,7 +545,7 @@ public final class LevelId {
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2)
-					throws Exception {
+				throws Exception {
 				value = Utils.isNumeric(value) ? Utils.convertLong(value)
 						: 0L;
 				value2 = value2 == null || !(value2 instanceof byte[]) ? TwoKey.NONE
@@ -558,7 +558,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf)
-					throws Exception {
+				throws Exception {
 				int len = buf.position();
 				long addr = buf.address;
 
@@ -582,7 +582,7 @@ public final class LevelId {
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2)
-					throws Exception {
+				throws Exception {
 				value = value == null || !(value instanceof byte[]) ? TwoKey.NONE
 						: value;
 				value2 = (value2 != null) ? Utils.convertString(value2)
@@ -595,7 +595,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf)
-					throws Exception {
+				throws Exception {
 				int len = buf.position();
 				long addr = buf.address;
 
@@ -624,7 +624,7 @@ public final class LevelId {
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2)
-					throws Exception {
+				throws Exception {
 				value = value == null || !(value instanceof byte[]) ? TwoKey.NONE
 						: value;
 				value2 = Utils.isNumeric(value2) ? Utils.convertInt(value2)
@@ -637,7 +637,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf)
-					throws Exception {
+				throws Exception {
 				long addr = buf.address;
 
 				// one.
@@ -660,7 +660,7 @@ public final class LevelId {
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2)
-					throws Exception {
+				throws Exception {
 				value = value == null || !(value instanceof byte[]) ? TwoKey.NONE
 						: value;
 				value2 = Utils.isNumeric(value2) ? Utils
@@ -673,7 +673,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf)
-					throws Exception {
+				throws Exception {
 				long addr = buf.address;
 
 				// one.
@@ -696,7 +696,7 @@ public final class LevelId {
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2)
-					throws Exception {
+				throws Exception {
 				value = value == null || !(value instanceof byte[]) ? TwoKey.NONE
 						: value;
 				value2 = value2 == null || !(value2 instanceof byte[]) ? TwoKey.NONE
@@ -709,7 +709,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf)
-					throws Exception {
+				throws Exception {
 				int len = buf.position();
 				long addr = buf.address;
 
@@ -785,7 +785,7 @@ public final class LevelId {
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2)
-					throws Exception {
+				throws Exception {
 				if (value == null) {
 					MultiId m = new MultiId();
 					m.add((String) null);
@@ -840,7 +840,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf)
-					throws Exception {
+				throws Exception {
 				out[0] = new MultiId(buf);
 			}
 		},
@@ -851,11 +851,9 @@ public final class LevelId {
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2)
-					throws Exception {
-				buf
-						.setBinary(value == null
-								|| !(value instanceof byte[]) ? TwoKey.NONE
-								: (byte[]) value);
+				throws Exception {
+				buf.setBinary(value == null || !(value instanceof byte[]) ?
+					TwoKey.NONE : (byte[]) value);
 			}
 
 			public final Object get(JniBuffer buf) throws Exception {
@@ -863,7 +861,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf)
-					throws Exception {
+				throws Exception {
 				out[0] = buf.getBinary();
 			}
 		}
@@ -954,7 +952,7 @@ public final class LevelId {
 	 *                例外.
 	 */
 	public static final void buf(int type, JniBuffer buf, Object value)
-			throws Exception {
+		throws Exception {
 		_CALL[type].buf(buf, value, null);
 	}
 
@@ -972,8 +970,8 @@ public final class LevelId {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final void buf(int type, JniBuffer buf, Object value,
-			Object value2) throws Exception {
+	public static final void buf(int type, JniBuffer buf, Object value, Object value2)
+		throws Exception {
 
 		// マルチキーの場合.
 		if (LevelOption.TYPE_PARAM_LENGTH[type] == 0) {
@@ -1006,7 +1004,7 @@ public final class LevelId {
 	 *                例外.
 	 */
 	public static final void buf(int type, JniBuffer buf, Object... value)
-			throws Exception {
+		throws Exception {
 		if (value == null) {
 			_CALL[type].buf(buf, null, null);
 			return;
@@ -1056,7 +1054,7 @@ public final class LevelId {
 	 *                例外.
 	 */
 	public static final void get(Object[] out, int type, JniBuffer buf)
-			throws Exception {
+		throws Exception {
 		_CALL[type].get(out, buf);
 	}
 

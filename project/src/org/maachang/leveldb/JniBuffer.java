@@ -42,7 +42,7 @@ public class JniBuffer extends OutputStream {
     /**
      * デストラクタ.
      */
-    protected final void finalize() throws Exception {
+    protected void finalize() throws Exception {
         destroy() ;
     }
     
@@ -52,7 +52,7 @@ public class JniBuffer extends OutputStream {
      * @param len 新しい長さを設定します.
      * @param pos 対象のポジションを設定します.
      */
-    protected final void set( long addr,int len,int pos ) {
+    protected void set( long addr,int len,int pos ) {
         
         // 前回のメモリが存在する場合.
         if( address != 0L ) {
@@ -81,7 +81,7 @@ public class JniBuffer extends OutputStream {
      * @param newLen 新しく作成するサイズを設定します.
      * @return long アドレスが返却されます.
      */
-    public final long recreate( boolean copy,int newLen ) {
+    public long recreate( boolean copy,int newLen ) {
         
         // 現在の長さよりも小さい場合は、生成しない.
         if( length >= newLen ) {
@@ -136,7 +136,7 @@ public class JniBuffer extends OutputStream {
      * バッファデータを破棄.
      * @return JniBuffer オブジェクトが返却されます.
      */
-    public final JniBuffer destroy() {
+    public JniBuffer destroy() {
         if( address != 0L ) {
             jni.free( address ) ;
             address = 0L ;
@@ -153,7 +153,7 @@ public class JniBuffer extends OutputStream {
      * @param len 指定サイズよりも小さいバッファサイズの場合は、対象サイズで生成します.
      * @return JniBuffer オブジェクトが返却されます.
      */
-    public final JniBuffer clear( int len ) {
+    public JniBuffer clear( int len ) {
         if( address != 0L ) {
             if( length > len ) {
                 position = 0 ;
@@ -171,7 +171,7 @@ public class JniBuffer extends OutputStream {
      * 情報をクリア.
      * @return JniBuffer オブジェクトが返却されます.
      */
-    public final JniBuffer clear() {
+    public JniBuffer clear() {
         return clear( false ) ;
     }
     
@@ -180,7 +180,7 @@ public class JniBuffer extends OutputStream {
      * @param mode [true]の場合は、現在のバッファ長が一定領域を超えている場合は、クリアします.
      * @return JniBuffer オブジェクトが返却されます.
      */
-    public final JniBuffer clear( boolean mode ) {
+    public JniBuffer clear( boolean mode ) {
         if( address != 0L ) {
             
             // 指定メモリのサイズが規定値を超える場合は、
@@ -201,7 +201,7 @@ public class JniBuffer extends OutputStream {
      * バッファポインタを取得.
      * @return long バッファポインタが返却されます.
      */
-    public final long address() {
+    public long address() {
         return address ;
     }
     
@@ -209,7 +209,7 @@ public class JniBuffer extends OutputStream {
      * バッファ全体長を取得.
      * @return int バッファ全体長が返却されます.
      */
-    public final int length() {
+    public int length() {
         return length ;
     }
     
@@ -217,7 +217,7 @@ public class JniBuffer extends OutputStream {
      * 現在のポジションを取得.
      * @return int 現在のポジションが返却されます.
      */
-    public final int position() {
+    public int position() {
         return position ;
     }
     
@@ -225,25 +225,25 @@ public class JniBuffer extends OutputStream {
      * 現在のポジションを設定.
      * @param p 対象のポジションを設定します.
      */
-    public final void position( int p ) {
+    public void position( int p ) {
         recreate( true,p+1 ) ;
         position = p ;
     }
     
     /** 書き込み処理. **/
-    private final void _write( boolean copy,int b ) {
+    private void _write( boolean copy,int b ) {
         recreate( copy,position + 1 ) ;
         JniIO.put( address,position,(byte)b ) ;
         position += 1 ;
     }
     
     /** 書き込み処理. **/
-    private final void _write( boolean copy,byte b[] ) {
+    private void _write( boolean copy,byte b[] ) {
         _write( copy,b,0,b.length );
     }
     
     /** 書き込み処理. **/
-    private final void _write( boolean copy,byte b[],int off,int len ) {
+    private void _write( boolean copy,byte b[],int off,int len ) {
         if (b == null) {
             throw new NullPointerException();
         } else if ((off < 0) || (off > b.length) || (len < 0) ||
@@ -261,7 +261,7 @@ public class JniBuffer extends OutputStream {
      * クローズ処理.
      * @exception IOException 例外.
      */
-    public final void close() throws IOException {
+    public void close() throws IOException {
         clear() ;
     }
     
@@ -270,7 +270,7 @@ public class JniBuffer extends OutputStream {
      * ※jniBufferでは意味がありません.
      * @exception IOException 例外.
      */
-    public final void flush() throws IOException {
+    public void flush() throws IOException {
     }
     
     /**
@@ -278,7 +278,7 @@ public class JniBuffer extends OutputStream {
      * @param b 対象の情報を設定します.
      * @exception IOException 例外.
      */
-    public final void write(int b) throws IOException {
+    public void write(int b) throws IOException {
         _write( true,b ) ;
     }
     
@@ -287,7 +287,7 @@ public class JniBuffer extends OutputStream {
      * @param b 対象の情報を設定します.
      * @exception IOException 例外.
      */
-    public final void write(byte b[]) throws IOException {
+    public void write(byte b[]) throws IOException {
         _write( true,b,0,b.length );
     }
     
@@ -298,7 +298,7 @@ public class JniBuffer extends OutputStream {
      * @param len 対象の長さを設定します.
      * @exception IOException 例外.
      */
-    public final void write(byte b[], int off, int len) throws IOException {
+    public void write(byte b[], int off, int len) throws IOException {
         _write( true,b,off,len );
     }
     
@@ -307,7 +307,7 @@ public class JniBuffer extends OutputStream {
      * @param value 対象の１バイト情報を設定します.
      * @return JniBuffer オブジェクトが返却されます.
      */
-    public final JniBuffer set( final int value ) {
+    public JniBuffer set( int value ) {
         position = 0 ;
         _write( false,value ) ;
         return this ;
@@ -318,7 +318,7 @@ public class JniBuffer extends OutputStream {
      * @param value 対象の１バイト情報を設定します.
      * @return JniBuffer オブジェクトが返却されます.
      */
-    public final JniBuffer set( final byte value ) {
+    public JniBuffer set( byte value ) {
         return set( (int)value ) ;
     }
     
@@ -326,7 +326,7 @@ public class JniBuffer extends OutputStream {
      * 1バイトの情報を取得.
      * @return Byte バイト情報が返されます.
      */
-    public final Byte get() {
+    public Byte get() {
         if( position == 0 ) {
             return null ;
         }
@@ -338,7 +338,7 @@ public class JniBuffer extends OutputStream {
      * @param value 設定対象の情報を設定します.
      * @return JniBuffer オブジェクトが返却されます.
      */
-    public final JniBuffer setBinary( final byte[] value ) {
+    public JniBuffer setBinary( byte[] value ) {
         return setBinary( value,0,value.length ) ;
     }
     
@@ -348,7 +348,7 @@ public class JniBuffer extends OutputStream {
      * @param len 対象のデータ長を設定します.
      * @return JniBuffer オブジェクトが返却されます.
      */
-    public final JniBuffer setBinary( final byte[] value,final int len ) {
+    public JniBuffer setBinary( byte[] value,int len ) {
         return setBinary( value,0,len ) ;
     }
     
@@ -359,7 +359,7 @@ public class JniBuffer extends OutputStream {
      * @param len 対象のデータ長を設定します.
      * @return JniBuffer オブジェクトが返却されます.
      */
-    public final JniBuffer setBinary( final byte[] value,final int off,final int len ) {
+    public JniBuffer setBinary( byte[] value,int off,int len ) {
         position = 0 ;
         _write( false,value,off,len ) ;
         return this ;
@@ -370,11 +370,11 @@ public class JniBuffer extends OutputStream {
      * @param value 取得対象の情報を設定します.
      * @return int 取得された長さが返されます.
      */
-    public final byte[] getBinary() {
+    public byte[] getBinary() {
         if( position == 0 ) {
             return null ;
         }
-        final byte[] ret = new byte[ position ] ;
+        byte[] ret = new byte[ position ] ;
         jni.getBinary( address,ret,0,position ) ;
         return ret ;
     }
@@ -384,7 +384,7 @@ public class JniBuffer extends OutputStream {
      * @param value 取得対象の情報を設定します.
      * @return int 取得された長さが返されます.
      */
-    public final int getBinary( final byte[] value ) {
+    public int getBinary( byte[] value ) {
         return getBinary( value,0,value.length ) ;
     }
     
@@ -394,7 +394,7 @@ public class JniBuffer extends OutputStream {
      * @param length 対象のデータ長を設定します.
      * @return int 取得された長さが返されます.
      */
-    public final int getBinary( final byte[] value,final int len ) {
+    public int getBinary( byte[] value,int len ) {
         return getBinary( value,0,len ) ;
     }
     
@@ -405,7 +405,7 @@ public class JniBuffer extends OutputStream {
      * @param length 対象のデータ長を設定します.
      * @return int 取得された長さが返されます.
      */
-    public final int getBinary( final byte[] value,final int off,int len ) {
+    public int getBinary( byte[] value,int off,int len ) {
         if( position < off + len ) {
             len = position - off ;
         }
@@ -425,7 +425,7 @@ public class JniBuffer extends OutputStream {
      * @return JniBuffer オブジェクトが返却されます.
      * @exception Exception 例外.
      */
-    public final JniBuffer setString( String string )
+    public JniBuffer setString( String string )
         throws Exception {
         position = 0 ;
         setString( string,0,string.length() ) ;
@@ -440,7 +440,7 @@ public class JniBuffer extends OutputStream {
      * @return JniBuffer オブジェクトが返却されます.
      * @exception Exception 例外.
      */
-    public final JniBuffer setString( String string,int off,int len )
+    public JniBuffer setString( String string,int off,int len )
         throws Exception {
         if (string == null) {
             throw new NullPointerException();
@@ -462,7 +462,7 @@ public class JniBuffer extends OutputStream {
      * @return String 文字情報が返却されます.
      * @exception Exception 例外.
      */
-    public final String getString() throws Exception {
+    public String getString() throws Exception {
         return getString( position ) ;
     }
     
@@ -472,7 +472,7 @@ public class JniBuffer extends OutputStream {
      * @return String 文字情報が返却されます.
      * @exception Exception 例外.
      */
-    public final String getString( int len )
+    public String getString( int len )
         throws Exception {
         if( len > position ) {
             len = position ;
@@ -488,7 +488,7 @@ public class JniBuffer extends OutputStream {
      * @param value 設定対象の情報を設定します.
      * @return JniBuffer オブジェクトが返却されます.
      */
-    public final JniBuffer setBoolean( final boolean value ) {
+    public JniBuffer setBoolean( boolean value ) {
         position = 0 ;
         recreate( false,1 ) ;
         JniIO.put( address,0,(byte)( (value)?1:0 ) ) ;
@@ -502,7 +502,7 @@ public class JniBuffer extends OutputStream {
      * @param index 対象のインデックス位置を設定します.
      * @return boolean 情報が返されます.
      */
-    public final Boolean getBoolean() {
+    public Boolean getBoolean() {
         if( position == 0 ) {
             return null ;
         }
@@ -514,7 +514,7 @@ public class JniBuffer extends OutputStream {
      * @param value 設定対象の情報を設定します.
      * @return JniBuffer オブジェクトが返却されます.
      */
-    public final JniBuffer setChar( final char value ) {
+    public JniBuffer setChar( char value ) {
         position = 0 ;
         recreate( false,2 ) ;
         JniIO.putChar( address,0,value ) ;
@@ -550,7 +550,7 @@ public class JniBuffer extends OutputStream {
      * @param value 設定対象の情報を設定します.
      * @return JniBuffer オブジェクトが返却されます.
      */
-    public final JniBuffer setShort( final short value ) {
+    public JniBuffer setShort( short value ) {
         position = 0 ;
         recreate( false,2 ) ;
         JniIO.putShort( address,0,value ) ;
@@ -586,7 +586,7 @@ public class JniBuffer extends OutputStream {
      * @param value 設定対象の情報を設定します.
      * @return JniBuffer オブジェクトが返却されます.
      */
-    public final JniBuffer setInt( final int value ) {
+    public JniBuffer setInt( int value ) {
         position = 0 ;
         recreate( false,4 ) ;
         JniIO.putInt( address,0,value ) ;
@@ -598,7 +598,7 @@ public class JniBuffer extends OutputStream {
      * int取得.
      * @return Integer 情報が返されます.
      */
-    public final Integer getInt() {
+    public Integer getInt() {
         if( position < 4 ) {
             return null ;
         }
@@ -610,7 +610,7 @@ public class JniBuffer extends OutputStream {
      * <p>Endian変換を行います.</p>
      * @return Integer 情報が返されます.
      */
-    public final Integer getIntE() {
+    public Integer getIntE() {
         if( position < 4 ) {
             return null ;
         }
@@ -622,7 +622,7 @@ public class JniBuffer extends OutputStream {
      * @param value 設定対象の情報を設定します.
      * @return JniBuffer オブジェクトが返却されます.
      */
-    public final JniBuffer setLong( final long value ) {
+    public JniBuffer setLong( long value ) {
         position = 0 ;
         recreate( false,8 ) ;
         JniIO.putLong( address,0,value ) ;
@@ -634,7 +634,7 @@ public class JniBuffer extends OutputStream {
      * long取得.
      * @return Long 情報が返されます.
      */
-    public final Long getLong() {
+    public Long getLong() {
         if( position < 8 ) {
             return null ;
         }
@@ -646,7 +646,7 @@ public class JniBuffer extends OutputStream {
      * <p>Endian変換を行います.</p>
      * @return Long 情報が返されます.
      */
-    public final Long getLongE() {
+    public Long getLongE() {
         if( position < 8 ) {
             return null ;
         }
@@ -658,7 +658,7 @@ public class JniBuffer extends OutputStream {
      * @param value 設定対象の情報を設定します.
      * @return JniBuffer オブジェクトが返却されます.
      */
-    public final JniBuffer setFloat( final float value ) {
+    public JniBuffer setFloat( float value ) {
         position = 0 ;
         recreate( false,4 ) ;
         JniIO.putFloat( address,0,value ) ;
@@ -670,7 +670,7 @@ public class JniBuffer extends OutputStream {
      * float取得.
      * @return Float 情報が返されます.
      */
-    public final Float getFloat() {
+    public Float getFloat() {
         if( position < 4 ) {
             return null ;
         }
@@ -682,7 +682,7 @@ public class JniBuffer extends OutputStream {
      * <p>Endian変換を行います.</p>
      * @return Float 情報が返されます.
      */
-    public final Float getFloatE() {
+    public Float getFloatE() {
         if( position < 4 ) {
             return null ;
         }
@@ -694,7 +694,7 @@ public class JniBuffer extends OutputStream {
      * @param value 設定対象の情報を設定します.
      * @return JniBuffer オブジェクトが返却されます.
      */
-    public final JniBuffer setDouble( final double value ) {
+    public JniBuffer setDouble( double value ) {
         position = 0 ;
         recreate( false,8 ) ;
         JniIO.putDouble( address,0,value ) ;
@@ -706,7 +706,7 @@ public class JniBuffer extends OutputStream {
      * double取得.
      * @return Double 情報が返されます.
      */
-    public final Double getDouble() {
+    public Double getDouble() {
         if( position < 8 ) {
             return null ;
         }
@@ -718,7 +718,7 @@ public class JniBuffer extends OutputStream {
      * <p>Endian変換を行います.</p>
      * @return Double 情報が返されます.
      */
-    public final Double getDoubleE() {
+    public Double getDoubleE() {
         if( position < 8 ) {
             return null ;
         }
@@ -732,7 +732,7 @@ public class JniBuffer extends OutputStream {
      * @param string 対象の文字列を設定します.
      * @return JniBuffer オブジェクトが返却されます.
      */
-    protected final JniBuffer setJniChar( String string ) {
+    protected JniBuffer setJniChar( String string ) {
         position = 0 ;
         _write( false,string.getBytes() ) ;
         _write( true,0 ) ;
@@ -748,7 +748,7 @@ public class JniBuffer extends OutputStream {
      * @param len 対象の長さを設定します.
      * @return JniBuffer オブジェクトが返却されます.
      */
-    protected final JniBuffer setJniChar( String string,int off,int len ) {
+    protected JniBuffer setJniChar( String string,int off,int len ) {
         position = 0 ;
         _write( false,string.substring( off,off+len ).getBytes() ) ;
         _write( true,0 ) ;
@@ -759,7 +759,7 @@ public class JniBuffer extends OutputStream {
      * オブジェクトの状態を文字列に出力.
      * @return String 文字列が返却されます.
      */
-    public final String toString() {
+    public String toString() {
         return new StringBuilder( "length:" ).
             append( length ).append( " position:" ).
             append( position ).toString() ;

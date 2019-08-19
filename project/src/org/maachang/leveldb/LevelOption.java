@@ -1,5 +1,7 @@
 package org.maachang.leveldb;
 
+import java.util.Map;
+
 import org.maachang.leveldb.util.Utils;
 
 /**
@@ -89,10 +91,12 @@ public final class LevelOption {
 
 	/**
 	 * LevelOption生成.
-	 * 
-	 * @param args
-	 *            オプションパラメータを設定します. [0]type. [1]write_buffer_size.
-	 *            [2]max_open_files. [3]block_size. [4]block_cache.
+	 * @param args オプションパラメータを設定します.
+	 * 		[0]type.				キータイプ.
+	 * 		[1]write_buffer_size.	書き込みバッファ数.
+	 * 		[2]max_open_files.		オープン最大ファイル数.
+	 * 		[3]block_size.			ブロックサイズ.
+	 * 		[4]block_cache.			ブロックキャッシュ.
 	 */
 	public static final LevelOption create(Object... args) {
 		return new LevelOption(args);
@@ -100,12 +104,23 @@ public final class LevelOption {
 
 	/**
 	 * LevelOption生成.
-	 * 
-	 * @param buf
-	 *            JniBufferを設定します.
+	 * @param buf JniBufferを設定します.
 	 */
 	public static final LevelOption create(JniBuffer buf) {
 		return new LevelOption(buf);
+	}
+	
+	/**
+	 * LevelOption生成.
+	 * @param args オプションパラメータを設定します.
+	 * 		args.get("type")		キータイプ.
+	 * 		args.get("bufferSize")	書き込みバッファサイズ.
+	 * 		args.get("openFiles")	オープン最大ファイル数.
+	 * 		args.get("blockSize")	ブロックサイズ.
+	 * 		args.get("blockCache")	ブロックキャッシュ.
+	 */
+	public static final LevelOption create(Map<String,Object> args) {
+		return new LevelOption(args);
 	}
 
 	/**
@@ -116,11 +131,8 @@ public final class LevelOption {
 
 	/**
 	 * コンストラクタ.
-	 * 
-	 * @param o
-	 *            バッファポジションを設定します.
-	 * @param buf
-	 *            対象のJniBufferを設定します.
+	 * @param o バッファポジションを設定します.
+	 * @param buf 対象のJniBufferを設定します.
 	 */
 	public LevelOption(int[] o, JniBuffer buf) {
 		long p = buf.address;
@@ -134,10 +146,12 @@ public final class LevelOption {
 
 	/**
 	 * コンストラクタ.
-	 * 
-	 * @param args
-	 *            オプションパラメータを設定します. [0]type. [1]write_buffer_size.
-	 *            [2]max_open_files. [3]block_size. [4]block_cache.
+	 * @param args オプションパラメータを設定します.
+	 * 		[0]type.				キータイプ.
+	 * 		[1]write_buffer_size.	書き込みバッファ数.
+	 * 		[2]max_open_files.		オープン最大ファイル数.
+	 * 		[3]block_size.			ブロックサイズ.
+	 * 		[4]block_cache.			ブロックキャッシュ.
 	 */
 	public LevelOption(Object... args) {
 		if (args == null || args.length == 0) {
@@ -164,15 +178,26 @@ public final class LevelOption {
 			setBlockCache(Utils.convertInt(args[4]));
 		}
 	}
+	
+	/**
+	 * コンストラクタ.
+	 * @param args オプションパラメータを設定します.
+	 * 		args.get("type")		キータイプ.
+	 * 		args.get("bufferSize")	書き込みバッファサイズ.
+	 * 		args.get("openFiles")	オープン最大ファイル数.
+	 * 		args.get("blockSize")	ブロックサイズ.
+	 * 		args.get("blockCache")	ブロックキャッシュ.
+	 */
+	public LevelOption(Map<String,Object> args) {
+		this(args.get("type"), args.get("bufferSize"),
+			args.get("openFiles"), args.get("blockSize"), args.get("blockCache"));
+	}
 
 	/** タイプパターン定義. **/
-	private static final String[] PATTERN_STR = new String[] { "str", "string" };
-	private static final String[] PATTERN_INT = new String[] { "n32", "int",
-			"integer", "number32" };
-	private static final String[] PATTERN_LONG = new String[] { "n64", "long",
-			"number64" };
-	private static final String[] PATTERN_BINARY = new String[] { "binary",
-			"bin" };
+	private static final String[] PATTERN_STR = new String[] { "str", "string", "char" };
+	private static final String[] PATTERN_INT = new String[] { "n32", "int", "integer", "number32" };
+	private static final String[] PATTERN_LONG = new String[] { "n64", "long", "number64", "bigint" };
+	private static final String[] PATTERN_BINARY = new String[] { "binary", "bin" };
 	private static final String[] PATTERN_MULTI = new String[] { "multi" };
 
 	private static final boolean pattern(int mode, String[] n, String c) {

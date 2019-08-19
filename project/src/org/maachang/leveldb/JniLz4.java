@@ -98,7 +98,7 @@ public final class JniLz4 {
 	 *            解凍結果が格納されるメモリポインタを設定します.
 	 */
 	public static void decompress(int[] out, long src, int src_len, long dst) {
-		if (out == null || out.length > 0) {
+		if (out != null && out.length > 0) {
 			if (jni.lz4Decompress(src, src_len, dst, out) < 0) {
 				out[0] = -1;
 			}
