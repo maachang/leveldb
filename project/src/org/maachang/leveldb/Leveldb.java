@@ -6,7 +6,6 @@ import java.io.File;
  * Leveldb.
  */
 public final class Leveldb {
-
 	protected volatile boolean closeFlag = true;
 	protected long addr = 0L;
 	protected String path;
@@ -38,24 +37,23 @@ public final class Leveldb {
 	public Leveldb(String path, LevelOption option) throws Exception {
 		if (path == null || (path = path.trim()).length() <= 0) {
 			return;
-		}
-		if (option == null) {
+		} else if (option == null) {
 			option = new LevelOption();
 		}
+		long a = 0L;
 		String s = new File(path).getCanonicalPath();
 		JniBuffer b = new JniBuffer();
-		long a = 0L;
 		b.setJniChar(s);
 		try {
-
-			a = jni.leveldb_open(b.address(), LevelOption
-					.getLeveldbKeyType(option.type), option.write_buffer_size,
-					option.max_open_files, option.block_size,
-					option.block_restart_interval, option.block_cache);
+			a = jni.leveldb_open(b.address(), LevelOption.getLeveldbKeyType(option.type),
+					option.write_buffer_size,
+					option.max_open_files,
+					option.block_size,
+					option.block_restart_interval,
+					option.block_cache);
 		} finally {
 			b.destroy();
 		}
-
 		if (a == 0L) {
 			throw new LeveldbException("Leveldbのオープンに失敗:" + s);
 		}
@@ -63,8 +61,7 @@ public final class Leveldb {
 		this.path = s;
 		this.type = option.type;
 		this.option = option;
-
-		closeFlag = false;
+		this.closeFlag = false;
 	}
 
 	/**
@@ -138,12 +135,9 @@ public final class Leveldb {
 	 */
 	public final void put(final JniBuffer key, final JniBuffer value) {
 		check();
-		if (key == null || value == null || key.position() == 0
-				|| value.position() == 0) {
+		if (key == null || value == null || key.position() == 0 || value.position() == 0) {
 			throw new LeveldbException("引数は不正です");
-		}
-		if (jni.leveldb_put(addr, key.address(), key.position(), value
-				.address(), value.position()) == -1) {
+		} else if (jni.leveldb_put(addr, key.address(), key.position(), value.address(), value.position()) == -1) {
 			throw new LeveldbException("書き込み処理は失敗しました");
 		}
 	}
@@ -163,19 +157,15 @@ public final class Leveldb {
 			throw new LeveldbException("キー情報が設定されていません");
 		}
 		long[] n = new long[] { out.address() };
-		int len = jni.leveldb_get(addr, key.address(), key.position(), n, out
-				.length());
+		int len = jni.leveldb_get(addr, key.address(), key.position(), n, out.length());
 		if (len <= 0) {
 			return 0;
 		}
-
 		// leveldb_getでバッファが拡張された場合.
 		if (len > out.length()) {
-
 			// バッファ内容を再セット.
 			out.set(n[0], len, len);
 		} else {
-
 			// ポジジョンをセット.
 			out.position(len);
 		}
@@ -214,19 +204,15 @@ public final class Leveldb {
 			throw new LeveldbException("コマンド情報が設定されていません");
 		}
 		long[] n = new long[] { out.address() };
-		int len = jni.leveldb_property(addr, cmd.address(), cmd.position(), n,
-				out.length());
+		int len = jni.leveldb_property(addr, cmd.address(), cmd.position(), n, out.length());
 		if (len <= 0) {
 			return 0;
 		}
-
 		// leveldb_getでバッファが拡張された場合.
 		if (len > out.length()) {
-
 			// バッファ内容を再セット.
 			out.set(n[0], len, len);
 		} else {
-
 			// ポジジョンをセット.
 			out.position(len);
 		}
@@ -275,23 +261,22 @@ public final class Leveldb {
 	 */
 	@SuppressWarnings("resource")
 	public static final void repair(String path, LevelOption option)
-			throws Exception {
+		throws Exception {
 		if (path == null || (path = path.trim()).length() <= 0) {
 			return;
-		}
-		if (option == null) {
+		} else if (option == null) {
 			option = new LevelOption();
 		}
 		String s = new File(path).getCanonicalPath();
 		JniBuffer b = new JniBuffer();
 		try {
 			b.setJniChar(s);
-
-			jni.leveldb_repair(b.address(), LevelOption
-					.getLeveldbKeyType(option.type), option.write_buffer_size,
-					option.max_open_files, option.block_size,
-					option.block_restart_interval);
-
+			jni.leveldb_repair(b.address(),
+				LevelOption.getLeveldbKeyType(option.type),
+				option.write_buffer_size,
+				option.max_open_files,
+				option.block_size,
+				option.block_restart_interval);
 		} finally {
 			b.destroy();
 		}
@@ -321,23 +306,22 @@ public final class Leveldb {
 	 */
 	@SuppressWarnings("resource")
 	public static final void destroy(String path, LevelOption option)
-			throws Exception {
+		throws Exception {
 		if (path == null || (path = path.trim()).length() <= 0) {
 			return;
-		}
-		if (option == null) {
+		} else if (option == null) {
 			option = new LevelOption();
 		}
 		String s = new File(path).getCanonicalPath();
 		JniBuffer b = new JniBuffer();
 		try {
 			b.setJniChar(s);
-
-			jni.leveldb_destroy(b.address(), LevelOption
-					.getLeveldbKeyType(option.type), option.write_buffer_size,
-					option.max_open_files, option.block_size,
-					option.block_restart_interval);
-
+			jni.leveldb_destroy(b.address(),
+				LevelOption.getLeveldbKeyType(option.type),
+				option.write_buffer_size,
+				option.max_open_files,
+				option.block_size,
+				option.block_restart_interval);
 		} finally {
 			b.destroy();
 		}

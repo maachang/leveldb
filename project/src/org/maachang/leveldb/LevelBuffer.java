@@ -18,7 +18,6 @@ public final class LevelBuffer {
 	 * キャッシュクリア. ThreadLocalで管理しているキャッシュ情報をクリアします.
 	 */
 	public static final void clear() {
-
 		// ThreadLocalの内容をクリア.
 		JniBuffer v = keyBuffer.get();
 		if (v != null) {

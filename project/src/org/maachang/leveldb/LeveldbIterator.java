@@ -8,35 +8,29 @@ public class LeveldbIterator {
 	}
 
 	protected Leveldb parent;
-	private long addr;
-	private long snapShot;
+	protected long addr;
+	protected long snapShot;
 
 	/**
 	 * コンストラクタ.
-	 * 
-	 * @param mode
-	 *            [true]の場合、スナップショット用のIteratorを生成します.
-	 * @param p
-	 *            Leveldbオブジェクトを設定します.
+	 * @param mode [true]の場合、スナップショット用のIteratorを生成します.
+	 * @param p Leveldbオブジェクトを設定します.
 	 */
 	protected LeveldbIterator(boolean mode, Leveldb p) {
 		if (p == null || p.isClose()) {
 			throw new LeveldbException("対象のLeveldbは既にクローズされているか、無効です.");
 		}
 		parent = p;
-
 		// Snapshot用のIteratorを作成する場合.
 		if (mode) {
 			snapShot = jni.leveldb_ss_create(p.addr);
 			addr = jni.leveldb_ss_iterator(p.addr, snapShot);
-
 		}
 		// 通常のIteratorを作成する場合.
 		else {
 			snapShot = 0L;
 			addr = jni.leveldb_iterator(p.addr);
 		}
-
 		// 先頭に移動.
 		jni.leveldb_itr_first(addr);
 	}
@@ -65,7 +59,6 @@ public class LeveldbIterator {
 
 	/**
 	 * クローズしているかチェック.
-	 * 
 	 * @return boolean [true]の場合、クローズしています.
 	 */
 	public boolean isClose() {
@@ -97,9 +90,7 @@ public class LeveldbIterator {
 
 	/**
 	 * カーソル位置を指定条件の位置まで移動.
-	 * 
-	 * @param key
-	 *            対象のキーを設定します.
+	 * @param key 検索対象のキーを設定します.
 	 */
 	public void seek(final JniBuffer key) {
 		check();
@@ -128,7 +119,6 @@ public class LeveldbIterator {
 
 	/**
 	 * 現在位置の情報が存在するかチェック.
-	 * 
 	 * @return boolean [true]の場合、存在します.
 	 */
 	public boolean valid() {
@@ -138,9 +128,7 @@ public class LeveldbIterator {
 
 	/**
 	 * 指定位置のキー情報を取得.
-	 * 
-	 * @param out
-	 *            格納先のJniBufferを設定します.
+	 * @param out 格納先のJniBufferを設定します.
 	 * @return int サイズが返却されます.
 	 */
 	public int key(final JniBuffer out) {
@@ -152,15 +140,11 @@ public class LeveldbIterator {
 		int len = jni.leveldb_itr_key(addr, n, out.length());
 		if (len <= 0) {
 			return 0;
-		}
-
 		// leveldb_getでバッファが拡張された場合.
-		if (len > out.length()) {
-
+		} else if (len > out.length()) {
 			// バッファ内容を再セット.
 			out.set(n[0], len, len);
 		} else {
-
 			// ポジジョンをセット.
 			out.position(len);
 		}
@@ -169,9 +153,7 @@ public class LeveldbIterator {
 
 	/**
 	 * 指定位置の要素情報を取得.
-	 * 
-	 * @param out
-	 *            格納先のJniBufferを設定します.
+	 * @param out 格納先のJniBufferを設定します.
 	 * @return int サイズが返却されます.
 	 */
 	public int value(final JniBuffer out) {
@@ -183,15 +165,11 @@ public class LeveldbIterator {
 		int len = jni.leveldb_itr_value(addr, n, out.length());
 		if (len <= 0) {
 			return 0;
-		}
-
 		// leveldb_getでバッファが拡張された場合.
-		if (len > out.length()) {
-
+		} else if (len > out.length()) {
 			// バッファ内容を再セット.
 			out.set(n[0], len, len);
 		} else {
-
 			// ポジジョンをセット.
 			out.position(len);
 		}

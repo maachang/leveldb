@@ -65,7 +65,6 @@ public class LevelIO implements Map<Object, Object> {
 		this.batch = null;
 		this.snapShot = null;
 		this.sub = true;
-
 		createBuffer();
 	}
 
@@ -81,7 +80,6 @@ public class LevelIO implements Map<Object, Object> {
 		this.batch = null;
 		this.snapShot = null;
 		this.sub = false;
-
 		createBuffer();
 	}
 
@@ -182,7 +180,6 @@ public class LevelIO implements Map<Object, Object> {
 	 */
 	public void commit() throws Exception {
 		check();
-
 		// 全データ削除処理.
 		if (allClearFlag) {
 			map.clear();
@@ -209,7 +206,6 @@ public class LevelIO implements Map<Object, Object> {
 	 */
 	public void rollback() throws Exception {
 		check();
-
 		// バッチクリア.
 		if (batch != null) {
 			batch.close();
@@ -289,7 +285,6 @@ public class LevelIO implements Map<Object, Object> {
 	 */
 	public boolean containsValue(Object value) {
 		check();
-
 		// Iteratorで、存在するまでチェック(超遅い).
 		JniBuffer v = null;
 		try {
@@ -434,7 +429,6 @@ public class LevelIO implements Map<Object, Object> {
 		JniBuffer keyBuf = null;
 		JniBuffer outBuf = null;
 		try {
-
 			// snapShotで検索.
 			getSnapshot();
 			keyBuf = key(key, twoKey);
@@ -503,7 +497,6 @@ public class LevelIO implements Map<Object, Object> {
 		boolean ret = false;
 		JniBuffer keyBuf = null;
 		try {
-
 			// snapShotで検索.
 			getSnapshot();
 			if (key instanceof JniBuffer) {
@@ -517,16 +510,12 @@ public class LevelIO implements Map<Object, Object> {
 				keyBuf = key(key, twoKey);
 			}
 			snapShot.seek(keyBuf);
-
 			// 条件が存在する場合.
 			if (snapShot.valid()) {
 				buf.clear();
 				snapShot.key(buf);
-
 				// 対象キーが正しい場合.
-				if (JniIO.equals(keyBuf.address, keyBuf.position, buf.address,
-						buf.position)) {
-
+				if (JniIO.equals(keyBuf.address, keyBuf.position, buf.address, buf.position)) {
 					buf.clear();
 					snapShot.value(buf);
 					ret = true;
@@ -711,7 +700,6 @@ public class LevelIO implements Map<Object, Object> {
 		check();
 		try {
 			int ret = 0;
-
 			// Iteratorで削除するので、超遅い.
 			getSnapshot();
 			snapShot.first();
@@ -753,7 +741,6 @@ public class LevelIO implements Map<Object, Object> {
 	 * @return String 空文字が返却されます.
 	 */
 	public String toString() {
-
 		// 何もしない.
 		return "";
 	}
@@ -780,16 +767,13 @@ public class LevelIO implements Map<Object, Object> {
 	/** LevelIOSet. **/
 	protected static class LevelIOSet implements Set {
 		private LevelIO map;
-
 		public LevelIOSet(LevelIO map) {
 			this.map = map;
 		}
-
 		public boolean add(Object arg0) {
 			map.put(arg0, null);
 			return false;
 		}
-
 		public boolean addAll(Collection arg0) {
 			Iterator it = arg0.iterator();
 			while (it.hasNext()) {
@@ -797,15 +781,12 @@ public class LevelIO implements Map<Object, Object> {
 			}
 			return true;
 		}
-
 		public void clear() {
 			map.clear();
 		}
-
 		public boolean contains(Object arg0) {
 			return map.containsKey(arg0);
 		}
-
 		public boolean containsAll(Collection arg0) {
 			Iterator it = arg0.iterator();
 			while (it.hasNext()) {
@@ -816,19 +797,15 @@ public class LevelIO implements Map<Object, Object> {
 			}
 			return true;
 		}
-
 		public boolean isEmpty() {
 			return map.isEmpty();
 		}
-
 		public Iterator<Object> iterator() {
 			return map.iterator();
 		}
-
 		public boolean remove(Object arg0) {
 			return (Boolean) map.remove(arg0);
 		}
-
 		public boolean removeAll(Collection arg0) {
 			boolean ret = false;
 			Iterator it = arg0.iterator();
@@ -839,19 +816,15 @@ public class LevelIO implements Map<Object, Object> {
 			}
 			return ret;
 		}
-
 		public boolean retainAll(Collection arg0) {
 			throw new LeveldbException("サポートされていません");
 		}
-
 		public int size() {
 			return map.size();
 		}
-
 		public Object[] toArray() {
 			throw new LeveldbException("サポートされていません");
 		}
-
 		public Object[] toArray(Object[] arg0) {
 			throw new LeveldbException("サポートされていません");
 		}
