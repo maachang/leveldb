@@ -7,105 +7,105 @@
 extern "C" {
 #endif
 
-/** Leveldb”jŠü. **/
+/** Leveldbç ´æ£„. **/
 void java_leveldb_destroy( jlong name,jint type,jint write_buffer_size,
     jint max_open_files,jint block_size,jint block_restart_interval ) ;
 
-/** Leveldb’²®. **/
+/** Leveldbèª¿æ•´. **/
 void java_leveldb_repair( jlong name,jint type,jint write_buffer_size,
     jint max_open_files,jint block_size,jint block_restart_interval ) ;
 
-/** LeveldbƒI[ƒvƒ“. **/
+/** Leveldbã‚ªãƒ¼ãƒ—ãƒ³. **/
 jlong java_leveldb_open( jlong name,jint type,jint write_buffer_size,
     jint max_open_files,jint block_size,jint block_restart_interval,jint block_cache ) ;
 
-/** LeveldbƒNƒ[ƒY. **/
+/** Leveldbã‚¯ãƒ­ãƒ¼ã‚º. **/
 void java_leveldb_close( jlong db ) ;
 
-/** Leveldb—v‘fƒZƒbƒg. **/
+/** Leveldbè¦ç´ ã‚»ãƒƒãƒˆ. **/
 jint java_leveldb_put( jlong db, jlong key, jint kLen, jlong value , jint vlen ) ;
 
-/** Leveldb—v‘fæ“¾. **/
+/** Leveldbè¦ç´ å–å¾—. **/
 jint java_leveldb_get( JNIEnv* env, jlong db , jlong key, jint len, jlongArray buf, jint bufLen ) ;
 
-/** Leveldb—v‘fíœ. **/
+/** Leveldbè¦ç´ å‰Šé™¤. **/
 jint java_leveldb_remove( jlong db, jlong key, jint len ) ;
 
-/** Leveldbó‘Ôæ“¾. **/
+/** LeveldbçŠ¶æ…‹å–å¾—. **/
 jint java_leveldb_property( JNIEnv* env, jlong db , jlong cmd, jint len, jlongArray buf, jint bufLen ) ;
 
-/** vacuum“I‚Èˆ—. **/
+/** vacuumçš„ãªå‡¦ç†. **/
 void java_leveldb_vacuum( jlong db, jlong start,jint startLen, jlong end, jint endLen ) ;
 
-/** Iteratorì¬. **/
+/** Iteratorä½œæˆ. **/
 jlong java_leveldb_iterator( jlong db ) ;
 
-/** IteratorƒNƒ[ƒY. **/
+/** Iteratorã‚¯ãƒ­ãƒ¼ã‚º. **/
 void java_leveldb_itr_delete( jlong itr ) ;
 
-/** Iteratoræ“ª‚ÉˆÚ“®. **/
+/** Iteratorå…ˆé ­ã«ç§»å‹•. **/
 void java_leveldb_itr_first( jlong itr ) ;
 
-/** IteratorÅŒã‚ÉˆÚ“®. **/
+/** Iteratoræœ€å¾Œã«ç§»å‹•. **/
 void java_leveldb_itr_last( jlong itr ) ;
 
-/** IteratorƒV[ƒNˆÊ’u‚ÉˆÚ“®. **/
+/** Iteratorã‚·ãƒ¼ã‚¯ä½ç½®ã«ç§»å‹•. **/
 void java_leveldb_itr_seek( jlong itr, jlong key,jint len ) ;
 
-/** IteratorŒ»İˆÊ’uƒJ[ƒ\ƒ‹‚Ìî•ñ‘¶İŠm”F. **/
+/** Iteratorç¾åœ¨ä½ç½®ã‚«ãƒ¼ã‚½ãƒ«ã®æƒ…å ±å­˜åœ¨ç¢ºèª. **/
 jint java_leveldb_itr_valid( jlong itr ) ;
 
-/** IteratorƒJ[ƒ\ƒ‹‚ğŸ‚ÉˆÚ“®. **/
+/** Iteratorã‚«ãƒ¼ã‚½ãƒ«ã‚’æ¬¡ã«ç§»å‹•. **/
 void java_leveldb_itr_next( jlong itr ) ;
 
-/** IteratorƒJ[ƒ\ƒ‹‚ğ‘O‚ÉˆÚ“®. **/
+/** Iteratorã‚«ãƒ¼ã‚½ãƒ«ã‚’å‰ã«ç§»å‹•. **/
 void java_leveldb_itr_before( jlong itr ) ;
 
-/** IteratorƒJ[ƒ\ƒ‹ˆÊ’u‚ÌKey‚ğæ“¾. **/
+/** Iteratorã‚«ãƒ¼ã‚½ãƒ«ä½ç½®ã®Keyã‚’å–å¾—. **/
 jint java_leveldb_itr_key( JNIEnv* env, jlong itr , jlongArray out, jint bufLen ) ;
 
-/** IteratorƒJ[ƒ\ƒ‹ˆÊ’u‚ÌValue‚ğæ“¾. **/
+/** Iteratorã‚«ãƒ¼ã‚½ãƒ«ä½ç½®ã®Valueã‚’å–å¾—. **/
 jint java_leveldb_itr_value( JNIEnv* env, jlong itr, jlongArray out, jint bufLen ) ;
 
 
-/** WriteBatch‚ğ¶¬. **/
+/** WriteBatchã‚’ç”Ÿæˆ. **/
 jlong java_leveldb_wb_create() ;
 
-/** WriteBatch‚ğƒƒ‚ƒŠƒTƒCƒY‚ğİ’è‚µ‚Ä¶¬. **/
+/** WriteBatchã‚’ãƒ¡ãƒ¢ãƒªã‚µã‚¤ã‚ºã‚’è¨­å®šã—ã¦ç”Ÿæˆ. **/
 jlong java_leveldb_wb_create_by_size( jint size ) ;
 
-/** WriteBatch‚ğ”jŠü. **/
+/** WriteBatchã‚’ç ´æ£„. **/
 void java_leveldb_wb_destroy( jlong wb ) ;
 
-/** WriteBatch‚ğƒƒ‚ƒŠƒTƒCƒY‚ğİ’è‚µ‚ÄƒNƒŠƒA. **/
+/** WriteBatchã‚’ãƒ¡ãƒ¢ãƒªã‚µã‚¤ã‚ºã‚’è¨­å®šã—ã¦ã‚¯ãƒªã‚¢. **/
 void java_leveldb_wb_clear_by_size( jlong wb,jint size ) ;
 
-/** WriteBatch‚ğƒNƒŠƒA. **/
+/** WriteBatchã‚’ã‚¯ãƒªã‚¢. **/
 void java_leveldb_wb_clear( jlong wb ) ;
 
-/** WriteBatch‚Éî•ñ‚ğƒZƒbƒg. **/
+/** WriteBatchã«æƒ…å ±ã‚’ã‚»ãƒƒãƒˆ. **/
 void java_leveldb_wb_put( jlong wb, jlong key, jint kLen, jlong value , jint vLen ) ;
 
-/** WriteBatch‚Éî•ñ‚ğíœ. **/
+/** WriteBatchã«æƒ…å ±ã‚’å‰Šé™¤. **/
 void java_leveldb_wb_remove( jlong wb, jlong key, jint len ) ;
 
-/** WriteBatch‚Ì“à—e‚ğæ“¾. **/
+/** WriteBatchã®å†…å®¹ã‚’å–å¾—. **/
 jlong java_leveldb_wb_values( jlong wb ) ;
 
-/** WriteBatch‚Ì“à—e’·‚ğæ“¾. **/
+/** WriteBatchã®å†…å®¹é•·ã‚’å–å¾—. **/
 jint java_leveldb_wb_values_size( jlong wb ) ;
 
-/** WriteBatch‚ğDB‚É”½‰f. **/
+/** WriteBatchã‚’DBã«åæ˜ . **/
 jint java_leveldb_wb_flush( jlong db,jlong wb ) ;
 
 
-/** SnapShot‚ğ¶¬. **/
+/** SnapShotã‚’ç”Ÿæˆ. **/
 jlong java_leveldb_createSnapShot( jlong db ) ;
 
-/** SnapShort—p‚ÌIterator‚ğ¶¬. **/
+/** SnapShortç”¨ã®Iteratorã‚’ç”Ÿæˆ. **/
 jlong java_leveldb_getSnapShotIterator( jlong db,jlong snapShot ) ;
 
-/** æ“¾‚µ‚½SnapShort‚ğ‰ğ•ú. **/
+/** å–å¾—ã—ãŸSnapShortã‚’è§£æ”¾. **/
 void java_leveldb_releaseSnapShot( jlong db,jlong snapShot ) ;
 
 

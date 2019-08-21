@@ -1,11 +1,12 @@
 #!/bin/sh
 
 clear
-LIB_NAME="leveldb-0.0.1.so"
-rm -Rf ${LIB_NAME}
-
 # bitMode.
 BIT_MODE=64
+
+LIB_VERSION = "0.0.1"
+LIB_NAME="leveldb-${BIT_MODE}-${LIB_VERSION}.so"
+rm -Rf ${LIB_NAME}
 
 # c++.
 #GCC_FLG="true"

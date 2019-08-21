@@ -15,7 +15,7 @@ public class TimeSequenceId {
 	/** 最大マシーンID. **/
 	protected static final int MAX_MACHINE_ID = 511;
 
-	protected static final long BASE_TIME = 1420038000000L;
+	protected static final long BASE_TIME = 1546268400000L;
 	protected static final long TIME_MASK = 0x7fffffffffc00000L;
 	protected static final long SEQ_MASK = 0x0000000000001fffL;
 
@@ -105,41 +105,34 @@ public class TimeSequenceId {
 	 */
 	public long get() {
 		long now, seq, ret;
-
 		// AtomicでシーケンスIDを生成する。
 		// そのため、更新失敗時のループ実装.
+		ret = -1L;
 		while (true) {
-			now = (System.currentTimeMillis() - baseTime) << 22L;
 			seq = nowId.get();
-
+			now = (System.currentTimeMillis() - baseTime) << 22L;
 			// 新しい時間の場合は、シーケンスIDをゼロクリア.
 			if (now > (seq & TIME_MASK)) {
-
 				// 新しいIDをセット.
-				if (nowId.compareAndSet(seq,
-						(ret = now | (machineId << 13L)) | 1L)) {
-					beforeId = ret;
-					return ret;
+				if (nowId.compareAndSet(seq, (ret = now | (machineId << 13L)) | 1L)) {
+					break;
 				}
 			}
 			// ミリ秒毎の最大シーケンスIDを超えた場合
 			// 現在の時間にミリ秒１プラスして、シーケンスIDをゼロクリア.
 			else if ((seq & SEQ_MASK) == SEQ_MASK) {
-
 				// 現在時間に＋１ミリ秒設定した値で、生成.
-				if (nowId.compareAndSet(seq, (ret = (seq & TIME_MASK)
-						+ (1L << 22L) | (machineId << 13L)) | 1L)) {
-					beforeId = ret;
-					return ret;
+				if (nowId.compareAndSet(seq, (ret = (seq & TIME_MASK) + (1L << 22L) | (machineId << 13L)) | 1L)) {
+					break;
 				}
 			}
 			// シーケンスIDを１プラス.
-			else if (nowId.compareAndSet(seq, (seq & TIME_MASK)
-					| (machineId << 13L) | ((seq + 1) & SEQ_MASK))) {
-				beforeId = seq;
-				return seq;
+			else if (nowId.compareAndSet(seq, (seq & TIME_MASK) | (machineId << 13L) | ((seq + 1) & SEQ_MASK))) {
+				break;
 			}
 		}
+		beforeId = ret;
+		return ret;
 	}
 
 	/**

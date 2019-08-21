@@ -1,14 +1,18 @@
 #!/bin/sh
 
 clear
-LIB_NAME="leveldb-0.0.1.dylib"
+LIB_VERSION = "0.0.1"
+LIB_NAME="leveldb-${LIB_VERSION}.dylib"
 rm -Rf ${LIB_NAME}
 
 # cc
 #GCC_FLG="true"
 
-#PLATFORM_CCFLAGS=" -fno-builtin-memcmp -DOS_MACOSX -DLEVELDB_PLATFORM_POSIX -DSNAPPY"
-#PLATFORM_CXXFLAGS=" -fno-builtin-memcmp -DOS_MACOSX -DLEVELDB_PLATFORM_POSIX -DSNAPPY"
+# For mac os version 10.12(macOS Sierra) and above, compile with 'LEVELDB_ATOMIC_PRESENT' parameter added.
+# This is because 'OSMemoryBarrier' is deprecated in version 10.12(macOS Sierra) and above.
+
+#PLATFORM_CCFLAGS=" -fno-builtin-memcmp -DOS_MACOSX -DLEVELDB_PLATFORM_POSIX -DSNAPPY -DLEVELDB_ATOMIC_PRESENT"
+#PLATFORM_CXXFLAGS=" -fno-builtin-memcmp -DOS_MACOSX -DLEVELDB_PLATFORM_POSIX -DSNAPPY -DLEVELDB_ATOMIC_PRESENT"
 PLATFORM_CCFLAGS=" -fno-builtin-memcmp -DOS_MACOSX -DLEVELDB_PLATFORM_POSIX -DLZ4 -DLEVELDB_ATOMIC_PRESENT"
 PLATFORM_CXXFLAGS=" -fno-builtin-memcmp -DOS_MACOSX -DLEVELDB_PLATFORM_POSIX -DLZ4 -DLEVELDB_ATOMIC_PRESENT"
 
