@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * サーバ側の時間が巻き戻った場合に、シーケンスIDの生成がストップすること。 ８１９２個のシーケンスIDは１ミリ秒での最大の生成となり、これを超えると、次の
  * １ミリ秒を待たなければならないこと。
  */
-public class TimeSequenceId {
+public class Time8SequenceId {
 
 	/** 最大マシーンID. **/
 	protected static final int MAX_MACHINE_ID = 511;
@@ -27,7 +27,7 @@ public class TimeSequenceId {
 	/**
 	 * コンストラクタ.
 	 */
-	protected TimeSequenceId() {
+	protected Time8SequenceId() {
 		baseTime = BASE_TIME;
 		machineId = 0L;
 	}
@@ -38,7 +38,7 @@ public class TimeSequenceId {
 	 * @param id
 	 *            対象のマシンIDを設定します. この値の最大値は、0から511までです.
 	 */
-	public TimeSequenceId(int id) {
+	public Time8SequenceId(int id) {
 		this(-1L, id);
 	}
 
@@ -50,7 +50,7 @@ public class TimeSequenceId {
 	 * @param id
 	 *            対象のマシンIDを設定します. この値の最大値は、0から511までです.
 	 */
-	public TimeSequenceId(long base, int id) {
+	public Time8SequenceId(long base, int id) {
 		id = check(id);
 		if (base <= 0L) {
 			base = BASE_TIME;
@@ -69,7 +69,7 @@ public class TimeSequenceId {
 	 * @param lastId
 	 *            設定した最終IDを設定します.
 	 */
-	public TimeSequenceId(int id, long lastId) {
+	public Time8SequenceId(int id, long lastId) {
 		this(-1L, id, lastId);
 	}
 
@@ -83,7 +83,7 @@ public class TimeSequenceId {
 	 * @param lastId
 	 *            設定した最終IDを設定します.
 	 */
-	public TimeSequenceId(long base, int id, long lastId) {
+	public Time8SequenceId(long base, int id, long lastId) {
 		id = check(id);
 		if (base <= 0L) {
 			base = BASE_TIME;
@@ -103,7 +103,7 @@ public class TimeSequenceId {
 	 * 
 	 * @return long シーケンスIDが返却されます.
 	 */
-	public long get() {
+	public long next() {
 		long now, seq, ret;
 		// AtomicでシーケンスIDを生成する。
 		// そのため、更新失敗時のループ実装.
@@ -140,7 +140,7 @@ public class TimeSequenceId {
 	 * 
 	 * @return long 現在のシーケンスIDが返却されます. また１度も取得していない場合は-1が返却されます.
 	 */
-	public long now() {
+	public long get() {
 		return beforeId;
 	}
 

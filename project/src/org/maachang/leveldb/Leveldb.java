@@ -17,10 +17,8 @@ public final class Leveldb {
 	 * 
 	 * @param path
 	 *            対象のファイル名を設定します.
-	 * @exception Exception
-	 *                例外.
 	 */
-	public Leveldb(String path) throws Exception {
+	public Leveldb(String path) {
 		this(path, null);
 	}
 
@@ -31,28 +29,35 @@ public final class Leveldb {
 	 *            対象のファイル名を設定します.
 	 * @param option
 	 *            Leveldbオプションを設定します.
-	 * @exception Exception
-	 *                例外.
 	 */
-	public Leveldb(String path, LevelOption option) throws Exception {
+	public Leveldb(String path, LevelOption option) {
 		if (path == null || (path = path.trim()).length() <= 0) {
-			return;
+			throw new LeveldbException("leveldbをオープンするファイル名が存在しません");
 		} else if (option == null) {
 			option = new LevelOption();
 		}
+		String s;
 		long a = 0L;
-		String s = new File(path).getCanonicalPath();
-		JniBuffer b = new JniBuffer();
-		b.setJniChar(s);
+		JniBuffer b = null;
 		try {
-			a = jni.leveldb_open(b.address(), LevelOption.getLeveldbKeyType(option.type),
-					option.write_buffer_size,
-					option.max_open_files,
-					option.block_size,
-					option.block_restart_interval,
-					option.block_cache);
+			s = new File(path).getCanonicalPath();
+			b = new JniBuffer();
+			b.setJniChar(s);
+			a = jni.leveldb_open(
+				b.address(),
+				LevelOption.getLeveldbKeyType(option.type),
+				option.write_buffer_size,
+				option.max_open_files,
+				option.block_size,
+				option.block_restart_interval,
+				option.block_cache);
+			b.destroy(); b = null;
+		} catch(Exception e) {
+			throw new LeveldbException(e);
 		} finally {
-			b.destroy();
+			if(b != null) {
+				b.destroy();
+			}
 		}
 		if (a == 0L) {
 			throw new LeveldbException("Leveldbのオープンに失敗:" + s);
@@ -75,8 +80,9 @@ public final class Leveldb {
 	 * クローズ.
 	 */
 	public synchronized final void close() {
-		if (!closeFlag) {
-			closeFlag = true;
+		boolean cflg = closeFlag;
+		closeFlag = true;
+		if (!cflg) {
 			jni.leveldb_close(addr);
 			addr = 0L;
 		}
@@ -156,8 +162,8 @@ public final class Leveldb {
 		if (key == null || key.position() == 0) {
 			throw new LeveldbException("キー情報が設定されていません");
 		}
-		long[] n = new long[] { out.address() };
-		int len = jni.leveldb_get(addr, key.address(), key.position(), n, out.length());
+		final long[] n = new long[] { out.address() };
+		final int len = jni.leveldb_get(addr, key.address(), key.position(), n, out.length());
 		if (len <= 0) {
 			return 0;
 		}
@@ -203,8 +209,8 @@ public final class Leveldb {
 		if (out == null || cmd == null || cmd.position() == 0) {
 			throw new LeveldbException("コマンド情報が設定されていません");
 		}
-		long[] n = new long[] { out.address() };
-		int len = jni.leveldb_property(addr, cmd.address(), cmd.position(), n, out.length());
+		final long[] n = new long[] { out.address() };
+		final int len = jni.leveldb_property(addr, cmd.address(), cmd.position(), n, out.length());
 		if (len <= 0) {
 			return 0;
 		}
@@ -242,10 +248,8 @@ public final class Leveldb {
 	 * 
 	 * @param path
 	 *            対象のファイル名を設定します.
-	 * @exception Exception
-	 *                例外.
 	 */
-	public static final void repair(String path) throws Exception {
+	public static final void repair(String path) {
 		repair(path, null);
 	}
 
@@ -256,29 +260,33 @@ public final class Leveldb {
 	 *            対象のファイル名を設定します.
 	 * @param option
 	 *            Leveldbオプションを設定します.
-	 * @exception Exception
-	 *                例外.
 	 */
 	@SuppressWarnings("resource")
-	public static final void repair(String path, LevelOption option)
-		throws Exception {
+	public static final void repair(String path, LevelOption option) {
 		if (path == null || (path = path.trim()).length() <= 0) {
 			return;
 		} else if (option == null) {
 			option = new LevelOption();
 		}
-		String s = new File(path).getCanonicalPath();
-		JniBuffer b = new JniBuffer();
+		JniBuffer b = null;
 		try {
+			String s = new File(path).getCanonicalPath();
+			b = new JniBuffer();
 			b.setJniChar(s);
-			jni.leveldb_repair(b.address(),
+			jni.leveldb_repair(
+				b.address(),
 				LevelOption.getLeveldbKeyType(option.type),
 				option.write_buffer_size,
 				option.max_open_files,
 				option.block_size,
 				option.block_restart_interval);
+			b.destroy(); b = null;
+		} catch(Exception e) {
+			throw new LeveldbException(e);
 		} finally {
-			b.destroy();
+			if(b != null) {
+				b.destroy();
+			}
 		}
 	}
 
@@ -287,10 +295,8 @@ public final class Leveldb {
 	 * 
 	 * @param path
 	 *            対象のファイル名を設定します.
-	 * @exception Exception
-	 *                例外.
 	 */
-	public static final void destroy(String path) throws Exception {
+	public static final void destroy(String path) {
 		destroy(path, null);
 	}
 
@@ -301,29 +307,33 @@ public final class Leveldb {
 	 *            対象のファイル名を設定します.
 	 * @param option
 	 *            Leveldbオプションを設定します.
-	 * @exception Exception
-	 *                例外.
 	 */
 	@SuppressWarnings("resource")
-	public static final void destroy(String path, LevelOption option)
-		throws Exception {
+	public static final void destroy(String path, LevelOption option)  {
 		if (path == null || (path = path.trim()).length() <= 0) {
 			return;
 		} else if (option == null) {
 			option = new LevelOption();
 		}
-		String s = new File(path).getCanonicalPath();
-		JniBuffer b = new JniBuffer();
+		JniBuffer b = null;
 		try {
+			String s = new File(path).getCanonicalPath();
+			b = new JniBuffer();
 			b.setJniChar(s);
-			jni.leveldb_destroy(b.address(),
+			jni.leveldb_destroy(
+				b.address(),
 				LevelOption.getLeveldbKeyType(option.type),
 				option.write_buffer_size,
 				option.max_open_files,
 				option.block_size,
 				option.block_restart_interval);
+			b.destroy(); b = null;
+		} catch(Exception e) {
+			throw new LeveldbException(e);
 		} finally {
-			b.destroy();
+			if(b != null) {
+				b.destroy();
+			}
 		}
 	}
 }

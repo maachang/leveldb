@@ -23,26 +23,32 @@ public class LevelMap implements Map<Object, Object> {
 	/**
 	 * コンストラクタ.
 	 * 
-	 * @param name
-	 *            対象のデータベース名を設定します.
-	 * @exception Exception
-	 *                例外.
+	 * @param name 対象のデータベース名を設定します.
 	 */
-	public LevelMap(String name) throws Exception {
+	public LevelMap(String name) {
 		this(name, null);
 	}
 
 	/**
 	 * コンストラクタ.
 	 * 
-	 * @param name
-	 *            対象のデータベース名を設定します.
-	 * @param option
-	 *            Leveldbオプションを設定します.
+	 * @param name 対象のデータベース名を設定します.
+	 * @param option Leveldbオプションを設定します.
 	 */
-	public LevelMap(String name, LevelOption option) throws Exception {
+	public LevelMap(String name, LevelOption option) {
 		this.leveldb = new Leveldb(name, option);
 		this.type = this.leveldb.getOption().getType();
+		this.set = null;
+	}
+	
+	/**
+	 * コンストラクタ.
+	 * 
+	 * @param db 対象のLeveldbオブジェクトを設定します.
+	 */
+	public LevelMap(Leveldb db) {
+		this.leveldb = db;
+		this.type = db.getOption().getType();
 		this.set = null;
 	}
 

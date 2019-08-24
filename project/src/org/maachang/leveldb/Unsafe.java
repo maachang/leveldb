@@ -9,22 +9,24 @@ import java.nio.ByteBuffer;
  */
 public final class Unsafe {
 
-	public static final sun.misc.Unsafe unsafe;
+	public static final Object unsafe;
 	public static final boolean UNSAFE_MODE;
 	public static final boolean BIG_ENDIAN;
 
 	private static final Method directByteBufferAddress;
 
+	// unsafeが使えなくなっても [ UNSAFE_MODE ] 判別して処理するので、
+	// 内部所有のAPIが使えなくなっても無問題(だと思う).
 	static {
 
 		// //////////////
 		// unsafe取得.
 		// //////////////
-		sun.misc.Unsafe u = null;
+		Object u = null;
 		try {
 			Field f = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
 			f.setAccessible(true);
-			u = (sun.misc.Unsafe) f.get(null);
+			u = f.get(null);
 		} catch (Throwable e) {
 			u = null;
 		}
@@ -39,10 +41,11 @@ public final class Unsafe {
 		boolean md = false;
 
 		if (unsafe != null) {
-			long a = unsafe.allocateMemory(8);
+			sun.misc.Unsafe uo = (sun.misc.Unsafe)unsafe;
+			long a = uo.allocateMemory(8);
 			try {
-				unsafe.putLong(a, 0x0102030405060708L);
-				byte b = unsafe.getByte(a);
+				uo.putLong(a, 0x0102030405060708L);
+				byte b = uo.getByte(a);
 				switch (b) {
 				case 0x01:
 					md = true;
@@ -54,7 +57,7 @@ public final class Unsafe {
 					md = false;
 				}
 			} finally {
-				unsafe.freeMemory(a);
+				uo.freeMemory(a);
 			}
 		} else {
 			long a = jni.malloc(8);
@@ -99,7 +102,10 @@ public final class Unsafe {
 	 * @return sun.misc.Unsafe オブジェクトが返されます.
 	 */
 	public static final sun.misc.Unsafe get() {
-		return unsafe;
+		if(unsafe != null) {
+			return (sun.misc.Unsafe)unsafe;
+		}
+		return null;
 	}
 
 	/**

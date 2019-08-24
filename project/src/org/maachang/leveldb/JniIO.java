@@ -11,7 +11,7 @@ public final class JniIO {
 
 	/** sun.misc.Unsafeオブジェクト利用 **/
 	private static final boolean UnsafeMode = Unsafe.UNSAFE_MODE;
-	private static final sun.misc.Unsafe unsafe = Unsafe.unsafe;
+	private static final sun.misc.Unsafe unsafe = Unsafe.get();
 
 	/**
 	 * メモリ生成.

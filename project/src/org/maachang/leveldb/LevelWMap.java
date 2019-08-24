@@ -15,7 +15,7 @@ import java.util.Set;
  * 欠点としては、snapShot作成に時間がかかることで、 読み込み速度が、LevelMapより遅くなることです.
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class LevelIO implements Map<Object, Object> {
+public class LevelWMap implements Map<Object, Object> {
 
 	/** LevelMapオブジェクト. **/
 	protected LevelMap map;
@@ -30,7 +30,7 @@ public class LevelIO implements Map<Object, Object> {
 	protected LeveldbIterator snapShot;
 
 	/** LevelDbマップセット用オブジェクト. **/
-	protected LevelIOSet set;
+	protected LevelWMapSet set;
 
 	/** 全クリアーフラグ. **/
 	protected boolean allClearFlag = false;
@@ -42,25 +42,34 @@ public class LevelIO implements Map<Object, Object> {
 	/**
 	 * コンストラクタ. この処理でオープンした場合は、close処理では、Leveldbが クローズされます.
 	 * 
-	 * @param name
-	 *            対象のデータベース名を設定します.
-	 * @exception Exception
-	 *                例外.
+	 * @param name 対象のデータベース名を設定します.
 	 */
-	public LevelIO(String name) throws Exception {
+	public LevelWMap(String name) {
 		this(name, null);
 	}
 
 	/**
 	 * コンストラクタ. この処理でオープンした場合は、close処理では、Leveldb本体が クローズされます.
 	 * 
-	 * @param name
-	 *            対象のデータベース名を設定します.
-	 * @param option
-	 *            Leveldbオプションを設定します.
+	 * @param name 対象のデータベース名を設定します.
+	 * @param option 対象のLeveldbオプションを設定します.
 	 */
-	public LevelIO(String name, LevelOption option) throws Exception {
+	public LevelWMap(String name, LevelOption option) {
 		this.map = new LevelMap(name, option);
+		this.set = null;
+		this.batch = null;
+		this.snapShot = null;
+		this.sub = true;
+		createBuffer();
+	}
+	
+	/**
+	 * コンストラクタ. この処理でオープンした場合は、close処理では、Leveldbが クローズされます.
+	 * 
+	 * @param db 対象のLeveldbオブジェクトを設定します.
+	 */
+	public LevelWMap(Leveldb db) {
+		this.map = new LevelMap(db);
 		this.set = null;
 		this.batch = null;
 		this.snapShot = null;
@@ -71,10 +80,9 @@ public class LevelIO implements Map<Object, Object> {
 	/**
 	 * コンストラクタ. この処理では、close処理を行ったとしても、元のLeveldb本体は クローズされません.
 	 * 
-	 * @param map
-	 *            対象のLevelMapを設定します.
+	 * @param map 対象のLevelMapを設定します.
 	 */
-	public LevelIO(LevelMap map) {
+	public LevelWMap(LevelMap map) {
 		this.map = map;
 		this.set = null;
 		this.batch = null;
@@ -687,7 +695,7 @@ public class LevelIO implements Map<Object, Object> {
 	public Set keySet() {
 		check();
 		if (set == null) {
-			set = new LevelIOSet(this);
+			set = new LevelWMapSet(this);
 		}
 		return set;
 	}
@@ -764,10 +772,10 @@ public class LevelIO implements Map<Object, Object> {
 		return map.snapshot();
 	}
 
-	/** LevelIOSet. **/
-	protected static class LevelIOSet implements Set {
-		private LevelIO map;
-		public LevelIOSet(LevelIO map) {
+	/** LevelWMapSet. **/
+	protected static class LevelWMapSet implements Set {
+		private LevelWMap map;
+		public LevelWMapSet(LevelWMap map) {
 			this.map = map;
 		}
 		public boolean add(Object arg0) {
