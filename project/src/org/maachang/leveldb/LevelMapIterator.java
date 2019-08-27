@@ -123,7 +123,7 @@ public class LevelMapIterator implements Iterator<Object> {
 	public Object next() {
 		if (itr == null || !itr.valid()) {
 			nowKey = null;
-			throw new NoSuchElementException("終端まで読まれました");
+			throw new NoSuchElementException();
 		}
 		_next();
 		return nowKey;
@@ -132,7 +132,7 @@ public class LevelMapIterator implements Iterator<Object> {
 	/** 情報を取得. **/
 	private void _next() {
 		if (itr == null || !itr.valid()) {
-			throw new NoSuchElementException("終端まで読まれました");
+			throw new NoSuchElementException();
 		}
 		JniBuffer buf = null;
 		JniBuffer valBuf = null;
@@ -166,7 +166,7 @@ public class LevelMapIterator implements Iterator<Object> {
 			map.remove(nowKey);
 		} else {
 			throw new IllegalStateException(
-					"データは存在しないか、削除済みか、next()処理が行われていません");
+					"Data does not exist, has been deleted, or next() processing has not been performed.");
 		}
 	}
 

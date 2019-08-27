@@ -18,7 +18,7 @@ public class LeveldbIterator {
 	 */
 	protected LeveldbIterator(boolean mode, Leveldb p) {
 		if (p == null || p.isClose()) {
-			throw new LeveldbException("対象のLeveldbは既にクローズされているか、無効です.");
+			throw new LeveldbException("The target Leveldb is already closed or invalid.");
 		}
 		parent = p;
 		// Snapshot用のIteratorを作成する場合.
@@ -68,7 +68,7 @@ public class LeveldbIterator {
 	/** check. **/
 	protected void check() {
 		if (parent.closeFlag || addr == 0L) {
-			throw new LeveldbException("既にクローズされています");
+			throw new LeveldbException("Already closed.");
 		}
 	}
 
@@ -95,7 +95,7 @@ public class LeveldbIterator {
 	public void seek(final JniBuffer key) {
 		check();
 		if (key == null || key.position() == 0) {
-			throw new LeveldbException("キー情報が設定されていません");
+			throw new LeveldbException("Key information is not set.");
 		}
 		jni.leveldb_itr_seek(addr, key.address(), key.position());
 	}

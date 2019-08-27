@@ -18,7 +18,7 @@ public final class Lz4 {
 	public static final int compress(final JniBuffer out, final JniBuffer src) {
 		int srcLen;
 		if ((srcLen = src.position()) == 0) {
-			throw new LeveldbException("圧縮対象の条件は存在しません");
+			throw new LeveldbException("There are no conditions to compress.");
 		}
 		final int len = JniLz4.calcMaxCompressLength(srcLen);
 		if (out.length() < len) {
@@ -43,7 +43,7 @@ public final class Lz4 {
 	public static final int decompress(final JniBuffer out, final JniBuffer src) {
 		int srcLen;
 		if ((srcLen = src.position()) == 0) {
-			throw new LeveldbException("解凍対象の条件は存在しません");
+			throw new LeveldbException("There are no conditions for decompression.");
 		}
 		final int len = JniLz4.decompressLength(src.address());
 		if (out.length() < len) {

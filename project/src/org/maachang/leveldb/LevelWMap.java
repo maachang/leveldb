@@ -5,6 +5,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.maachang.leveldb.util.ConvertMap;
+
 /**
  * LeveldbのWriteBatch対応版-Map実装. LevelMapと違うのは、読み込みは、snapShotを
  * 利用することと、書き込みはWriteBatchで書き込む ことです. またsnapShotは、commitおよびrollback処理を実行
@@ -15,7 +17,7 @@ import java.util.Set;
  * 欠点としては、snapShot作成に時間がかかることで、 読み込み速度が、LevelMapより遅くなることです.
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class LevelWMap implements Map<Object, Object> {
+public class LevelWMap implements ConvertMap {
 
 	/** LevelMapオブジェクト. **/
 	protected LevelMap map;
@@ -101,7 +103,7 @@ public class LevelWMap implements Map<Object, Object> {
 	/** チェック処理. **/
 	private void check() {
 		if (map == null) {
-			throw new LeveldbException("オブジェクトは既にクリアされています");
+			throw new LeveldbException("The object has already been cleared.");
 		}
 	}
 
@@ -337,7 +339,7 @@ public class LevelWMap implements Map<Object, Object> {
 	 */
 	public Set entrySet() {
 		check();
-		throw new LeveldbException("サポートされていません");
+		throw new LeveldbException("Not supported.");
 	}
 
 	/**
@@ -345,7 +347,7 @@ public class LevelWMap implements Map<Object, Object> {
 	 */
 	public Collection values() {
 		check();
-		throw new LeveldbException("サポートされていません");
+		throw new LeveldbException("Not supported.");
 	}
 
 	/**
@@ -363,7 +365,7 @@ public class LevelWMap implements Map<Object, Object> {
 	public Object put(Object key, Object twoKey, Object value) {
 		check();
 		if (value != null && value instanceof LevelMap) {
-			throw new LeveldbException("要素にLevelMap要素は設定できません");
+			throw new LeveldbException("LevelMap element cannot be set for the element.");
 		}
 		JniBuffer keyBuf = null;
 		JniBuffer valBuf = null;
@@ -418,7 +420,7 @@ public class LevelWMap implements Map<Object, Object> {
 	 */
 	public Object putMultiKey(Object value, Object... keys) {
 		if (map.type != LevelOption.TYPE_MULTI) {
-			throw new LeveldbException("Leveldb定義のキータイプはマルチキーではありません");
+			throw new LeveldbException("Leveldb definition key type is not multi-key.");
 		}
 		return put(keys, null, value);
 	}
@@ -484,7 +486,7 @@ public class LevelWMap implements Map<Object, Object> {
 	 */
 	public boolean containsMultiKey(Object... keys) {
 		if (map.type != LevelOption.TYPE_MULTI) {
-			throw new LeveldbException("Leveldb定義のキータイプはマルチキーではありません");
+			throw new LeveldbException("Leveldb definition key type is not multi-key.");
 		}
 		return containsKey(keys, null);
 	}
@@ -511,8 +513,7 @@ public class LevelWMap implements Map<Object, Object> {
 				if (twoKey == null) {
 					keyBuf = (JniBuffer) key;
 				} else {
-					throw new LeveldbException(
-							"key=jniBufferに対して、twoKeyが指定されています");
+					throw new LeveldbException("twoKey is specified for key = jniBuffer");
 				}
 			} else {
 				keyBuf = key(key, twoKey);
@@ -555,7 +556,7 @@ public class LevelWMap implements Map<Object, Object> {
 	 */
 	public boolean getBufferMultiKey(JniBuffer buf, Object... keys) {
 		if (map.type != LevelOption.TYPE_MULTI) {
-			throw new LeveldbException("Leveldb定義のキータイプはマルチキーではありません");
+			throw new LeveldbException("Leveldb definition key type is not multi-key.");
 		}
 		return getBuffer(buf, keys, null);
 	}
@@ -609,7 +610,7 @@ public class LevelWMap implements Map<Object, Object> {
 	 */
 	public Object getMultiKey(Object... keys) {
 		if (map.type != LevelOption.TYPE_MULTI) {
-			throw new LeveldbException("Leveldb定義のキータイプはマルチキーではありません");
+			throw new LeveldbException("Leveldb definition key type is not multi-key.");
 		}
 		return get(keys, null);
 	}
@@ -662,7 +663,7 @@ public class LevelWMap implements Map<Object, Object> {
 	 */
 	public Object removeMultiKey(Object... keys) {
 		if (map.type != LevelOption.TYPE_MULTI) {
-			throw new LeveldbException("Leveldb定義のキータイプはマルチキーではありません");
+			throw new LeveldbException("Leveldb definition key type is not multi-key.");
 		}
 		return remove(keys, null);
 	}
@@ -730,7 +731,7 @@ public class LevelWMap implements Map<Object, Object> {
 	 *            例外が発生します.
 	 */
 	public void getAllKey(Set set) {
-		throw new LeveldbException("サポートされていません");
+		throw new LeveldbException("Not supported.");
 	}
 
 	/**
@@ -740,7 +741,7 @@ public class LevelWMap implements Map<Object, Object> {
 	 *            例外が発生します.
 	 */
 	public void getAllValues(Set set) {
-		throw new LeveldbException("サポートされていません");
+		throw new LeveldbException("Not supported.");
 	}
 
 	/**
@@ -825,16 +826,16 @@ public class LevelWMap implements Map<Object, Object> {
 			return ret;
 		}
 		public boolean retainAll(Collection arg0) {
-			throw new LeveldbException("サポートされていません");
+			throw new LeveldbException("Not supported.");
 		}
 		public int size() {
 			return map.size();
 		}
 		public Object[] toArray() {
-			throw new LeveldbException("サポートされていません");
+			throw new LeveldbException("Not supported.");
 		}
 		public Object[] toArray(Object[] arg0) {
-			throw new LeveldbException("サポートされていません");
+			throw new LeveldbException("Not supported.");
 		}
 	}
 }

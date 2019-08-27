@@ -30,9 +30,10 @@ public final class Leveldb {
 	 * @param option
 	 *            Leveldbオプションを設定します.
 	 */
+	@SuppressWarnings("resource")
 	public Leveldb(String path, LevelOption option) {
 		if (path == null || (path = path.trim()).length() <= 0) {
-			throw new LeveldbException("leveldbをオープンするファイル名が存在しません");
+			throw new LeveldbException("File name to open leveldb does not exist.");
 		} else if (option == null) {
 			option = new LevelOption();
 		}
@@ -60,7 +61,7 @@ public final class Leveldb {
 			}
 		}
 		if (a == 0L) {
-			throw new LeveldbException("Leveldbのオープンに失敗:" + s);
+			throw new LeveldbException("Failed to open Leveldb:" + s);
 		}
 		this.addr = a;
 		this.path = s;
@@ -100,7 +101,7 @@ public final class Leveldb {
 	/** check. **/
 	protected final void check() {
 		if (closeFlag) {
-			throw new LeveldbException("既にクローズされています");
+			throw new LeveldbException("Already closed.");
 		}
 	}
 
@@ -142,9 +143,9 @@ public final class Leveldb {
 	public final void put(final JniBuffer key, final JniBuffer value) {
 		check();
 		if (key == null || value == null || key.position() == 0 || value.position() == 0) {
-			throw new LeveldbException("引数は不正です");
+			throw new LeveldbException("Argument is invalid.");
 		} else if (jni.leveldb_put(addr, key.address(), key.position(), value.address(), value.position()) == -1) {
-			throw new LeveldbException("書き込み処理は失敗しました");
+			throw new LeveldbException("Put processing failed.");
 		}
 	}
 
@@ -160,7 +161,7 @@ public final class Leveldb {
 	public final int get(final JniBuffer out, final JniBuffer key) {
 		check();
 		if (key == null || key.position() == 0) {
-			throw new LeveldbException("キー情報が設定されていません");
+			throw new LeveldbException("Key information is not set.");
 		}
 		final long[] n = new long[] { out.address() };
 		final int len = jni.leveldb_get(addr, key.address(), key.position(), n, out.length());
@@ -188,7 +189,7 @@ public final class Leveldb {
 	public final boolean remove(final JniBuffer key) {
 		check();
 		if (key == null || key.position() == 0) {
-			throw new LeveldbException("キー情報が設定されていません");
+			throw new LeveldbException("Key information is not set.");
 		}
 		return jni.leveldb_remove(addr, key.address(), key.position()) != -1;
 	}
@@ -207,7 +208,7 @@ public final class Leveldb {
 	public final int property(final JniBuffer out, final JniBuffer cmd) {
 		check();
 		if (out == null || cmd == null || cmd.position() == 0) {
-			throw new LeveldbException("コマンド情報が設定されていません");
+			throw new LeveldbException("Command information is not set.");
 		}
 		final long[] n = new long[] { out.address() };
 		final int len = jni.leveldb_property(addr, cmd.address(), cmd.position(), n, out.length());

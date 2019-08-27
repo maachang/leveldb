@@ -87,7 +87,7 @@ public final class LevelValues {
 	public static final Object decode(JniBuffer b, int off, int len)
 			throws Exception {
 		if (len > b.position()) {
-			throw new IllegalArgumentException("指定された長さは、範囲を超えています:" + len
+			throw new IllegalArgumentException("The specified length is out of range:" + len
 					+ "," + b.position());
 		}
 		int[] p = new int[] { off };
@@ -110,7 +110,7 @@ public final class LevelValues {
 	public static final Object decodeBinary(int[] outOff, JniBuffer b, int len)
 			throws Exception {
 		if (len > b.position()) {
-			throw new IllegalArgumentException("指定された長さは、範囲を超えています:" + len
+			throw new IllegalArgumentException("The specified length is out of range:" + len
 					+ "," + b.position());
 		}
 		return decodeObject(outOff, b, len);
@@ -397,7 +397,7 @@ public final class LevelValues {
 	 */
 	protected static final byte[] toBinary(Serializable value) throws Exception {
 		if (value == null) {
-			throw new IllegalArgumentException("引数は不正です");
+			throw new IllegalArgumentException("Argument is invalid");
 		}
 		byte[] ret = null;
 		ObjectOutputStream o = null;
@@ -703,7 +703,7 @@ public final class LevelValues {
 						| ((JniIO.get(b, o + 3) & 0xff) << 8)
 						| (JniIO.get(b, o + 4) & 0xff);
 			}
-			throw new IllegalArgumentException("不正なbyte4Int条件:" + off[0]);
+			throw new IllegalArgumentException("Invalid byte4Int condition:" + off[0]);
 		}
 		// ヘッダ2ビットが混在定義の場合.
 		switch ((h & 0xc0) >> 6) {
@@ -723,7 +723,7 @@ public final class LevelValues {
 					| ((JniIO.get(b, o + 2) & 0xff) << 8)
 					| (JniIO.get(b, o + 3) & 0xff);
 		}
-		throw new IllegalArgumentException("不正なbyte4Int条件:" + off[0]);
+		throw new IllegalArgumentException("Invalid byte4Int condition:" + off[0]);
 	}
 
 	/** 8バイト数値変換. **/
@@ -786,7 +786,7 @@ public final class LevelValues {
 						| ((JniIO.get(b, o + 7) & 0xffL) << 8L) | (JniIO.get(b,
 						o + 8) & 0xffL));
 			}
-			throw new IllegalArgumentException("不正なbyte8Long条件:" + off[0]);
+			throw new IllegalArgumentException("Invalid byte8Long condition:" + off[0]);
 		}
 		// ヘッダ3ビットが混在定義の場合.
 		switch ((h & 0xe0) >> 5) {
@@ -842,7 +842,7 @@ public final class LevelValues {
 					| ((JniIO.get(b, o + 6) & 0xffL) << 8L) | (JniIO.get(b,
 					o + 7) & 0xffL));
 		}
-		throw new IllegalArgumentException("不正なbyte8Long条件:" + off[0]);
+		throw new IllegalArgumentException("Invalid byte8Long condition:" + off[0]);
 	}
 
 	/**
@@ -959,7 +959,7 @@ public final class LevelValues {
 			pos[0] += len;
 			return ret;
 		}
-		throw new IllegalArgumentException("指定TwoKey条件は範囲外です:" + code);
+		throw new IllegalArgumentException("The specified TwoKey condition is out of range:" + code);
 	}
 
 	/**
@@ -1001,7 +1001,7 @@ public final class LevelValues {
 	public static final Serializable toObject(byte[] bin, int off, int len)
 			throws Exception {
 		if (bin == null || bin.length <= 0) {
-			throw new IllegalArgumentException("シリアライズ復元のバイナリ長が存在しません");
+			throw new IllegalArgumentException("Binary length for serialization restore does not exist.");
 		}
 		ObjectInputStream in = null;
 		Serializable ret = null;
@@ -1034,7 +1034,7 @@ public final class LevelValues {
 	public static final Object decodeObject(int[] pos, JniBuffer b, int length)
 			throws Exception {
 		if (length <= pos[0]) {
-			throw new IOException("指定長[" + length + "byte]を越えて、処理を行おうとしています:"
+			throw new IOException("Processing exceeds the specified length ["+ length +" byte]:"
 					+ pos[0]);
 		}
 
@@ -1264,7 +1264,7 @@ public final class LevelValues {
 			return null;
 		}
 		}
-		throw new IOException("不明なタイプ[" + code + "]を検出しました");
+		throw new IOException("Unknown type ["+ code +"] detected.");
 	}
 
 	/**
@@ -1309,10 +1309,8 @@ public final class LevelValues {
 	 * Levelテーブル専用オブジェクト変換.
 	 * 
 	 * @params buf 出力先のバッファ先を設定します.
-	 * @param c
-	 *            LevelTableの１行情報を設定します.
-	 * @exception Exception
-	 *                例外.
+	 * @param c LevelTableの１行情報を設定します.
+	 * @exception Exception 例外.
 	 */
 	public static final void encodeTableObject(JniBuffer buf, Object[] c)
 			throws Exception {

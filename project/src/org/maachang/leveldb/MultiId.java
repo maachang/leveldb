@@ -463,7 +463,7 @@ public class MultiId {
 				off += 8;
 				break;
 			default:
-				throw new LeveldbException("バイナリ復元に失敗しました");
+				throw new LeveldbException("Binary restore failed.");
 			}
 			endOff -= 2;
 		}
@@ -559,7 +559,7 @@ public class MultiId {
 				off += 8;
 				break;
 			default:
-				throw new LeveldbException("バイナリ復元に失敗しました");
+				throw new LeveldbException("Binary restore failed.");
 			}
 			endOff -= 2;
 		}
