@@ -328,9 +328,7 @@ public class LevelWMap implements ConvertMap {
 		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			if (v != null) {
-				v.clear();
-			}
+			LevelBuffer.clearBuffer(null, v);
 		}
 	}
 
@@ -384,12 +382,7 @@ public class LevelWMap implements ConvertMap {
 		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			if (keyBuf != null) {
-				keyBuf.clear(true);
-			}
-			if (valBuf != null) {
-				valBuf.clear();
-			}
+			LevelBuffer.clearBuffer(keyBuf, valBuf);
 		}
 	}
 
@@ -457,12 +450,7 @@ public class LevelWMap implements ConvertMap {
 		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			if (keyBuf != null) {
-				keyBuf.clear(true);
-			}
-			if (outBuf != null) {
-				outBuf.clear();
-			}
+			LevelBuffer.clearBuffer(keyBuf, outBuf);
 		}
 	}
 
@@ -535,9 +523,7 @@ public class LevelWMap implements ConvertMap {
 		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			if (keyBuf != null) {
-				keyBuf.clear(true);
-			}
+			LevelBuffer.clearBuffer(keyBuf, null);
 			if (!ret) {
 				buf.clear();
 			}
@@ -583,9 +569,7 @@ public class LevelWMap implements ConvertMap {
 		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			if (buf != null) {
-				buf.clear();
-			}
+			LevelBuffer.clearBuffer(null, buf);
 		}
 		return null;
 	}
@@ -637,9 +621,7 @@ public class LevelWMap implements ConvertMap {
 		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			if (keyBuf != null) {
-				keyBuf.clear(true);
-			}
+			LevelBuffer.clearBuffer(keyBuf, null);
 		}
 	}
 

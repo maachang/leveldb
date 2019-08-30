@@ -118,4 +118,17 @@ public final class LevelBuffer {
 		return ret;
 	}
 
+	/**
+	 * バッファ情報をクリア.
+	 * @param key
+	 * @param value
+	 */
+	public static final void clearBuffer(JniBuffer key, JniBuffer value) {
+		if (key != null) {
+			key.clear(true);
+		}
+		if (value != null) {
+			value.clear();
+		}
+	}
 }

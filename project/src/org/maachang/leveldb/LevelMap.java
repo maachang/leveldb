@@ -127,9 +127,7 @@ public class LevelMap implements ConvertMap {
 		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			if (key != null) {
-				key.clear(true);
-			}
+			LevelBuffer.clearBuffer(key, null);
 		}
 	}
 
@@ -188,9 +186,7 @@ public class LevelMap implements ConvertMap {
 		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			if (v != null) {
-				v.clear();
-			}
+			LevelBuffer.clearBuffer(null, v);
 		}
 	}
 
@@ -240,12 +236,7 @@ public class LevelMap implements ConvertMap {
 		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			if (keyBuf != null) {
-				keyBuf.clear(true);
-			}
-			if (valBuf != null) {
-				valBuf.clear();
-			}
+			LevelBuffer.clearBuffer(keyBuf, valBuf);
 		}
 	}
 
@@ -302,12 +293,7 @@ public class LevelMap implements ConvertMap {
 		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			if (keyBuf != null) {
-				keyBuf.clear(true);
-			}
-			if (valBuf != null) {
-				valBuf.clear();
-			}
+			LevelBuffer.clearBuffer(keyBuf, valBuf);
 		}
 	}
 
@@ -361,9 +347,7 @@ public class LevelMap implements ConvertMap {
 		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			if (keyBuf != null) {
-				keyBuf.clear(true);
-			}
+			LevelBuffer.clearBuffer(keyBuf, null);
 			if (!ret) {
 				buf.clear();
 			}
@@ -459,9 +443,7 @@ public class LevelMap implements ConvertMap {
 		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			if (keyBuf != null) {
-				keyBuf.clear(true);
-			}
+			LevelBuffer.clearBuffer(keyBuf, null);
 		}
 	}
 
