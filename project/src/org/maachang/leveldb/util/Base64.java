@@ -208,34 +208,67 @@ public class Base64 {
 		}
 		return ret;
 	}
-
+	
 	/**
-	 * 対象文字列がBase64であるかチェック.
+	 * デコード処理.
 	 * 
-	 * @param code
-	 *            チェック対象の文字列を設定します.
-	 * @return boolean チェック結果が返されます.
+	 * @param out
+	 *            変換結果のデータ格納先を設定します.
+	 * @param off
+	 *            変換結果のオフセット値を設定します.
+	 * @param base64
+	 *            対象のBase64データを設定します.
+	 * @return int 変換されたバイナリ長が返却されます.
 	 */
-	public static final boolean isBase64(String code) {
-		int i;
-		int len;
-		boolean ret = true;
-		try {
-			len = code.length();
-			if (len % 4 != 0) {
-				ret = false;
+	public static final int decode(final byte[] out, final int off, final String base64) {
+		int i, j, k, len, allLen, etc;
+		if (base64 == null || (allLen = base64.length()) <= 0) {
+			throw new IllegalArgumentException("引数は不正です");
+		}
+		for (i = allLen - 1, etc = 0; i >= 0; i--) {
+			if (base64.charAt(i) == Base64.REMAINDER_ENC) {
+				etc++;
 			} else {
-				for (i = 0; i < len; i++) {
-					if (DEC_CD[code.charAt(i)] == NOT_DEC) {
-						ret = false;
-						break;
-					}
-				}
+				break;
 			}
-		} catch (Exception e) {
-			ret = false;
+		}
+		len = allLen / 4;
+		int ret = (len * 3) - etc;
+		len -= 1;
+		for (i = 0, j = 0, k = off; i < len; i++, j += 4, k += 3) {
+			out[k] = (byte) (((Base64.DEC_CD[base64.charAt(j)] & 0x0000003f) << 2) | ((Base64.DEC_CD[base64
+					.charAt(j + 1)] & 0x00000030) >> 4));
+			out[k + 1] = (byte) (((Base64.DEC_CD[base64.charAt(j + 1)] & 0x0000000f) << 4) | ((Base64.DEC_CD[base64
+					.charAt(j + 2)] & 0x0000003c) >> 2));
+			out[k + 2] = (byte) (((Base64.DEC_CD[base64.charAt(j + 2)] & 0x00000003) << 6) | (Base64.DEC_CD[base64
+					.charAt(j + 3)] & 0x0000003f));
+		}
+		switch (etc) {
+		case 0:
+			j = len * 4;
+			k = len * 3;
+			out[k] = (byte) (((Base64.DEC_CD[base64.charAt(j)] & 0x0000003f) << 2) | ((Base64.DEC_CD[base64
+					.charAt(j + 1)] & 0x00000030) >> 4));
+			out[k + 1] = (byte) (((Base64.DEC_CD[base64.charAt(j + 1)] & 0x0000000f) << 4) | ((Base64.DEC_CD[base64
+					.charAt(j + 2)] & 0x0000003c) >> 2));
+			out[k + 2] = (byte) (((Base64.DEC_CD[base64.charAt(j + 2)] & 0x00000003) << 6) | (Base64.DEC_CD[base64
+					.charAt(j + 3)] & 0x0000003f));
+			break;
+		case 1:
+			j = len * 4;
+			k = len * 3;
+			out[k] = (byte) (((Base64.DEC_CD[base64.charAt(j)] & 0x0000003f) << 2) | ((Base64.DEC_CD[base64
+					.charAt(j + 1)] & 0x00000030) >> 4));
+			out[k + 1] = (byte) (((Base64.DEC_CD[base64.charAt(j + 1)] & 0x0000000f) << 4) | ((Base64.DEC_CD[base64
+					.charAt(j + 2)] & 0x0000003c) >> 2));
+			break;
+		case 2:
+			j = len * 4;
+			k = len * 3;
+			out[k] = (byte) (((Base64.DEC_CD[base64.charAt(j)] & 0x0000003f) << 2) | ((Base64.DEC_CD[base64
+					.charAt(j + 1)] & 0x00000030) >> 4));
+			break;
 		}
 		return ret;
 	}
-
 }

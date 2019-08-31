@@ -152,6 +152,7 @@ public final class LevelOption {
 	 * 		[2]max_open_files.		オープン最大ファイル数.
 	 * 		[3]block_size.			ブロックサイズ.
 	 * 		[4]block_cache.			ブロックキャッシュ.
+	 * 		[5]block_restart_interval 
 	 */
 	public LevelOption(Object... args) {
 		if (args == null || args.length == 0) {
@@ -177,6 +178,10 @@ public final class LevelOption {
 		if (len >= 5 && Utils.isNumeric(args[4])) {
 			setBlockCache(Utils.convertInt(args[4]));
 		}
+		if (len >= 6 && Utils.isNumeric(args[5])) {
+			setBlockRestartInterval(Utils.convertInt(args[5]));
+		}
+		
 	}
 	
 	/**
@@ -187,10 +192,12 @@ public final class LevelOption {
 	 * 		args.get("openFiles")	オープン最大ファイル数.
 	 * 		args.get("blockSize")	ブロックサイズ.
 	 * 		args.get("blockCache")	ブロックキャッシュ.
+	 * 		args.get("blockRestartInterval");
 	 */
 	public LevelOption(Map<String,Object> args) {
 		this(args.get("type"), args.get("bufferSize"),
-			args.get("openFiles"), args.get("blockSize"), args.get("blockCache"));
+			args.get("openFiles"), args.get("blockSize"),
+			args.get("blockCache"), args.get("blockRestartInterval"));
 	}
 
 	/** タイプパターン定義. **/
@@ -594,6 +601,18 @@ public final class LevelOption {
 		}
 		this.block_cache = block_cache;
 	}
+	
+	
+	public int getBlockRestartInterval() {
+		return block_restart_interval;
+	}
+
+	public void setBlockRestartInterval(int block_restart_interval) {
+		if (block_restart_interval <= 0) {
+			block_restart_interval = -1;
+		}
+		this.block_restart_interval = block_restart_interval;
+	}
 
 	/**
 	 * 文字列変換.
@@ -603,9 +622,11 @@ public final class LevelOption {
 	public final String toString() {
 		return new StringBuilder().append(" type:").append(stringType(type))
 				.append(" write_buffer_size:").append(write_buffer_size)
-				.append(" max_open_files:").append(max_open_files).append(
-						" block_size:").append(block_size).append(
-						" block_cache:").append(block_cache).toString();
+				.append(" max_open_files:").append(max_open_files)
+				.append(" block_size:").append(block_size)
+				.append(" block_cache:").append(block_cache)
+				.append(" block_restart_interval:").append(block_restart_interval)
+				.toString();
 	}
 
 	/**

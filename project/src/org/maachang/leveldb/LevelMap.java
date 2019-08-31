@@ -354,6 +354,19 @@ public class LevelMap implements ConvertMap {
 		}
 		return ret;
 	}
+	
+	/**
+	 * 指定キー情報に対する要素を取得.
+	 * 
+	 * @param buf
+	 *            対象の要素格納用バッファを設定します.
+	 * @param key
+	 *            対象のキーを設定します.
+	 * @return boolean [true]の場合、セットされました.
+	 */
+	public boolean getBuffer(JniBuffer buf, Object key) {
+		return getBuffer(buf, key, null);
+	}
 
 	/**
 	 * 指定キー情報に対する要素を取得.

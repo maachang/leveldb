@@ -3,6 +3,8 @@ package org.maachang.leveldb;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.maachang.leveldb.util.Base64;
+
 /**
  * Time 12 byte(96bit) シーケンスID発行処理.
  */
@@ -63,7 +65,7 @@ public class Time12SequenceId {
 	 * @return byte[] シーケンスIDが発行されます.
 	 */
 	public final byte[] get() {
-		final byte[] ret = new byte[16];
+		final byte[] ret = new byte[12];
 		get(ret);
 		return ret;
 	}
@@ -154,6 +156,10 @@ public class Time12SequenceId {
 		nowTime.set(getTime(value));
 		machineId = getMachineId(value);
 	}
+	
+	public final String toString() {
+		return toString(get());
+	}
 
 	/**
 	 * binaryから、時間を取得.
@@ -200,6 +206,7 @@ public class Time12SequenceId {
 	 * @return
 	 */
 	public static final String toString(byte[] b) {
+		/*
 		int i, j;
 		int len = b.length;
 		StringBuilder buf = new StringBuilder(len << 1);
@@ -226,6 +233,9 @@ public class Time12SequenceId {
 			}
 		}
 		return buf.toString();
+		*/
+		// base64で処理する.
+		return Base64.encode(b);
 	}
 	
 	/**
@@ -245,6 +255,7 @@ public class Time12SequenceId {
 	 * @param s
 	 */
 	public static final void toBinary(byte[] o, String s) {
+		/*
 		if(s.length() != 24) {
 			return;
 		}
@@ -278,5 +289,8 @@ public class Time12SequenceId {
 				}
 			}
 		}
+		*/
+		// base64で処理する.
+		Base64.decode(o, 0, s);
 	}
 }
