@@ -1,11 +1,9 @@
 #!/bin/sh
 
 clear
-# bitMode.
-BIT_MODE=64
 
 LIB_VERSION="0.0.1"
-LIB_NAME="leveldb-${BIT_MODE}-${LIB_VERSION}.so"
+LIB_NAME="leveldb-arm-${LIB_VERSION}.so"
 rm -Rf ${LIB_NAME}
 
 # c++.
@@ -43,4 +41,4 @@ INCLUDE_LIST="${INCLUDE_LIST} -I./leveldb_src/include/ ${PLATFORM_FLAGS}"
 INCLUDE_LIST="${INCLUDE_LIST} -I./leveldb_src/ ${PLATFORM_FLAGS}"
 INCLUDE_LIST="${INCLUDE_LIST} -I./snappy_src/"
 
-${CC} -m${BIT_MODE} ${PLATFORM_SHARED_LDFLAGS} ${PLATFORM_SHARED_CFLAGS} -I${JAVA_HOME}/include/ -I${JAVA_HOME}/include/linux/ ${INCLUDE_LIST} ${CPP_LIST} -o ${LIB_NAME}
+${CC} ${PLATFORM_SHARED_LDFLAGS} ${PLATFORM_SHARED_CFLAGS} -I${JAVA_HOME}/include/ -I${JAVA_HOME}/include/linux/ ${INCLUDE_LIST} ${CPP_LIST} -o ${LIB_NAME}
