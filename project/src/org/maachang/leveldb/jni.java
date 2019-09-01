@@ -68,12 +68,16 @@ final class jni {
 		// arm系の処理.
 		String arm = System.getProperty("os.arch");
 		if (arm.startsWith("arm")) {
-
-			// 現在は(32bit)固定.
+			String libBit = "";
+			int bit = getOsBit();
+			if (bit == 32) {
+				libBit = LIB_BIT_32;
+			} else if (bit == 64) {
+				libBit = LIB_BIT_64;
+			}
 			System.load(targetDynamincLib(true, new StringBuilder(LIB_NAME)
-					.append("-").append(LIB_BIT_32).append("arm-").append(
+					.append("-").append(libBit).append("arm-").append(
 							VERSION).append(LINUX_LIB_PLUS).toString()));
-
 			initFlag = true;
 		}
 		// intel系の処理.
