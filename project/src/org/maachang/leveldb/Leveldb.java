@@ -2,11 +2,13 @@ package org.maachang.leveldb;
 
 import java.io.File;
 
+import org.maachang.leveldb.util.Flags;
+
 /**
  * Leveldb.
  */
 public final class Leveldb {
-	protected volatile boolean closeFlag = true;
+	protected final Flags closeFlag = new Flags();
 	protected long addr = 0L;
 	protected String path;
 	protected int type;
@@ -67,7 +69,7 @@ public final class Leveldb {
 		this.path = s;
 		this.type = option.type;
 		this.option = option;
-		this.closeFlag = false;
+		this.closeFlag.set(false);
 	}
 
 	/**
@@ -81,9 +83,7 @@ public final class Leveldb {
 	 * クローズ.
 	 */
 	public synchronized final void close() {
-		boolean cflg = closeFlag;
-		closeFlag = true;
-		if (!cflg) {
+		if (!closeFlag.setToGetBefore(true)) {
 			jni.leveldb_close(addr);
 			addr = 0L;
 		}
@@ -95,12 +95,12 @@ public final class Leveldb {
 	 * @return boolean [true]の場合、クローズしています.
 	 */
 	public final boolean isClose() {
-		return closeFlag;
+		return closeFlag.get();
 	}
 
-	/** check. **/
-	protected final void check() {
-		if (closeFlag) {
+	// クローズチェック.
+	protected final void checkClose() {
+		if (closeFlag.get()) {
 			throw new LeveldbException("Already closed.");
 		}
 	}
@@ -141,7 +141,7 @@ public final class Leveldb {
 	 *            対象の要素を設定します.
 	 */
 	public final void put(final JniBuffer key, final JniBuffer value) {
-		check();
+		checkClose();
 		if (key == null || value == null || key.position() == 0 || value.position() == 0) {
 			throw new LeveldbException("Argument is invalid.");
 		} else if (jni.leveldb_put(addr, key.address(), key.position(), value.address(), value.position()) == -1) {
@@ -159,7 +159,7 @@ public final class Leveldb {
 	 * @return int 取得されたデータ長が返却されます.
 	 */
 	public final int get(final JniBuffer out, final JniBuffer key) {
-		check();
+		checkClose();
 		if (key == null || key.position() == 0) {
 			throw new LeveldbException("Key information is not set.");
 		}
@@ -187,7 +187,7 @@ public final class Leveldb {
 	 * @return boolean [true]の場合、削除されました.
 	 */
 	public final boolean remove(final JniBuffer key) {
-		check();
+		checkClose();
 		if (key == null || key.position() == 0) {
 			throw new LeveldbException("Key information is not set.");
 		}
@@ -206,7 +206,7 @@ public final class Leveldb {
 	 * @return int 取得されたデータ長が返却されます.
 	 */
 	public final int property(final JniBuffer out, final JniBuffer cmd) {
-		check();
+		checkClose();
 		if (out == null || cmd == null || cmd.position() == 0) {
 			throw new LeveldbException("Command information is not set.");
 		}
@@ -242,6 +242,30 @@ public final class Leveldb {
 	 */
 	public final LeveldbIterator snapShot() {
 		return new LeveldbIterator(true, this);
+	}
+
+	/**
+	 * 情報が空かチェック.
+	 * @return boolean [true]の場合、空です.
+	 */
+	public boolean isEmpty() {
+		checkClose();
+		LeveldbIterator itr = null;
+		try {
+			itr = iterator();
+			boolean ret = !itr.valid();
+			itr.close();
+			itr = null;
+			return ret;
+		} catch(LeveldbException le) {
+			throw le;
+		} catch(Exception e) {
+			throw new LeveldbException(e);
+		} finally {
+			if(itr != null) {
+				itr.close();
+			}
+		}
 	}
 
 	/**

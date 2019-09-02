@@ -62,12 +62,12 @@ public class LeveldbIterator {
 	 * @return boolean [true]の場合、クローズしています.
 	 */
 	public boolean isClose() {
-		return parent.closeFlag || addr == 0L;
+		return parent.closeFlag.get() || addr == 0L;
 	}
 
 	/** check. **/
 	protected void check() {
-		if (parent.closeFlag || addr == 0L) {
+		if (parent.closeFlag.get() || addr == 0L) {
 			throw new LeveldbException("Already closed.");
 		}
 	}

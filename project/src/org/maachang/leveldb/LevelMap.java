@@ -486,23 +486,11 @@ public class LevelMap implements ConvertMap {
 	}
 
 	/**
-	 * 情報が空かチェック. return boolean [false]が返却されます.
+	 * 情報が空かチェック.
+	 * @return boolean データが空の場合[true]が返却されます.
 	 */
 	public boolean isEmpty() {
-		try {
-			// 1件以上のIteratorが存在する場合は[false].
-			LeveldbIterator it = leveldb.iterator();
-			if (it.valid()) {
-				it.close();
-				return false;
-			}
-			it.close();
-			return true;
-		} catch (LeveldbException le) {
-			throw le;
-		} catch (Exception e) {
-			throw new LeveldbException(e);
-		}
+		return leveldb.isEmpty();
 	}
 
 	/**
