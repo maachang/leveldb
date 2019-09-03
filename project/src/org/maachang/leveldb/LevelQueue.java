@@ -52,7 +52,7 @@ public class LevelQueue {
 	 * クローズ処理.
 	 */
 	public void close() {
-		if(closeFlag.setToGetBefore(true)) {
+		if(!closeFlag.setToGetBefore(true)) {
 			Leveldb db = leveldb; leveldb = null;
 			if (db != null) {
 				db.close();
@@ -83,6 +83,7 @@ public class LevelQueue {
 	 * @return String Leveldbパス名が返却されます.
 	 */
 	public String getPath() {
+		checkClose();
 		return leveldb.getPath();
 	}
 
@@ -207,7 +208,6 @@ public class LevelQueue {
 		private LeveldbIterator itr = null;
 		private LevelQueue queue = null;
 		LevelQueueIterator(LevelQueue q, byte[] key) {
-			q.checkClose();
 			LeveldbIterator i = q.leveldb.snapShot();
 			if (key != null) {
 				JniBuffer buf = null;
@@ -232,8 +232,7 @@ public class LevelQueue {
 		}
 
 		public void close() {
-			LeveldbIterator i = itr;
-			itr = null;
+			LeveldbIterator i = itr; itr = null;
 			if (i != null) {
 				i.close();
 			}
@@ -242,16 +241,17 @@ public class LevelQueue {
 
 		@Override
 		public boolean hasNext() {
-			boolean ret = itr != null && itr.valid();
-			if (!ret && itr != null) {
+			if (queue.isClose() || itr == null || !itr.valid()) {
 				close();
+				return false;
 			}
-			return ret;
+			return true;
 		}
 
 		@Override
 		public KeyValue next() {
-			if (itr == null || !itr.valid()) {
+			if (queue.isClose() || itr == null || !itr.valid()) {
+				close();
 				throw new NoSuchElementException();
 			}
 			JniBuffer keyBuf = null;
@@ -267,8 +267,7 @@ public class LevelQueue {
 				}
 				keyValue.create(Time12SequenceId.toString(keyBuf.getBinary()), LevelValues.decode(valBuf));
 				LevelBuffer.clearBuffer(keyBuf, valBuf);
-				keyBuf = null;
-				valBuf = null;
+				keyBuf = null; valBuf = null;
 				return keyValue;
 			} catch (LeveldbException le) {
 				throw le;
@@ -281,7 +280,8 @@ public class LevelQueue {
 
 		@Override
 		public void remove() {
-			if (itr == null || !itr.valid()) {
+			if (queue.isClose() || itr == null || !itr.valid()) {
+				close();
 				return;
 			}
 			JniBuffer keyBuf = null;

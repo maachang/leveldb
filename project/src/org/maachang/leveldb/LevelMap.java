@@ -75,7 +75,7 @@ public class LevelMap implements ConvertMap {
 	 * オブジェクトクローズ.
 	 */
 	public void close() {
-		if(closeFlag.setToGetBefore(true)) {
+		if(!closeFlag.setToGetBefore(true)) {
 			leveldb.close();
 			leveldb = null;
 		}

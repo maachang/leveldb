@@ -109,7 +109,7 @@ public class LevelWriteBatchMap implements ConvertMap {
 	 * オブジェクトクローズ.
 	 */
 	public void close() {
-		if(closeFlag.setToGetBefore(true)) {
+		if(!closeFlag.setToGetBefore(true)) {
 			if (_batch != null) {
 				_batch.close();
 				_batch = null;

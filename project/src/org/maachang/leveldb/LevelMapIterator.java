@@ -29,6 +29,11 @@ public class LevelMapIterator implements Iterator<Object> {
 		this.type = type;
 	}
 
+	// ファイナライズ.
+	protected void finalize() throws Exception {
+		close();
+	}
+
 	/**
 	 * クローズ処理.
 	 */
