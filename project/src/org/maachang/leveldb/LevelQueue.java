@@ -3,7 +3,7 @@ package org.maachang.leveldb;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import org.maachang.leveldb.util.Flags;
+import org.maachang.leveldb.util.Flag;
 
 /**
  * Levelキュー情報.
@@ -11,7 +11,7 @@ import org.maachang.leveldb.util.Flags;
 public class LevelQueue {
 	protected Leveldb leveldb;
 	protected Time12SequenceId sequenceId;
-	protected Flags closeFlag = new Flags();
+	protected Flag closeFlag = new Flag();
 
 	/**
 	 * コンストラクタ.
@@ -52,12 +52,12 @@ public class LevelQueue {
 	 * クローズ処理.
 	 */
 	public void close() {
-		closeFlag.set(true);
-		Leveldb db = leveldb;
-		leveldb = null;
-		if (db != null) {
-			db.close();
-			db = null;
+		if(closeFlag.setToGetBefore(true)) {
+			Leveldb db = leveldb; leveldb = null;
+			if (db != null) {
+				db.close();
+				db = null;
+			}
 		}
 	}
 
@@ -206,7 +206,6 @@ public class LevelQueue {
 		private KeyValue keyValue = new KeyValue();
 		private LeveldbIterator itr = null;
 		private LevelQueue queue = null;
-
 		LevelQueueIterator(LevelQueue q, byte[] key) {
 			q.checkClose();
 			LeveldbIterator i = q.leveldb.snapShot();
@@ -320,16 +319,7 @@ public class LevelQueue {
 	 * @return
 	 */
 	public LevelQueueIterator iterator(long time) {
-		byte[] b = new byte[12];
-		b[0] = (byte) ((time & 0xff00000000000000L) >> 56L);
-		b[1] = (byte) ((time & 0x00ff000000000000L) >> 48L);
-		b[2] = (byte) ((time & 0x0000ff0000000000L) >> 40L);
-		b[3] = (byte) ((time & 0x000000ff00000000L) >> 32L);
-		b[4] = (byte) ((time & 0x00000000ff000000L) >> 24L);
-		b[5] = (byte) ((time & 0x0000000000ff0000L) >> 16L);
-		b[6] = (byte) ((time & 0x000000000000ff00L) >> 8L);
-		b[7] = (byte) ((time & 0x00000000000000ffL) >> 0L);
-		return iterator(b);
+		return iterator(Time12SequenceId.createId(0, time, 0));
 	}
 
 	/**

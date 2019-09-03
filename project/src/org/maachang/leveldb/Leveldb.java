@@ -2,13 +2,13 @@ package org.maachang.leveldb;
 
 import java.io.File;
 
-import org.maachang.leveldb.util.Flags;
+import org.maachang.leveldb.util.Flag;
 
 /**
  * Leveldb.
  */
 public final class Leveldb {
-	protected final Flags closeFlag = new Flags();
+	protected final Flag closeFlag = new Flag();
 	protected long addr = 0L;
 	protected String path;
 	protected int type;

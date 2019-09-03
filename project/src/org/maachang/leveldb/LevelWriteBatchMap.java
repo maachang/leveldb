@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.maachang.leveldb.util.ConvertMap;
+import org.maachang.leveldb.util.Flag;
 
 /**
  * LeveldbのWriteBatch対応版-Map実装. LevelMapと違うのは、読み込みは、snapShotを
@@ -17,29 +18,28 @@ import org.maachang.leveldb.util.ConvertMap;
  * 欠点としては、snapShot作成に時間がかかることで、 読み込み速度が、LevelMapより遅くなることです.
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class LevelWMap implements ConvertMap {
+public class LevelWriteBatchMap implements ConvertMap {
 
 	/** LevelMapオブジェクト. **/
 	protected LevelMap map;
 
 	/** サブ定義. **/
 	protected boolean sub = false;
+	
+	/** LevelDbマップセット用オブジェクト. **/
+	protected LevelWriteBatchMapSet set;
 
 	/** WriteBatchオブジェクト. **/
-	protected WriteBatch batch;
+	protected WriteBatch _batch;
 
 	/** LeveldbSnapShot. **/
-	protected LeveldbIterator snapShot;
-
-	/** LevelDbマップセット用オブジェクト. **/
-	protected LevelWMapSet set;
+	protected LeveldbIterator _snapShot;
 
 	/** 全クリアーフラグ. **/
 	protected boolean allClearFlag = false;
-
-	/** Jniバッファ. **/
-	protected JniBuffer _keyBuf;
-	protected JniBuffer _valueBuf;
+	
+	/** クローズフラグ. **/
+	protected final Flag closeFlag = new Flag();
 
 	/**
 	 * コンストラクタ. この処理でオープンした場合は、close処理では、Leveldbが クローズされます.
@@ -47,7 +47,7 @@ public class LevelWMap implements ConvertMap {
 	 * @param name
 	 *            対象のデータベース名を設定します.
 	 */
-	public LevelWMap(String name) {
+	public LevelWriteBatchMap(String name) {
 		this(name, null);
 	}
 
@@ -59,13 +59,13 @@ public class LevelWMap implements ConvertMap {
 	 * @param option
 	 *            対象のLeveldbオプションを設定します.
 	 */
-	public LevelWMap(String name, LevelOption option) {
+	public LevelWriteBatchMap(String name, LevelOption option) {
 		this.map = new LevelMap(name, option);
 		this.set = null;
-		this.batch = null;
-		this.snapShot = null;
 		this.sub = true;
-		createBuffer();
+		this._batch = null;
+		this._snapShot = null;
+		this.closeFlag.set(false);
 	}
 
 	/**
@@ -74,13 +74,13 @@ public class LevelWMap implements ConvertMap {
 	 * @param db
 	 *            対象のLeveldbオブジェクトを設定します.
 	 */
-	public LevelWMap(Leveldb db) {
+	public LevelWriteBatchMap(Leveldb db) {
 		this.map = new LevelMap(db);
 		this.set = null;
-		this.batch = null;
-		this.snapShot = null;
 		this.sub = true;
-		createBuffer();
+		this._batch = null;
+		this._snapShot = null;
+		this.closeFlag.set(false);
 	}
 
 	/**
@@ -89,13 +89,13 @@ public class LevelWMap implements ConvertMap {
 	 * @param map
 	 *            対象のLevelMapを設定します.
 	 */
-	public LevelWMap(LevelMap map) {
+	public LevelWriteBatchMap(LevelMap map) {
 		this.map = map;
 		this.set = null;
-		this.batch = null;
-		this.snapShot = null;
 		this.sub = false;
-		createBuffer();
+		this._batch = null;
+		this._snapShot = null;
+		this.closeFlag.set(false);
 	}
 
 	/**
@@ -104,58 +104,49 @@ public class LevelWMap implements ConvertMap {
 	protected void finalize() throws Exception {
 		close();
 	}
+	
+	/**
+	 * オブジェクトクローズ.
+	 */
+	public void close() {
+		if(closeFlag.setToGetBefore(true)) {
+			if (_batch != null) {
+				_batch.close();
+				_batch = null;
+			}
+			if (_snapShot != null) {
+				_snapShot.close();
+				_snapShot = null;
+			}
+			if (sub) {
+				map.close();
+			}
+			allClearFlag = false;
+			map = null;
+		}
+	}
 
 	/** チェック処理. **/
 	private void check() {
-		if (map == null) {
+		if (closeFlag.get()) {
 			throw new LeveldbException("The object has already been cleared.");
 		}
 	}
 
-	/** バッファ生成. **/
-	protected void createBuffer() {
-		try {
-			_keyBuf = LevelBuffer.key();
-			_valueBuf = LevelBuffer.value();
-		} catch (Exception e) {
-			throw new LeveldbException(e);
-		}
-	}
-
-	/** キーバッファを取得. **/
-	public JniBuffer key() {
-		return _keyBuf;
-	}
-
-	/** キーバッファを取得. **/
-	public JniBuffer key(Object key, Object twoKey) throws Exception {
-		LevelId.buf(map.type, _keyBuf, key, twoKey);
-		return _keyBuf;
-	}
-
-	/** 要素バッファを取得. **/
-	public JniBuffer value() {
-		return _valueBuf;
-	}
-
-	/** 要素バッファを取得. **/
-	public JniBuffer value(Object value) throws Exception {
-		LevelValues.encode(_valueBuf, value);
-		return _valueBuf;
-	}
-
 	/** バッチ情報を作成. **/
-	private void writeBatch() {
-		if (batch == null) {
-			batch = new WriteBatch();
+	private WriteBatch writeBatch() {
+		if (_batch == null) {
+			_batch = new WriteBatch();
 		}
+		return _batch;
 	}
 
 	/** Snapshotを作成. **/
-	private void getSnapshot() {
-		if (snapShot == null) {
-			snapShot = map.leveldb.snapShot();
+	private LeveldbIterator getSnapshot() {
+		if (_snapShot == null) {
+			_snapShot = map.leveldb.snapShot();
 		}
+		return _snapShot;
 	}
 
 	/**
@@ -164,27 +155,7 @@ public class LevelWMap implements ConvertMap {
 	 * @return WriteBatch WriteBatchオブジェクトが返却されます.
 	 */
 	public WriteBatch getWriteBatch() {
-		writeBatch();
-		return batch;
-	}
-
-	/**
-	 * オブジェクトクローズ.
-	 */
-	public void close() {
-		if (batch != null) {
-			batch.close();
-			batch = null;
-		}
-		if (snapShot != null) {
-			snapShot.close();
-			snapShot = null;
-		}
-		if (sub) {
-			map.close();
-		}
-		allClearFlag = false;
-		map = null;
+		return writeBatch();
 	}
 
 	/**
@@ -201,15 +172,15 @@ public class LevelWMap implements ConvertMap {
 			allClearFlag = false;
 		}
 		// バッチ反映.
-		if (batch != null) {
-			batch.flush(map.leveldb);
-			batch.close();
-			batch = null;
+		if (_batch != null) {
+			_batch.flush(map.leveldb);
+			_batch.close();
+			_batch = null;
 		}
 		// スナップショットをクリア.
-		if (snapShot != null) {
-			snapShot.close();
-			snapShot = null;
+		if (_snapShot != null) {
+			_snapShot.close();
+			_snapShot = null;
 		}
 	}
 
@@ -222,14 +193,14 @@ public class LevelWMap implements ConvertMap {
 	public void rollback() throws Exception {
 		check();
 		// バッチクリア.
-		if (batch != null) {
-			batch.close();
-			batch = null;
+		if (_batch != null) {
+			_batch.close();
+			_batch = null;
 		}
 		// スナップショットをクリア.
-		if (snapShot != null) {
-			snapShot.close();
-			snapShot = null;
+		if (_snapShot != null) {
+			_snapShot.close();
+			_snapShot = null;
 		}
 		allClearFlag = false;
 	}
@@ -240,7 +211,7 @@ public class LevelWMap implements ConvertMap {
 	 * @return boolean [true]の場合、クローズしています.
 	 */
 	public boolean isClose() {
-		return map == null;
+		return closeFlag.get();
 	}
 
 	/**
@@ -270,9 +241,9 @@ public class LevelWMap implements ConvertMap {
 	public void clear() {
 		check();
 		allClearFlag = true;
-		if (batch != null) {
-			batch.close();
-			batch = null;
+		if (_batch != null) {
+			_batch.close();
+			_batch = null;
 		}
 	}
 
@@ -303,9 +274,9 @@ public class LevelWMap implements ConvertMap {
 		// Iteratorで、存在するまでチェック(超遅い).
 		JniBuffer v = null;
 		try {
-			getSnapshot();
+			LeveldbIterator snapShot = getSnapshot();
 			snapShot.first();
-			v = value();
+			v = LevelBuffer.value();
 			if (value == null) {
 				while (snapShot.valid()) {
 					v.clear();
@@ -373,13 +344,13 @@ public class LevelWMap implements ConvertMap {
 		JniBuffer keyBuf = null;
 		JniBuffer valBuf = null;
 		try {
-			writeBatch();
-			keyBuf = key(key, twoKey);
+			WriteBatch b = writeBatch();
+			keyBuf = LevelBuffer.key(map.getType(), key, twoKey);
 			if (value instanceof JniBuffer) {
-				batch.put(keyBuf, (JniBuffer) value);
+				b.put(keyBuf, (JniBuffer) value);
 			} else {
-				valBuf = value(value);
-				batch.put(keyBuf, valBuf);
+				valBuf = LevelBuffer.value(value);
+				b.put(keyBuf, valBuf);
 			}
 			return null;
 		} catch (LeveldbException le) {
@@ -438,13 +409,13 @@ public class LevelWMap implements ConvertMap {
 		JniBuffer outBuf = null;
 		try {
 			// snapShotで検索.
-			getSnapshot();
-			keyBuf = key(key, twoKey);
+			LeveldbIterator snapShot = getSnapshot();
+			keyBuf = LevelBuffer.key(map.getType(), key, twoKey);
 			snapShot.seek(keyBuf);
 
 			// 条件が存在する場合.
 			if (snapShot.valid()) {
-				outBuf = value();
+				outBuf = LevelBuffer.value();
 				snapShot.key(outBuf);
 				return JniIO.equals(keyBuf.address, keyBuf.position, outBuf.address, outBuf.position);
 			}
@@ -500,7 +471,7 @@ public class LevelWMap implements ConvertMap {
 		JniBuffer keyBuf = null;
 		try {
 			// snapShotで検索.
-			getSnapshot();
+			LeveldbIterator snapShot = getSnapshot();
 			if (key instanceof JniBuffer) {
 				if (twoKey == null) {
 					keyBuf = (JniBuffer) key;
@@ -508,7 +479,7 @@ public class LevelWMap implements ConvertMap {
 					throw new LeveldbException("twoKey is specified for key = jniBuffer");
 				}
 			} else {
-				keyBuf = key(key, twoKey);
+				keyBuf = LevelBuffer.key(map.getType(), key, twoKey);
 			}
 			snapShot.seek(keyBuf);
 			// 条件が存在する場合.
@@ -564,7 +535,7 @@ public class LevelWMap implements ConvertMap {
 		check();
 		JniBuffer buf = null;
 		try {
-			buf = value();
+			buf = LevelBuffer.value();
 			if (getBuffer(buf, key, twoKey)) {
 				return LevelValues.decode(buf);
 			}
@@ -616,9 +587,9 @@ public class LevelWMap implements ConvertMap {
 		check();
 		JniBuffer keyBuf = null;
 		try {
-			writeBatch();
-			keyBuf = key(key, twoKey);
-			batch.remove(keyBuf);
+			WriteBatch b = writeBatch();
+			keyBuf = LevelBuffer.key(map.getType(), key, twoKey);
+			b.remove(keyBuf);
 			return Boolean.TRUE;
 		} catch (LeveldbException le) {
 			throw le;
@@ -661,7 +632,7 @@ public class LevelWMap implements ConvertMap {
 		check();
 		try {
 			// 1件以上のIteratorが存在する場合は[false].
-			getSnapshot();
+			LeveldbIterator snapShot = getSnapshot();
 			snapShot.first();
 			if (snapShot.valid()) {
 				return false;
@@ -682,7 +653,7 @@ public class LevelWMap implements ConvertMap {
 	public Set keySet() {
 		check();
 		if (set == null) {
-			set = new LevelWMapSet(this);
+			set = new LevelWriteBatchMapSet(this);
 		}
 		return set;
 	}
@@ -695,11 +666,11 @@ public class LevelWMap implements ConvertMap {
 		try {
 			int ret = 0;
 			// Iteratorで削除するので、超遅い.
-			getSnapshot();
+			LeveldbIterator snapShot= getSnapshot();
 			snapShot.first();
 			while (snapShot.valid()) {
-				ret++;
 				snapShot.next();
+				ret++;
 			}
 			return ret;
 		} catch (LeveldbException le) {
@@ -759,10 +730,10 @@ public class LevelWMap implements ConvertMap {
 	}
 
 	/** LevelWMapSet. **/
-	protected static class LevelWMapSet implements Set {
-		private LevelWMap map;
+	protected static class LevelWriteBatchMapSet implements Set {
+		private LevelWriteBatchMap map;
 
-		public LevelWMapSet(LevelWMap map) {
+		public LevelWriteBatchMapSet(LevelWriteBatchMap map) {
 			this.map = map;
 		}
 

@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.maachang.leveldb.util.ConvertMap;
+import org.maachang.leveldb.util.Flag;
 
 /**
  * LeveldbのMap実装.
@@ -21,6 +22,9 @@ public class LevelMap implements ConvertMap {
 
 	/** キータイプ. **/
 	protected int type;
+	
+	/** クローズフラグ. **/
+	protected final Flag closeFlag = new Flag();
 
 	/**
 	 * コンストラクタ.
@@ -44,6 +48,7 @@ public class LevelMap implements ConvertMap {
 		this.leveldb = new Leveldb(name, option);
 		this.type = this.leveldb.getOption().getType();
 		this.set = null;
+		this.closeFlag.set(false);
 	}
 
 	/**
@@ -56,6 +61,7 @@ public class LevelMap implements ConvertMap {
 		this.leveldb = db;
 		this.type = db.getOption().getType();
 		this.set = null;
+		this.closeFlag.set(false);
 	}
 
 	/**
@@ -69,7 +75,17 @@ public class LevelMap implements ConvertMap {
 	 * オブジェクトクローズ.
 	 */
 	public void close() {
-		leveldb.close();
+		if(closeFlag.setToGetBefore(true)) {
+			leveldb.close();
+			leveldb = null;
+		}
+	}
+	
+	/** チェック処理. **/
+	private void check() {
+		if (closeFlag.get()) {
+			throw new LeveldbException("The object has already been cleared.");
+		}
 	}
 
 	/**
@@ -78,7 +94,7 @@ public class LevelMap implements ConvertMap {
 	 * @return boolean [true]の場合、クローズしています.
 	 */
 	public boolean isClose() {
-		return leveldb.isClose();
+		return closeFlag.get();
 	}
 
 	/**
@@ -87,6 +103,7 @@ public class LevelMap implements ConvertMap {
 	 * @return Leveldb Leveldbオブジェクトが返却されます.
 	 */
 	public Leveldb getLeveldb() {
+		check();
 		return leveldb;
 	}
 
@@ -96,6 +113,7 @@ public class LevelMap implements ConvertMap {
 	 * @return LevelOption オプションが返却されます.
 	 */
 	public LevelOption getOption() {
+		check();
 		return leveldb.getOption();
 	}
 
@@ -105,6 +123,7 @@ public class LevelMap implements ConvertMap {
 	 * @return int キータイプが返却されます.
 	 */
 	public int getType() {
+		check();
 		return type;
 	}
 
@@ -113,6 +132,7 @@ public class LevelMap implements ConvertMap {
 	 * すべての要素をすべてクリアします.
 	 */
 	public void clear() {
+		check();
 		JniBuffer key = null;
 		try {
 
@@ -142,6 +162,7 @@ public class LevelMap implements ConvertMap {
 	 *            追加対象のMapを設定します.
 	 */
 	public void putAll(Map toMerge) {
+		check();
 		Object k;
 		Iterator it = toMerge.keySet().iterator();
 		while (it.hasNext()) {
@@ -157,7 +178,7 @@ public class LevelMap implements ConvertMap {
 	 * @return boolean trueの場合、一致する条件が存在します.
 	 */
 	public boolean containsValue(Object value) {
-
+		check();
 		// Iteratorで、存在するまでチェック(超遅い).
 		JniBuffer v = null;
 		try {
@@ -221,6 +242,7 @@ public class LevelMap implements ConvertMap {
 	 * @return Object [null]が返却されます.
 	 */
 	public Object put(Object key, Object twoKey, Object value) {
+		check();
 		if (value != null && value instanceof LevelMap) {
 			throw new LeveldbException("LevelMap element cannot be set for the element.");
 		}
@@ -285,6 +307,7 @@ public class LevelMap implements ConvertMap {
 	 * @return boolean [true]の場合、存在します.
 	 */
 	public boolean containsKey(Object key, Object twoKey) {
+		check();
 		JniBuffer keyBuf = null;
 		JniBuffer valBuf = null;
 		try {
@@ -338,6 +361,7 @@ public class LevelMap implements ConvertMap {
 	 * @return boolean [true]の場合、セットされました.
 	 */
 	public boolean getBuffer(JniBuffer buf, Object key, Object twoKey) {
+		check();
 		boolean ret = false;
 		JniBuffer keyBuf = null;
 		try {
@@ -398,6 +422,7 @@ public class LevelMap implements ConvertMap {
 	 * @return Object 対象の要素が返却されます.
 	 */
 	public Object get(Object key, Object twoKey) {
+		check();
 		JniBuffer buf = null;
 		try {
 			buf = LevelBuffer.value();
@@ -451,6 +476,7 @@ public class LevelMap implements ConvertMap {
 	 * @return Object 削除できた場合[true]が返却されます.
 	 */
 	public boolean remove(Object key, Object twoKey) {
+		check();
 		JniBuffer keyBuf = null;
 		try {
 			keyBuf = LevelBuffer.key(type, key, twoKey);
@@ -495,6 +521,7 @@ public class LevelMap implements ConvertMap {
 	 * @return boolean データが空の場合[true]が返却されます.
 	 */
 	public boolean isEmpty() {
+		check();
 		return leveldb.isEmpty();
 	}
 
@@ -504,6 +531,7 @@ public class LevelMap implements ConvertMap {
 	 * @return Set Setオブジェクトが返却されます.
 	 */
 	public Set keySet() {
+		check();
 		if (set == null) {
 			set = new LevelMapSet(this);
 		}
@@ -514,9 +542,9 @@ public class LevelMap implements ConvertMap {
 	 * 登録データ数を取得. ※Iteratorでカウントするので、件数が多い場合は、処理に時間がかかります. return int 登録データ数が返却されます.
 	 */
 	public int size() {
+		check();
 		try {
 			int ret = 0;
-
 			// Iteratorで削除するので、超遅い.
 			LeveldbIterator it = leveldb.iterator();
 			while (it.valid()) {
@@ -558,7 +586,7 @@ public class LevelMap implements ConvertMap {
 	 * @return String 空文字が返却されます.
 	 */
 	public String toString() {
-
+		check();
 		// 何もしない.
 		return "";
 	}
@@ -569,6 +597,7 @@ public class LevelMap implements ConvertMap {
 	 * @return String Leveldbパス名が返却されます.
 	 */
 	public String getPath() {
+		check();
 		return leveldb.getPath();
 	}
 
@@ -592,11 +621,13 @@ public class LevelMap implements ConvertMap {
 
 	/** iterator作成. **/
 	protected LevelMapIterator _iterator() {
+		check();
 		return new LevelMapIterator(this, type, leveldb.iterator());
 	}
 
 	/** snapShort用のIteratorを作成. **/
 	protected LevelMapIterator _snapShot() {
+		check();
 		return new LevelMapIterator(this, type, leveldb.snapShot());
 	}
 
@@ -614,6 +645,7 @@ public class LevelMap implements ConvertMap {
 		}
 
 		public boolean addAll(Collection arg0) {
+			map.check();
 			Iterator it = arg0.iterator();
 			while (it.hasNext()) {
 				add(it.next());
@@ -630,6 +662,7 @@ public class LevelMap implements ConvertMap {
 		}
 
 		public boolean containsAll(Collection arg0) {
+			map.check();
 			Iterator it = arg0.iterator();
 			while (it.hasNext()) {
 				if (map.containsKey(it.next())) {
@@ -653,6 +686,7 @@ public class LevelMap implements ConvertMap {
 		}
 
 		public boolean removeAll(Collection arg0) {
+			map.check();
 			boolean ret = false;
 			Iterator it = arg0.iterator();
 			while (it.hasNext()) {
@@ -679,5 +713,4 @@ public class LevelMap implements ConvertMap {
 			throw new LeveldbException("Not supported.");
 		}
 	}
-
 }

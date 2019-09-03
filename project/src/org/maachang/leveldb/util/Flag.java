@@ -5,13 +5,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Atomicなフラグ情報(true or false).
  */
-public class Flags {
+public class Flag {
 	private final AtomicInteger ato = new AtomicInteger(0);
 
 	/**
 	 * コンストラクタ.
 	 */
-	public Flags() {
+	public Flag() {
 
 	}
 
@@ -20,7 +20,7 @@ public class Flags {
 	 * 
 	 * @param n
 	 */
-	public Flags(boolean n) {
+	public Flag(boolean n) {
 		while (!ato.compareAndSet(ato.get(), n ? 1 : 0))
 			;
 	}
