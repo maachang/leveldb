@@ -135,6 +135,16 @@ public class LevelQueue {
 		checkClose();
 		return leveldb.getPath();
 	}
+	
+	/**
+	 * Levedbオープンオプションを取得.
+	 * 
+	 * @return LevelOption オプション情報が返却されます.
+	 */
+	public LevelOption getOption() {
+		checkClose();
+		return leveldb.getOption();
+	}
 
 	/**
 	 * 最後に追加.
