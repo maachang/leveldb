@@ -67,16 +67,15 @@ public class LevelMapIterator implements Iterator<Object> {
 			if (key instanceof JniBuffer) {
 				itr.seek((JniBuffer) key);
 			} else {
-				itr.seek((keyBuf = LevelBuffer.key(type, key, key2)));
+				keyBuf = LevelBuffer.key(type, key, key2);
+				itr.seek(keyBuf);
 			}
 		} catch (LeveldbException le) {
 			throw le;
 		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			if (keyBuf != null) {
-				keyBuf.clear(true);
-			}
+			LevelBuffer.clearBuffer(keyBuf, null);
 		}
 		return this;
 	}
@@ -124,16 +123,13 @@ public class LevelMapIterator implements Iterator<Object> {
 			close();
 			throw new NoSuchElementException();
 		}
-		return _next();
-	}
-
-	/** 情報を取得. **/
-	private Object _next() {
 		JniBuffer keyBuf = null;
 		try {
 			keyBuf = LevelBuffer.key();
 			itr.key(keyBuf);
 			Object ret = LevelId.get(type, keyBuf);
+			LevelBuffer.clearBuffer(keyBuf, null);
+			keyBuf = null;
 			itr.next();
 			if(!itr.valid()) {
 				close();
@@ -155,7 +151,8 @@ public class LevelMapIterator implements Iterator<Object> {
 		if (itr == null || !itr.valid()) {
 			close();
 			throw new IllegalStateException(
-					"Data does not exist, has been deleted, or next() processing has not been performed.");
+				"Data does not exist, has been deleted, or next() "
+				+ "processing has not been performed.");
 		}
 		JniBuffer keyBuf = null;
 		try {
