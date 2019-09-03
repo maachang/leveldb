@@ -11,7 +11,6 @@ import java.util.NoSuchElementException;
 public class LevelMapIterator implements Iterator<Object> {
 	private Map map;
 	private LeveldbIterator itr;
-	private Object nowKey;
 	private int type;
 
 	/**
@@ -109,7 +108,7 @@ public class LevelMapIterator implements Iterator<Object> {
 	 */
 	public boolean hasNext() {
 		if (itr == null || !itr.valid()) {
-			nowKey = null;
+			close();
 			return false;
 		}
 		return true;
@@ -122,39 +121,30 @@ public class LevelMapIterator implements Iterator<Object> {
 	 */
 	public Object next() {
 		if (itr == null || !itr.valid()) {
-			nowKey = null;
+			close();
 			throw new NoSuchElementException();
 		}
-		_next();
-		return nowKey;
+		return _next();
 	}
 
 	/** 情報を取得. **/
-	private void _next() {
-		if (itr == null || !itr.valid()) {
-			throw new NoSuchElementException();
-		}
-		JniBuffer buf = null;
-		JniBuffer valBuf = null;
+	private Object _next() {
+		JniBuffer keyBuf = null;
 		try {
-			buf = LevelBuffer.key(type, null);
-			valBuf = LevelBuffer.value();
-			if (itr.key(buf) <= 0) {
-				nowKey = null;
-			}
-			nowKey = LevelId.get(type, buf);
+			keyBuf = LevelBuffer.key();
+			itr.key(keyBuf);
+			Object ret = LevelId.get(type, keyBuf);
 			itr.next();
+			if(!itr.valid()) {
+				close();
+			}
+			return ret;
 		} catch (LeveldbException le) {
 			throw le;
 		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			if (buf != null) {
-				buf.clear(true);
-			}
-			if (valBuf != null) {
-				valBuf.clear();
-			}
+			LevelBuffer.clearBuffer(keyBuf, null);
 		}
 	}
 
@@ -162,11 +152,22 @@ public class LevelMapIterator implements Iterator<Object> {
 	 * 対象情報を削除します.
 	 */
 	public void remove() {
-		if (nowKey != null) {
-			map.remove(nowKey);
-		} else {
+		if (itr == null || !itr.valid()) {
+			close();
 			throw new IllegalStateException(
 					"Data does not exist, has been deleted, or next() processing has not been performed.");
+		}
+		JniBuffer keyBuf = null;
+		try {
+			keyBuf = LevelBuffer.key();
+			itr.key(keyBuf);
+			map.remove(LevelId.get(type, keyBuf));
+		} catch (LeveldbException le) {
+			throw le;
+		} catch (Exception e) {
+			throw new LeveldbException(e);
+		} finally {
+			LevelBuffer.clearBuffer(keyBuf, null);
 		}
 	}
 

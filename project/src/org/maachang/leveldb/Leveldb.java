@@ -8,11 +8,12 @@ import org.maachang.leveldb.util.Flag;
  * Leveldb.
  */
 public final class Leveldb {
-	protected final Flag closeFlag = new Flag();
 	protected long addr = 0L;
 	protected String path;
 	protected int type;
 	protected LevelOption option;
+	
+	protected final Flag closeFlag = new Flag();
 
 	/**
 	 * コンストラクタ.
@@ -106,6 +107,7 @@ public final class Leveldb {
 	 * @return String オープンパス名が返却されます.
 	 */
 	public final String getPath() {
+		checkClose();
 		return path;
 	}
 
@@ -115,6 +117,7 @@ public final class Leveldb {
 	 * @return int キータイプが返却されます.
 	 */
 	public final int getType() {
+		checkClose();
 		return type;
 	}
 
@@ -124,6 +127,7 @@ public final class Leveldb {
 	 * @return LevelOption オプションが返却されます.
 	 */
 	public final LevelOption getOption() {
+		checkClose();
 		return option;
 	}
 
@@ -226,6 +230,7 @@ public final class Leveldb {
 	 * @return LeveldbIterator Iteratorオブジェクトが返却されます.
 	 */
 	public final LeveldbIterator iterator() {
+		checkClose();
 		return new LeveldbIterator(false, this);
 	}
 
@@ -235,6 +240,7 @@ public final class Leveldb {
 	 * @return LeveldbIterator Iteratorオブジェクトが返却されます.
 	 */
 	public final LeveldbIterator snapShot() {
+		checkClose();
 		return new LeveldbIterator(true, this);
 	}
 
