@@ -12,6 +12,28 @@ public class LevelQueue {
 	protected Leveldb leveldb;
 	protected Time12SequenceId sequenceId;
 	protected Flag closeFlag = new Flag();
+	
+	/**
+	 * コンストラクタ.
+	 * 
+	 * @param name
+	 *            対象のデータベース名を設定します.
+	 */
+	public LevelQueue(String name) {
+		this(0, name, null);
+	}
+	
+	/**
+	 * コンストラクタ.
+	 * 
+	 * @param name
+	 *            対象のデータベース名を設定します.
+	 * @param option
+	 *            Leveldbオプションを設定します.
+	 */
+	public LevelQueue(String name, LevelOption option) {
+		this(0, name, option);
+	}
 
 	/**
 	 * コンストラクタ.
@@ -39,6 +61,33 @@ public class LevelQueue {
 		// keyタイプは free(Time12SequenceId).
 		option.type = LevelOption.TYPE_FREE;
 		this.leveldb = new Leveldb(name, option);
+		this.sequenceId = new Time12SequenceId(machineId);
+		this.closeFlag.set(false);
+	}
+	
+	/**
+	 * コンストラクタ.
+	 * 
+	 * @param db
+	 *            対象のデータベース名を設定します.
+	 */
+	public LevelQueue(Leveldb db) {
+		this(0, db);
+	}
+	
+	/**
+	 * コンストラクタ.
+	 * 
+	 * @param machineId
+	 *            マシンIDを設定します.
+	 * @param db
+	 *            対象のデータベース名を設定します.
+	 */
+	public LevelQueue(int machineId, Leveldb db) {
+		if(db.getType() != LevelOption.TYPE_FREE) {
+			throw new LeveldbException("The key type of the opened Leveldb is not TYPE_FREE.");
+		}
+		this.leveldb = db;
 		this.sequenceId = new Time12SequenceId(machineId);
 		this.closeFlag.set(false);
 	}
