@@ -7,7 +7,7 @@ import java.util.NoSuchElementException;
 /**
  * LevelMap用Iterator.
  */
-@SuppressWarnings({"rawtypes"})
+@SuppressWarnings({ "rawtypes" })
 public class LevelMapIterator implements Iterator<Object> {
 	private Map map;
 	private LeveldbIterator itr;

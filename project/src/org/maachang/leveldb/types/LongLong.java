@@ -123,8 +123,7 @@ public final class LongLong extends TwoKey {
 	 *            対象のJniBufferを設定します.
 	 * @exception Exception.
 	 */
-	public static final void convertBuffer(Object one, Object two, JniBuffer buf)
-			throws Exception {
+	public static final void convertBuffer(Object one, Object two, JniBuffer buf) throws Exception {
 		int pos = buf.position;
 
 		// それぞれの長さを取得.
@@ -200,9 +199,8 @@ public final class LongLong extends TwoKey {
 	 *         LevelOption.TYPE_N64_STR] ２キー[数字(64bit)]「文字列].
 	 *         LevelOption.TYPE_N64_N32] ２キー[数字(64bit)]「数字(32bit)].
 	 *         LevelOption.TYPE_N64_N64] ２キー[数字(64bit)]「数字(64bit)].
-	 *         LevelOption.TYPE_STR_BIN] ２キー[文字列]「バイナリ].
-	 *         LevelOption.TYPE_N32_BIN] ２キー[数字(32bit)]「バイナリ].
-	 *         LevelOption.TYPE_N64_BIN] ２キー[数字(64bit)]「バイナリ].
+	 *         LevelOption.TYPE_STR_BIN] ２キー[文字列]「バイナリ]. LevelOption.TYPE_N32_BIN]
+	 *         ２キー[数字(32bit)]「バイナリ]. LevelOption.TYPE_N64_BIN] ２キー[数字(64bit)]「バイナリ].
 	 */
 	public final int getType() {
 		return LevelOption.TYPE_N64_N64;
@@ -284,8 +282,7 @@ public final class LongLong extends TwoKey {
 	 * @return String 文字列が返却されます.
 	 */
 	public final String toString() {
-		return new StringBuilder("[num64-num64]").append(one).append(",")
-				.append(two).toString();
+		return new StringBuilder("[num64-num64]").append(one).append(",").append(two).toString();
 	}
 
 	/**

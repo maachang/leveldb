@@ -411,8 +411,7 @@ public class MultiId {
 		for (int i = 0; i < len; i++) {
 
 			// 長さを取得.
-			oneLen = (((binary[endOff - 1]) & 0x3f) << 8)
-					| (binary[endOff] & 255);
+			oneLen = (((binary[endOff - 1]) & 0x3f) << 8) | (binary[endOff] & 255);
 
 			// タイプを取得.
 			switch (((binary[endOff - 1] & 0xc0) >> 6) & 0x03) {
@@ -435,8 +434,7 @@ public class MultiId {
 
 			// 数字(32bit).
 			case TYPE_INT:
-				n = (int) (((binary[off] & 255) << 24)
-						| ((binary[off + 1] & 255) << 16)
+				n = (int) (((binary[off] & 255) << 24) | ((binary[off + 1] & 255) << 16)
 						| ((binary[off + 2] & 255) << 8) | (binary[off + 3] & 255)) ^ 0x80000000;
 				if (oneLen == 0) {
 					list.add(n);
@@ -448,12 +446,9 @@ public class MultiId {
 
 			// 数字(64bit).
 			case TYPE_LONG:
-				l = (long) (((binary[off] & 255L) << 56L)
-						| ((binary[off + 1] & 255L) << 48L)
-						| ((binary[off + 2] & 255L) << 40L)
-						| ((binary[off + 3] & 255L) << 32L)
-						| ((binary[off + 4] & 255L) << 24L)
-						| ((binary[off + 5] & 255L) << 16L)
+				l = (long) (((binary[off] & 255L) << 56L) | ((binary[off + 1] & 255L) << 48L)
+						| ((binary[off + 2] & 255L) << 40L) | ((binary[off + 3] & 255L) << 32L)
+						| ((binary[off + 4] & 255L) << 24L) | ((binary[off + 5] & 255L) << 16L)
 						| ((binary[off + 6] & 255L) << 8L) | (binary[off + 7] & 255L)) ^ 0x8000000000000000L;
 				if (oneLen == 0) {
 					list.add(l);
@@ -504,8 +499,7 @@ public class MultiId {
 		for (int i = 0; i < len; i++) {
 
 			// 長さを取得.
-			oneLen = (((JniIO.get(addr, endOff - 1)) & 0x3f) << 8)
-					| (JniIO.get(addr, endOff) & 255);
+			oneLen = (((JniIO.get(addr, endOff - 1)) & 0x3f) << 8) | (JniIO.get(addr, endOff) & 255);
 
 			// タイプを取得.
 			switch (((JniIO.get(addr, endOff - 1) & 0xc0) >> 6) & 0x03) {
@@ -518,8 +512,7 @@ public class MultiId {
 					oneLen >>= 1;
 					c = new char[oneLen];
 					for (j = 0; j < oneLen; j++) {
-						c[j] = (char) (((JniIO.get(addr, off) << 8) & 0xff00) | (JniIO
-								.get(addr, off + 1) & 0x00ff));
+						c[j] = (char) (((JniIO.get(addr, off) << 8) & 0xff00) | (JniIO.get(addr, off + 1) & 0x00ff));
 						off += 2;
 					}
 					list.add(new String(c, 0, oneLen));
@@ -529,10 +522,8 @@ public class MultiId {
 
 			// 数字(32bit).
 			case TYPE_INT:
-				n = (int) (((JniIO.get(addr, off) & 255) << 24)
-						| ((JniIO.get(addr, off + 1) & 255) << 16)
-						| ((JniIO.get(addr, off + 2) & 255) << 8) | (JniIO.get(
-						addr, off + 3) & 255)) ^ 0x80000000;
+				n = (int) (((JniIO.get(addr, off) & 255) << 24) | ((JniIO.get(addr, off + 1) & 255) << 16)
+						| ((JniIO.get(addr, off + 2) & 255) << 8) | (JniIO.get(addr, off + 3) & 255)) ^ 0x80000000;
 				if (oneLen == 0) {
 					list.add(n);
 				} else {
@@ -543,14 +534,11 @@ public class MultiId {
 
 			// 数字(64bit).
 			case TYPE_LONG:
-				l = (long) (((JniIO.get(addr, off) & 255L) << 56L)
-						| ((JniIO.get(addr, off + 1) & 255L) << 48L)
-						| ((JniIO.get(addr, off + 2) & 255L) << 40L)
-						| ((JniIO.get(addr, off + 3) & 255L) << 32L)
-						| ((JniIO.get(addr, off + 4) & 255L) << 24L)
-						| ((JniIO.get(addr, off + 5) & 255L) << 16L)
-						| ((JniIO.get(addr, off + 6) & 255L) << 8L) | (JniIO
-						.get(addr, off + 7) & 255L)) ^ 0x8000000000000000L;
+				l = (long) (((JniIO.get(addr, off) & 255L) << 56L) | ((JniIO.get(addr, off + 1) & 255L) << 48L)
+						| ((JniIO.get(addr, off + 2) & 255L) << 40L) | ((JniIO.get(addr, off + 3) & 255L) << 32L)
+						| ((JniIO.get(addr, off + 4) & 255L) << 24L) | ((JniIO.get(addr, off + 5) & 255L) << 16L)
+						| ((JniIO.get(addr, off + 6) & 255L) << 8L) | (JniIO.get(addr, off + 7) & 255L))
+						^ 0x8000000000000000L;
 				if (oneLen == 0) {
 					list.add(l);
 				} else {
@@ -608,8 +596,7 @@ public class MultiId {
 
 	/** １つのデータ長を設定(JniBuffer). **/
 	private static final void putEndLength(long addr, int pos, int type, int len) {
-		JniIO.put(addr, pos,
-				(byte) ((type << 6) | ((((len & 0x0000ff00) >> 8)) & 0x3f)));
+		JniIO.put(addr, pos, (byte) ((type << 6) | ((((len & 0x0000ff00) >> 8)) & 0x3f)));
 		JniIO.put(addr, pos + 1, (byte) (len & 255));
 	}
 

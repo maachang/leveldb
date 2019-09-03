@@ -135,8 +135,7 @@ public final class FileUtil {
 	 *            [null]の場合、拡張子を識別せずに取得します.
 	 * @return String[] ファイル名一覧が返されます.
 	 */
-	public static final String[] getDirByUseFileName(String dir, String plus)
-			throws Exception {
+	public static final String[] getDirByUseFileName(String dir, String plus) throws Exception {
 		if (dir == null || (dir = dir.trim()).length() <= 0) {
 			throw new IllegalArgumentException("引数は不正です");
 		}
@@ -163,24 +162,21 @@ public final class FileUtil {
 	/**
 	 * 指定ディレクトリ以下のディレクトリ名を取得.
 	 */
-	private static final void readDirToFileList(List<String> out, String base,
-			String dir, String plus) throws Exception {
+	private static final void readDirToFileList(List<String> out, String base, String dir, String plus)
+			throws Exception {
 		File fp = new File(dir);
 		String[] names = fp.list();
 		fp = null;
 		if (names != null && names.length > 0) {
 			int len = names.length;
 			for (int i = 0; i < len; i++) {
-				if (names[i] == null
-						|| (names[i] = names[i].trim()).length() <= 0) {
+				if (names[i] == null || (names[i] = names[i].trim()).length() <= 0) {
 					continue;
 				}
-				String name = new StringBuilder().append(dir).append(FILE_SP)
-						.append(names[i]).toString();
+				String name = new StringBuilder().append(dir).append(FILE_SP).append(names[i]).toString();
 				if (FileUtil.isDir(name)) {
 					readDirToFileList(out, base, name, plus);
-				} else if (plus == null
-						|| Utils.toLowerCase(name).endsWith(plus)) {
+				} else if (plus == null || Utils.toLowerCase(name).endsWith(plus)) {
 					name = name.substring(base.length(), name.length());
 					if (name.indexOf("\\") != -1) {
 						name = Utils.changeString(name, "\\", "/");

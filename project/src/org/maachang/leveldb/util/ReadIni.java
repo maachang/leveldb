@@ -20,8 +20,7 @@ public class ReadIni {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final void analisys(Config param, BufferedReader index)
-			throws Exception {
+	public static final void analisys(Config param, BufferedReader index) throws Exception {
 		analisys(param, "", index);
 	}
 
@@ -37,14 +36,12 @@ public class ReadIni {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final void analisys(Config param, String header,
-			BufferedReader index) throws Exception {
+	public static final void analisys(Config param, String header, BufferedReader index) throws Exception {
 		analisysConf(param, header, index);
 	}
 
 	/** 新コンフィグ解析処理. **/
-	private static final void analisysConf(Config param, String header,
-			BufferedReader buf) throws Exception {
+	private static final void analisysConf(Config param, String header, BufferedReader buf) throws Exception {
 		List<String> list = new ArrayList<String>();
 		// 全内容を改行単位でリストに取得.
 		{
@@ -123,8 +120,7 @@ public class ReadIni {
 							b = new StringBuilder();
 						} else if (c == ']') {
 							section = b.toString();
-							section = section
-									.substring(0, section.length() - 1).trim();
+							section = section.substring(0, section.length() - 1).trim();
 							b = null;
 						} else if (section == null) {
 							// 情報読み込み中か、空白は無視.
@@ -134,29 +130,23 @@ public class ReadIni {
 							}
 							// セクション情報が取得されていない場合に、
 							// 何らかの文字列が出現した場合は、エラー.
-							throw new IOException(errorMessage(
-									"セクション情報が定義されていません", j, i, s));
+							throw new IOException(errorMessage("セクション情報が定義されていません", j, i, s));
 						}
 						// キー条件を取得.
 						else {
 							if (c == '=') {
 								if (b == null) {
-									throw new IOException(errorMessage(
-											"不正な文字列が存在します", j, i, s));
+									throw new IOException(errorMessage("不正な文字列が存在します", j, i, s));
 								} else {
 									key = b.toString();
-									key = key.substring(0, key.length() - 1)
-											.trim();
+									key = key.substring(0, key.length() - 1).trim();
 									b = new StringBuilder();
 									type = 1;// 要素取得処理へ.
 								}
 							}
 							// キー開始の場合.
-							else if (b == null
-									&& ((c >= 'a' && c <= 'z')
-											|| (c >= 'A' && c <= 'Z')
-											|| (c >= '0' && c <= '9')
-											|| c == '$' || c == '@' || c == '_' || c == '.')) {
+							else if (b == null && ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+									|| (c >= '0' && c <= '9') || c == '$' || c == '@' || c == '_' || c == '.')) {
 								b = new StringBuilder();
 								b.append(c);
 							}
@@ -175,9 +165,7 @@ public class ReadIni {
 						}
 						// 括弧の終端を検地.
 						else if (par != -1) {
-							if ((par == '{' && c == '}')
-									|| (par == '[' && c == ']')
-									|| (par == '(' && c == ')')
+							if ((par == '{' && c == '}') || (par == '[' && c == ']') || (par == '(' && c == ')')
 									|| (par == '<' && c == '>')) {
 								parCount--;
 								if (parCount <= 0) {
@@ -191,8 +179,7 @@ public class ReadIni {
 							cote = c;
 						}
 						// 括弧検出.
-						else if (cote == -1
-								&& (c == '{' || c == '[' || c == '(' || c == '<')) {
+						else if (cote == -1 && (c == '{' || c == '[' || c == '(' || c == '<')) {
 							if (par == -1) {
 								par = c;
 							}
@@ -201,8 +188,7 @@ public class ReadIni {
 							}
 						}
 						// 終端条件の場合.
-						if (lenJ <= j + 1
-								|| (cote == -1 && par == -1 && c == ';')) {
+						if (lenJ <= j + 1 || (cote == -1 && par == -1 && c == ';')) {
 							// value定義が存在していて、コーテーションおよび、
 							// 括弧条件が存在しない場合.
 							if (cote == -1 && par == -1) {
@@ -215,8 +201,7 @@ public class ReadIni {
 								}
 								// ；での終端設定の場合.
 								if (c == ';') {
-									value = value.substring(0,
-											value.length() - 1).trim();
+									value = value.substring(0, value.length() - 1).trim();
 								}
 							}
 							// １行の終端に位置した状態で、括弧の終端が存在しない場合は、次の行も対象とする.
@@ -237,8 +222,7 @@ public class ReadIni {
 							if (value.startsWith("\"") && value.endsWith("\"")) {
 								value = value.substring(1, value.length() - 1);
 								value = Utils.downIndentDoubleCote(value);
-							} else if (value.startsWith("\'")
-									&& value.endsWith("\'")) {
+							} else if (value.startsWith("\'") && value.endsWith("\'")) {
 								value = value.substring(1, value.length() - 1);
 								value = Utils.downIndentSingleCote(value);
 							}
@@ -261,8 +245,7 @@ public class ReadIni {
 					bef = c;
 				}
 				// valueが定義されていない場合は、value=""として格納する.
-				if (tmpValue == null && type == 1 && section != null
-						&& key != null && value == null) {
+				if (tmpValue == null && type == 1 && section != null && key != null && value == null) {
 					param.put(section, key, "");
 					key = null;
 					value = null;
@@ -274,11 +257,9 @@ public class ReadIni {
 	}
 
 	/** エラーメッセージを生成 **/
-	private static final String errorMessage(String message, int x, int y,
-			String line) {
+	private static final String errorMessage(String message, int x, int y, String line) {
 		StringBuilder buf = new StringBuilder();
-		buf.append(message).append("(").append(x).append("/").append(y).append(
-				")");
+		buf.append(message).append("(").append(x).append("/").append(y).append(")");
 		if (line != null && line.length() > 0) {
 			buf.append(":[").append(line).append("]");
 		}
@@ -334,8 +315,7 @@ public class ReadIni {
 										i = j;
 										String cstr = value.substring(n + 1, j);
 										cstr = Utils.upIndentDoubleCote(cstr);
-										buf.append("\"").append(cstr).append(
-												"\"");
+										buf.append("\"").append(cstr).append("\"");
 										atCtFlag = true;
 										break;
 									}

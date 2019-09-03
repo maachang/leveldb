@@ -36,8 +36,7 @@ public abstract class TwoKey implements Comparable<Object> {
 	 *            対象のデータ長を設定します.
 	 * @exception Exception.
 	 */
-	public abstract void create(JniBuffer buf, int off, int len)
-			throws Exception;
+	public abstract void create(JniBuffer buf, int off, int len) throws Exception;
 
 	/**
 	 * toBuffer時のバイナリ長を取得.

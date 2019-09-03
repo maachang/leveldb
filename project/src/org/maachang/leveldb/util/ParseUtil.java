@@ -43,8 +43,7 @@ public abstract class ParseUtil {
 				case 2: // 複数行コメント.
 					if (c == '\n') {
 						buf.append(c);
-					} else if (len > i + 1 && c == '*'
-							&& script.charAt(i + 1) == '/') {
+					} else if (len > i + 1 && c == '*' && script.charAt(i + 1) == '/') {
 						i++;
 						commentType = -1;
 					}
@@ -129,8 +128,7 @@ public abstract class ParseUtil {
 	 * @param index
 	 *            対象のインデックス値を設定します.
 	 */
-	public static final String parseToSingle(int[] outPos, String script,
-			int index) {
+	public static final String parseToSingle(int[] outPos, String script, int index) {
 		int len = script.length();
 		if (index <= 0) {
 			index = 0;
@@ -165,16 +163,14 @@ public abstract class ParseUtil {
 				}
 				cote = c;
 				pos = i;
-			} else if (c == ' ' || c == '　' || c == '\r' || c == '\n'
-					|| c == '\t') {
+			} else if (c == ' ' || c == '　' || c == '\r' || c == '\n' || c == '\t') {
 				if (pos >= 0) {
 					if (outPos != null && outPos.length >= 1) {
 						outPos[0] = pos;
 					}
 					return script.substring(pos, i);
 				}
-			} else if (c == '(' || c == '{' || c == '[' || c == ')' || c == '}'
-					|| c == ']' || c == ':' || c == ';') {
+			} else if (c == '(' || c == '{' || c == '[' || c == ')' || c == '}' || c == ']' || c == ':' || c == ';') {
 				if (pos >= 0) {
 					if (outPos != null && outPos.length >= 1) {
 						outPos[0] = pos;
@@ -212,8 +208,7 @@ public abstract class ParseUtil {
 	 * @param index
 	 *            対象のインデックス値を設定します.
 	 */
-	public static final String parseToLastOfSingle(int[] outPos, String script,
-			int index) {
+	public static final String parseToLastOfSingle(int[] outPos, String script, int index) {
 		if (index <= 0) {
 			index = 0;
 		}
@@ -247,16 +242,14 @@ public abstract class ParseUtil {
 				}
 				cote = c;
 				pos = i + 1;
-			} else if (c == ' ' || c == '　' || c == '\r' || c == '\n'
-					|| c == '\t') {
+			} else if (c == ' ' || c == '　' || c == '\r' || c == '\n' || c == '\t') {
 				if (pos >= 0) {
 					if (outPos != null && outPos.length >= 1) {
 						outPos[0] = i + 1;
 					}
 					return script.substring(i + 1, pos);
 				}
-			} else if (c == '(' || c == '{' || c == '[' || c == ')' || c == '}'
-					|| c == ']' || c == ':' || c == ';') {
+			} else if (c == '(' || c == '{' || c == '[' || c == ')' || c == '}' || c == ']' || c == ':' || c == ';') {
 				if (pos >= 0) {
 					if (outPos != null && outPos.length >= 1) {
 						outPos[0] = i + 1;
@@ -325,14 +318,12 @@ public abstract class ParseUtil {
 			} else if (bef != '\\' && (c == '\'' || c == '\"')) {
 				cote = c;
 				pos = -1;
-			} else if (c == ' ' || c == '　' || c == '\r' || c == '\n'
-					|| c == '\t' || c == ';' || c == ':' || c == '('
+			} else if (c == ' ' || c == '　' || c == '\r' || c == '\n' || c == '\t' || c == ';' || c == ':' || c == '('
 					|| c == '{' || c == '[' || c == ')' || c == '}' || c == ']') {
 				if (chkLen <= pos) {
 					return i - chkLen;
 				}
-				if (c == ';' || c == ':' || c == '(' || c == '{' || c == '['
-						|| c == ')' || c == '}' || c == ']') {
+				if (c == ';' || c == ':' || c == '(' || c == '{' || c == '[' || c == ')' || c == '}' || c == ']') {
 					if (pos >= 0 && c == chk.charAt(pos)) {
 						pos++;
 					} else {
@@ -429,8 +420,7 @@ public abstract class ParseUtil {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final int indexParAndCote(String base, char st, char ed,
-			int off) throws Exception {
+	public static final int indexParAndCote(String base, char st, char ed, int off) throws Exception {
 		int len = base.length();
 		int par = -1;
 		int cote = -1;
@@ -492,8 +482,7 @@ public abstract class ParseUtil {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final int indexToNotCote(String base, String cc, int off)
-			throws Exception {
+	public static final int indexToNotCote(String base, String cc, int off) throws Exception {
 		int len = base.length();
 		int cote = -1;
 		char[] ck = cc.toCharArray();
@@ -554,8 +543,7 @@ public abstract class ParseUtil {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final int indexToNotPar(String base, String cc, char st,
-			char ed, int off) throws Exception {
+	public static final int indexToNotPar(String base, String cc, char st, char ed, int off) throws Exception {
 		int len = base.length();
 		int par = -1;
 		char[] ck = cc.toCharArray();
@@ -609,9 +597,9 @@ public abstract class ParseUtil {
 			}
 		}
 		str = str.trim();
-		return ((str.startsWith("\'") == true && str.endsWith("\'") == true) || (str
-				.startsWith("\"") == true && str.endsWith("\"") == true)) ? str
-				.substring(1, str.length() - 1) : str;
+		return ((str.startsWith("\'") == true && str.endsWith("\'") == true)
+				|| (str.startsWith("\"") == true && str.endsWith("\"") == true)) ? str.substring(1, str.length() - 1)
+						: str;
 	}
 
 	/**
@@ -637,8 +625,7 @@ public abstract class ParseUtil {
 				;
 			if (ln == p) {
 				char c;
-				if (p + off == len
-						|| !((c = s.charAt(p + off)) >= 'A' && c <= 'z')) {
+				if (p + off == len || !((c = s.charAt(p + off)) >= 'A' && c <= 'z')) {
 					return true;
 				}
 			}
@@ -661,8 +648,7 @@ public abstract class ParseUtil {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final int searchParEnd(String script, String target, int off,
-			int len) throws Exception {
+	public static final int searchParEnd(String script, String target, int off, int len) throws Exception {
 		char endTarget = 0;
 		switch (target.charAt(0)) {
 		case '(':

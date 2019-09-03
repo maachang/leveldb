@@ -11,7 +11,7 @@ import org.maachang.leveldb.util.Utils;
 /**
  * Leveldb配列オブジェクト. 読み込みに特化した、MapライクなLevedb専用の配列オブジェクト.
  */
-@SuppressWarnings({"unchecked", "rawtypes"})
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public class LevelArray {
 
 	/** 配列追加長. **/
@@ -488,8 +488,7 @@ public class LevelArray {
 				// データが存在する場合は、上書き.
 				o = convertKey(o);
 				if ((p = indexOf(keyList, length, o)) != -1) {
-					dataList[(Integer) ((Object[]) keyList[p])[1]] = Array.get(
-							v, i + 1);
+					dataList[(Integer) ((Object[]) keyList[p])[1]] = Array.get(v, i + 1);
 				}
 				// データが存在しない場合は、新規追加.
 				// ただし、モードが[true]のときのみ.
@@ -622,8 +621,7 @@ public class LevelArray {
 
 			// データリストを削除.
 			System.arraycopy(dataList, 0, dataList, 0, dataNo);
-			System.arraycopy(dataList, dataNo + 1, dataList, dataNo, len
-					- (dataNo + 1));
+			System.arraycopy(dataList, dataNo + 1, dataList, dataNo, len - (dataNo + 1));
 
 			// キーリストのポジションを再定義.
 			if (dataNo < length) {

@@ -102,8 +102,7 @@ public final class Utils {
 	 */
 	public static final boolean isFloat(Object n) {
 		if (Utils.isNumeric(n)) {
-			if (n instanceof Float || n instanceof Double
-					|| n instanceof BigDecimal) {
+			if (n instanceof Float || n instanceof Double || n instanceof BigDecimal) {
 				return true;
 			} else if (n instanceof String) {
 				return ((String) n).indexOf(".") != -1;
@@ -425,11 +424,9 @@ public final class Utils {
 
 		if (isNumeric(s)) {
 			return "0".equals(s) ? false : true;
-		} else if (eqEng(s, start, len, "true") || eqEng(s, start, len, "t")
-				|| eqEng(s, start, len, "on")) {
+		} else if (eqEng(s, start, len, "true") || eqEng(s, start, len, "t") || eqEng(s, start, len, "on")) {
 			return true;
-		} else if (eqEng(s, start, len, "false") || eqEng(s, start, len, "f")
-				|| eqEng(s, start, len, "off")) {
+		} else if (eqEng(s, start, len, "false") || eqEng(s, start, len, "f") || eqEng(s, start, len, "off")) {
 			return false;
 		}
 		throw new LeveldbException("Boolean変換に失敗しました:" + s);
@@ -875,8 +872,7 @@ public final class Utils {
 	 *            比較先文字を設定します.
 	 * @return boolean [true]の場合、一致します.
 	 */
-	public static final boolean eqEng(String src, int start, int end,
-			String dest) {
+	public static final boolean eqEng(String src, int start, int end, String dest) {
 		return AZ_az.eq(src, start, end - start, dest);
 	}
 
@@ -906,8 +902,7 @@ public final class Utils {
 	 *            設定対象のオフセット値を設定します.
 	 * @return int マッチする位置が返却されます. [-1]の場合は情報は存在しません.
 	 */
-	public static final int indexOfEng(final String buf, final String chk,
-			final int off) {
+	public static final int indexOfEng(final String buf, final String chk, final int off) {
 		return AZ_az.indexOf(buf, chk, off);
 	}
 
@@ -952,8 +947,7 @@ public final class Utils {
 	 *            置き換え先の文字条件を設定します.
 	 * @return String 文字列が返却されます.
 	 */
-	public static final String changeString(String src, int off, int len,
-			String s, String d) {
+	public static final String changeString(String src, int off, int len, String s, String d) {
 		int j, k;
 		char t = s.charAt(0);
 		int lenS = s.length();
@@ -983,8 +977,7 @@ public final class Utils {
 	 * @param string
 	 *            対象の文字列を設定します.
 	 * @param indent
-	 *            対象のインデント値を設定します. 0を設定した場合は１つインデントを増やします。
-	 *            -1を設定した場合は１つインデントを減らします。
+	 *            対象のインデント値を設定します. 0を設定した場合は１つインデントを増やします。 -1を設定した場合は１つインデントを減らします。
 	 * @param dc
 	 *            [true]の場合、ダブルコーテーションで処理します.
 	 * @return String 変換された文字列が返されます.
@@ -1205,8 +1198,7 @@ public final class Utils {
 	 * @exception IllegalArgumentException
 	 *                入力例外.
 	 */
-	public static final List<String> cutString(String str, String check)
-			throws IllegalArgumentException {
+	public static final List<String> cutString(String str, String check) throws IllegalArgumentException {
 		ArrayList<String> ret = null;
 
 		ret = new ArrayList<String>();
@@ -1229,8 +1221,7 @@ public final class Utils {
 	 * @exception IllegalArgumentException
 	 *                入力例外.
 	 */
-	public static final void cutString(List<String> out, String str,
-			String check) throws IllegalArgumentException {
+	public static final void cutString(List<String> out, String str, String check) throws IllegalArgumentException {
 		cutString(out, false, str, check);
 	}
 
@@ -1249,8 +1240,7 @@ public final class Utils {
 	 * @exception IllegalArgumentException
 	 *                入力例外.
 	 */
-	public static final List<String> cutString(boolean mode, String str,
-			String check) throws IllegalArgumentException {
+	public static final List<String> cutString(boolean mode, String str, String check) throws IllegalArgumentException {
 		ArrayList<String> ret = null;
 
 		ret = new ArrayList<String>();
@@ -1276,8 +1266,8 @@ public final class Utils {
 	 * @exception IllegalArgumentException
 	 *                入力例外.
 	 */
-	public static final void cutString(List<String> out, boolean mode,
-			String str, String check) throws IllegalArgumentException {
+	public static final void cutString(List<String> out, boolean mode, String str, String check)
+			throws IllegalArgumentException {
 		int i, j;
 		int len;
 		int lenJ;
@@ -1287,8 +1277,7 @@ public final class Utils {
 		char[] checkCode = null;
 		String tmp = null;
 
-		if (out == null || str == null || (len = str.length()) <= 0
-				|| check == null || check.length() <= 0) {
+		if (out == null || str == null || (len = str.length()) <= 0 || check == null || check.length() <= 0) {
 			throw new IllegalArgumentException("引数が不正です");
 		}
 
@@ -1374,8 +1363,7 @@ public final class Utils {
 	 *            区切り文字と判別しません. [false]を設定した場合、コーテーション対応を行いません.
 	 * @param coteFlg
 	 *            コーテーションが入っている場合に、コーテーションを範囲に含むか否かを 設定します.
-	 *            [true]を設定した場合、コーテーション情報も範囲に含みます.
-	 *            [false]を設定した場合、コーテーション情報を範囲としません.
+	 *            [true]を設定した場合、コーテーション情報も範囲に含みます. [false]を設定した場合、コーテーション情報を範囲としません.
 	 * @param str
 	 *            区切り対象の情報を設置します.
 	 * @param check
@@ -1384,8 +1372,8 @@ public final class Utils {
 	 * @exception IllegalArgumentException
 	 *                入力例外.
 	 */
-	public static final List<String> cutString(boolean cote, boolean coteFlg,
-			String str, String check) throws IllegalArgumentException {
+	public static final List<String> cutString(boolean cote, boolean coteFlg, String str, String check)
+			throws IllegalArgumentException {
 		ArrayList<String> ret = null;
 
 		ret = new ArrayList<String>();
@@ -1406,8 +1394,7 @@ public final class Utils {
 	 *            区切り文字と判別しません. [false]を設定した場合、コーテーション対応を行いません.
 	 * @param coteFlg
 	 *            コーテーションが入っている場合に、コーテーションを範囲に含むか否かを 設定します.
-	 *            [true]を設定した場合、コーテーション情報も範囲に含みます.
-	 *            [false]を設定した場合、コーテーション情報を範囲としません.
+	 *            [true]を設定した場合、コーテーション情報も範囲に含みます. [false]を設定した場合、コーテーション情報を範囲としません.
 	 * @param str
 	 *            区切り対象の情報を設置します.
 	 * @param check
@@ -1415,8 +1402,7 @@ public final class Utils {
 	 * @exception IllegalArgumentException
 	 *                入力例外.
 	 */
-	public static final void cutString(List<String> out, boolean cote,
-			boolean coteFlg, String str, String check)
+	public static final void cutString(List<String> out, boolean cote, boolean coteFlg, String str, String check)
 			throws IllegalArgumentException {
 		int i, j;
 		int len;
@@ -1434,8 +1420,7 @@ public final class Utils {
 			cutString(out, str, check);
 		} else {
 
-			if (out == null || str == null || (len = str.length()) <= 0
-					|| check == null || check.length() <= 0) {
+			if (out == null || str == null || (len = str.length()) <= 0 || check == null || check.length() <= 0) {
 				throw new IllegalArgumentException("引数が不正です");
 			}
 
@@ -1487,8 +1472,7 @@ public final class Utils {
 							coteChr = 0;
 
 							if (s == i && coteFlg == true) {
-								out.add(new StringBuilder().append(strCode)
-										.append(strCode).toString());
+								out.add(new StringBuilder().append(strCode).append(strCode).toString());
 								s = -1;
 							} else if (s < i) {
 
@@ -1570,8 +1554,7 @@ public final class Utils {
 							yenFlag = false;
 
 							if (s == i && coteFlg == true) {
-								out.add(new StringBuilder().append(strCode)
-										.append(strCode).toString());
+								out.add(new StringBuilder().append(strCode).append(strCode).toString());
 								s = -1;
 							} else if (s < i) {
 

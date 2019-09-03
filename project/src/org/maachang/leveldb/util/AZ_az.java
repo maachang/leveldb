@@ -112,8 +112,7 @@ class AZ_az {
 	 *            設定対象のオフセット値を設定します.
 	 * @return int マッチする位置が返却されます. [-1]の場合は情報は存在しません.
 	 */
-	public static final int indexOf(final String buf, final String chk,
-			final int off) {
+	public static final int indexOf(final String buf, final String chk, final int off) {
 		int len = chk.length();
 
 		// 単数文字検索.
@@ -143,8 +142,7 @@ class AZ_az {
 						;
 				}
 				if (i < vLen) {
-					for (next = i + len, j = i + 1, k = 1; j < next
-							&& oneEq(buf.charAt(j), chk.charAt(k)); j++, k++)
+					for (next = i + len, j = i + 1, k = 1; j < next && oneEq(buf.charAt(j), chk.charAt(k)); j++, k++)
 						;
 					if (j == next) {
 						return i;

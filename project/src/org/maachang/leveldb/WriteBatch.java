@@ -102,12 +102,10 @@ public class WriteBatch {
 	 */
 	public void put(JniBuffer key, JniBuffer value) {
 		check();
-		if (key == null || value == null || key.position() == 0
-				|| value.position() == 0) {
+		if (key == null || value == null || key.position() == 0 || value.position() == 0) {
 			throw new LeveldbException("引数は不正です");
 		}
-		jni.leveldb_wb_put(addr, key.address(), key.position(),
-				value.address(), value.position());
+		jni.leveldb_wb_put(addr, key.address(), key.position(), value.address(), value.position());
 		count++;
 		putCount++;
 	}
@@ -124,8 +122,7 @@ public class WriteBatch {
 	 * @param valueLen
 	 *            対象の要素長を設定します.
 	 */
-	public void put(long key, int keyLen, long value,
-			int valueLen) {
+	public void put(long key, int keyLen, long value, int valueLen) {
 		check();
 		jni.leveldb_wb_put(addr, key, keyLen, value, valueLen);
 		count++;

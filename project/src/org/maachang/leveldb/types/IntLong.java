@@ -123,8 +123,7 @@ public final class IntLong extends TwoKey {
 	 *            対象のJniBufferを設定します.
 	 * @exception Exception.
 	 */
-	public static final void convertBuffer(Object one, Object two, JniBuffer buf)
-			throws Exception {
+	public static final void convertBuffer(Object one, Object two, JniBuffer buf) throws Exception {
 		int pos = buf.position;
 
 		// それぞれの長さを取得.
@@ -273,8 +272,7 @@ public final class IntLong extends TwoKey {
 	 * @return String 文字列が返却されます.
 	 */
 	public final String toString() {
-		return new StringBuilder("[num32-num64]").append(one).append(",")
-				.append(two).toString();
+		return new StringBuilder("[num32-num64]").append(one).append(",").append(two).toString();
 	}
 
 	/**

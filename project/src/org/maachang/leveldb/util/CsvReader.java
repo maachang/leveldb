@@ -90,8 +90,7 @@ public class CsvReader {
 		if (isOpen()) {
 			close();
 		}
-		this.reader = new BufferedReader(new InputStreamReader(
-				new FileInputStream(name), charset));
+		this.reader = new BufferedReader(new InputStreamReader(new FileInputStream(name), charset));
 		this.cut = cut;
 		this.count = 0;
 		this.eof = false;
@@ -267,14 +266,12 @@ public class CsvReader {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final String[] getCsvArray(String line, String cutCode)
-			throws Exception {
+	public static final String[] getCsvArray(String line, String cutCode) throws Exception {
 		return (String[]) getCsvArray(true, line, cutCode);
 	}
 
 	/** CSVを区切ります. **/
-	private static final Object getCsvArray(boolean mode, String line,
-			String cutCode) throws Exception {
+	private static final Object getCsvArray(boolean mode, String line, String cutCode) throws Exception {
 		if (line == null || line.length() <= 0) {
 			return (mode) ? new String[0] : new Object[0];
 		}
@@ -351,8 +348,7 @@ public class CsvReader {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final List<String> getCsv(String line, String cutCode)
-			throws Exception {
+	public static final List<String> getCsv(String line, String cutCode) throws Exception {
 		if (line == null || line.length() <= 0) {
 			return new ArrayList<String>();
 		}

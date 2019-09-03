@@ -6,6 +6,7 @@ package org.maachang.leveldb;
 public class LeveldbException extends RuntimeException {
 	private static final long serialVersionUID = 8207343446412052558L;
 	protected int status;
+
 	public LeveldbException(int status) {
 		super();
 		this.status = status;
@@ -41,7 +42,7 @@ public class LeveldbException extends RuntimeException {
 	public LeveldbException(String m, Throwable e) {
 		this(500, m, e);
 	}
-	
+
 	public int getStatus() {
 		return status;
 	}

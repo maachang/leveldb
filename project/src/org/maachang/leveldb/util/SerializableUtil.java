@@ -74,8 +74,7 @@ public final class SerializableUtil {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final Serializable toObject(byte[] bin, int off, int len)
-			throws Exception {
+	public static final Serializable toObject(byte[] bin, int off, int len) throws Exception {
 		if (bin == null || bin.length <= 0) {
 			throw new IllegalArgumentException("引数は不正です");
 		}

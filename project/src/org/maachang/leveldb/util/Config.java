@@ -48,8 +48,7 @@ public class Config {
 		}
 		BufferedReader br = null;
 		try {
-			br = new BufferedReader(new InputStreamReader(new FileInputStream(
-					name), "UTF8"));
+			br = new BufferedReader(new InputStreamReader(new FileInputStream(name), "UTF8"));
 			ReadIni.analisys(conf, br);
 			conf.srcName = FileUtil.getFullPath(name);
 			br.close();

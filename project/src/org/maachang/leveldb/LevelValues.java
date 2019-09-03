@@ -37,7 +37,7 @@ import org.maachang.leveldb.types.TwoKey;
 /**
  * Leveldb Valueデータ変換処理.
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public final class LevelValues {
 	protected LevelValues() {
 	}
@@ -84,11 +84,9 @@ public final class LevelValues {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final Object decode(JniBuffer b, int off, int len)
-			throws Exception {
+	public static final Object decode(JniBuffer b, int off, int len) throws Exception {
 		if (len > b.position()) {
-			throw new IllegalArgumentException("The specified length is out of range:" + len
-					+ "," + b.position());
+			throw new IllegalArgumentException("The specified length is out of range:" + len + "," + b.position());
 		}
 		int[] p = new int[] { off };
 		return decodeObject(p, b, len);
@@ -107,11 +105,9 @@ public final class LevelValues {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final Object decodeBinary(int[] outOff, JniBuffer b, int len)
-			throws Exception {
+	public static final Object decodeBinary(int[] outOff, JniBuffer b, int len) throws Exception {
 		if (len > b.position()) {
-			throw new IllegalArgumentException("The specified length is out of range:" + len
-					+ "," + b.position());
+			throw new IllegalArgumentException("The specified length is out of range:" + len + "," + b.position());
 		}
 		return decodeObject(outOff, b, len);
 	}
@@ -130,10 +126,8 @@ public final class LevelValues {
 	public static final void byte4(JniBuffer buf, int b) throws Exception {
 		// 4バイトの場合は、先頭2ビットをビット長とする.
 		int bit = nlzs(b);
-		int src = (bit >> 3)
-				+ ((bit & 1) | ((bit >> 1) & 1) | ((bit >> 2) & 1));
-		bit = ((bit += 2) >> 3)
-				+ ((bit & 1) | ((bit >> 1) & 1) | ((bit >> 2) & 1));
+		int src = (bit >> 3) + ((bit & 1) | ((bit >> 1) & 1) | ((bit >> 2) & 1));
+		bit = ((bit += 2) >> 3) + ((bit & 1) | ((bit >> 1) & 1) | ((bit >> 2) & 1));
 
 		// 先頭2ビット条件が混同できる場合.
 		if (bit == src) {
@@ -142,17 +136,14 @@ public final class LevelValues {
 				buf.write(new byte[] { (byte) (b & 0xff) });
 				return;
 			case 2:
-				buf.write(new byte[] { (byte) (0x40 | ((b & 0xff00) >> 8)),
-						(byte) (b & 0xff) });
+				buf.write(new byte[] { (byte) (0x40 | ((b & 0xff00) >> 8)), (byte) (b & 0xff) });
 				return;
 			case 3:
-				buf.write(new byte[] { (byte) (0x80 | ((b & 0xff0000) >> 16)),
-						(byte) ((b & 0xff00) >> 8), (byte) (b & 0xff) });
+				buf.write(new byte[] { (byte) (0x80 | ((b & 0xff0000) >> 16)), (byte) ((b & 0xff00) >> 8),
+						(byte) (b & 0xff) });
 				return;
 			case 4:
-				buf.write(new byte[] {
-						(byte) (0xc0 | ((b & 0xff000000) >> 24)),
-						(byte) ((b & 0xff0000) >> 16),
+				buf.write(new byte[] { (byte) (0xc0 | ((b & 0xff000000) >> 24)), (byte) ((b & 0xff0000) >> 16),
 						(byte) ((b & 0xff00) >> 8), (byte) (b & 0xff) });
 				return;
 			}
@@ -164,18 +155,15 @@ public final class LevelValues {
 			buf.write(new byte[] { (byte) 0, (byte) (b & 0xff) });
 			return;
 		case 2:
-			buf.write(new byte[] { (byte) 0x40, (byte) ((b & 0xff00) >> 8),
-					(byte) (b & 0xff) });
+			buf.write(new byte[] { (byte) 0x40, (byte) ((b & 0xff00) >> 8), (byte) (b & 0xff) });
 			return;
 		case 3:
-			buf.write(new byte[] { (byte) 0x80, (byte) ((b & 0xff0000) >> 16),
-					(byte) ((b & 0xff00) >> 8), (byte) (b & 0xff) });
+			buf.write(new byte[] { (byte) 0x80, (byte) ((b & 0xff0000) >> 16), (byte) ((b & 0xff00) >> 8),
+					(byte) (b & 0xff) });
 			return;
 		case 4:
-			buf.write(new byte[] { (byte) 0xc0,
-					(byte) ((b & 0xff000000) >> 24),
-					(byte) ((b & 0xff0000) >> 16), (byte) ((b & 0xff00) >> 8),
-					(byte) (b & 0xff) });
+			buf.write(new byte[] { (byte) 0xc0, (byte) ((b & 0xff000000) >> 24), (byte) ((b & 0xff0000) >> 16),
+					(byte) ((b & 0xff00) >> 8), (byte) (b & 0xff) });
 			return;
 		}
 	}
@@ -184,10 +172,8 @@ public final class LevelValues {
 	public static final void byte8(JniBuffer buf, long b) throws Exception {
 		// 8バイトの場合は、先頭3ビットをビット長とする.
 		int bit = nlzs(b);
-		int src = (bit >> 3)
-				+ ((bit & 1) | ((bit >> 1) & 1) | ((bit >> 2) & 1));
-		bit = ((bit += 3) >> 3)
-				+ ((bit & 1) | ((bit >> 1) & 1) | ((bit >> 2) & 1));
+		int src = (bit >> 3) + ((bit & 1) | ((bit >> 1) & 1) | ((bit >> 2) & 1));
+		bit = ((bit += 3) >> 3) + ((bit & 1) | ((bit >> 1) & 1) | ((bit >> 2) & 1));
 
 		// 先頭3ビット条件が混同できる場合.
 		if (bit == src) {
@@ -196,53 +182,36 @@ public final class LevelValues {
 				buf.write(new byte[] { (byte) (b & 0xffL) });
 				return;
 			case 2:
-				buf.write(new byte[] { (byte) (0x20 | ((b & 0xff00L) >> 8L)),
-						(byte) (b & 0xffL) });
+				buf.write(new byte[] { (byte) (0x20 | ((b & 0xff00L) >> 8L)), (byte) (b & 0xffL) });
 				return;
 			case 3:
-				buf.write(new byte[] {
-						(byte) (0x40 | ((b & 0xff0000L) >> 16L)),
-						(byte) ((b & 0xff00L) >> 8L), (byte) (b & 0xffL) });
+				buf.write(new byte[] { (byte) (0x40 | ((b & 0xff0000L) >> 16L)), (byte) ((b & 0xff00L) >> 8L),
+						(byte) (b & 0xffL) });
 				return;
 			case 4:
-				buf.write(new byte[] {
-						(byte) (0x60 | ((b & 0xff000000L) >> 24L)),
-						(byte) ((b & 0xff0000L) >> 16L),
+				buf.write(new byte[] { (byte) (0x60 | ((b & 0xff000000L) >> 24L)), (byte) ((b & 0xff0000L) >> 16L),
 						(byte) ((b & 0xff00L) >> 8L), (byte) (b & 0xffL) });
 				return;
 			case 5:
-				buf.write(new byte[] {
-						(byte) (0x80 | ((b & 0xff00000000L) >> 32L)),
-						(byte) ((b & 0xff000000L) >> 24L),
-						(byte) ((b & 0xff0000L) >> 16L),
-						(byte) ((b & 0xff00L) >> 8L), (byte) (b & 0xffL) });
+				buf.write(new byte[] { (byte) (0x80 | ((b & 0xff00000000L) >> 32L)), (byte) ((b & 0xff000000L) >> 24L),
+						(byte) ((b & 0xff0000L) >> 16L), (byte) ((b & 0xff00L) >> 8L), (byte) (b & 0xffL) });
 				return;
 			case 6:
-				buf.write(new byte[] {
-						(byte) (0xA0 | ((b & 0xff0000000000L) >> 40L)),
-						(byte) ((b & 0xff00000000L) >> 32L),
-						(byte) ((b & 0xff000000L) >> 24L),
-						(byte) ((b & 0xff0000L) >> 16L),
-						(byte) ((b & 0xff00L) >> 8L), (byte) (b & 0xffL) });
+				buf.write(new byte[] { (byte) (0xA0 | ((b & 0xff0000000000L) >> 40L)),
+						(byte) ((b & 0xff00000000L) >> 32L), (byte) ((b & 0xff000000L) >> 24L),
+						(byte) ((b & 0xff0000L) >> 16L), (byte) ((b & 0xff00L) >> 8L), (byte) (b & 0xffL) });
 				return;
 			case 7:
-				buf.write(new byte[] {
-						(byte) (0xC0 | ((b & 0xff000000000000L) >> 48L)),
-						(byte) ((b & 0xff0000000000L) >> 40L),
-						(byte) ((b & 0xff00000000L) >> 32L),
-						(byte) ((b & 0xff000000L) >> 24L),
-						(byte) ((b & 0xff0000L) >> 16L),
+				buf.write(new byte[] { (byte) (0xC0 | ((b & 0xff000000000000L) >> 48L)),
+						(byte) ((b & 0xff0000000000L) >> 40L), (byte) ((b & 0xff00000000L) >> 32L),
+						(byte) ((b & 0xff000000L) >> 24L), (byte) ((b & 0xff0000L) >> 16L),
 						(byte) ((b & 0xff00L) >> 8L), (byte) (b & 0xffL) });
 				return;
 			case 8:
-				buf.write(new byte[] {
-						(byte) (0xE0 | ((b & 0xff00000000000000L) >> 56L)),
-						(byte) ((b & 0xff000000000000L) >> 48L),
-						(byte) ((b & 0xff0000000000L) >> 40L),
-						(byte) ((b & 0xff00000000L) >> 32L),
-						(byte) ((b & 0xff000000L) >> 24L),
-						(byte) ((b & 0xff0000L) >> 16L),
-						(byte) ((b & 0xff00L) >> 8L), (byte) (b & 0xffL) });
+				buf.write(new byte[] { (byte) (0xE0 | ((b & 0xff00000000000000L) >> 56L)),
+						(byte) ((b & 0xff000000000000L) >> 48L), (byte) ((b & 0xff0000000000L) >> 40L),
+						(byte) ((b & 0xff00000000L) >> 32L), (byte) ((b & 0xff000000L) >> 24L),
+						(byte) ((b & 0xff0000L) >> 16L), (byte) ((b & 0xff00L) >> 8L), (byte) (b & 0xffL) });
 				return;
 			}
 		}
@@ -253,53 +222,36 @@ public final class LevelValues {
 			buf.write(new byte[] { (byte) 0, (byte) (b & 0xffL) });
 			return;
 		case 2:
-			buf.write(new byte[] { (byte) 0x20, (byte) ((b & 0xff00L) >> 8L),
-					(byte) (b & 0xffL) });
+			buf.write(new byte[] { (byte) 0x20, (byte) ((b & 0xff00L) >> 8L), (byte) (b & 0xffL) });
 			return;
 		case 3:
-			buf.write(new byte[] { (byte) 0x40,
-					(byte) ((b & 0xff0000L) >> 16L),
-					(byte) ((b & 0xff00L) >> 8L), (byte) (b & 0xffL) });
+			buf.write(new byte[] { (byte) 0x40, (byte) ((b & 0xff0000L) >> 16L), (byte) ((b & 0xff00L) >> 8L),
+					(byte) (b & 0xffL) });
 			return;
 		case 4:
-			buf.write(new byte[] { (byte) 0x60,
-					(byte) ((b & 0xff000000L) >> 24L),
-					(byte) ((b & 0xff0000L) >> 16L),
+			buf.write(new byte[] { (byte) 0x60, (byte) ((b & 0xff000000L) >> 24L), (byte) ((b & 0xff0000L) >> 16L),
 					(byte) ((b & 0xff00L) >> 8L), (byte) (b & 0xffL) });
 			return;
 		case 5:
-			buf.write(new byte[] { (byte) 0x80,
-					(byte) ((b & 0xff00000000L) >> 32L),
-					(byte) ((b & 0xff000000L) >> 24L),
-					(byte) ((b & 0xff0000L) >> 16L),
-					(byte) ((b & 0xff00L) >> 8L), (byte) (b & 0xffL) });
+			buf.write(new byte[] { (byte) 0x80, (byte) ((b & 0xff00000000L) >> 32L), (byte) ((b & 0xff000000L) >> 24L),
+					(byte) ((b & 0xff0000L) >> 16L), (byte) ((b & 0xff00L) >> 8L), (byte) (b & 0xffL) });
 			return;
 		case 6:
-			buf.write(new byte[] { (byte) 0xA0,
-					(byte) ((b & 0xff0000000000L) >> 40L),
-					(byte) ((b & 0xff00000000L) >> 32L),
-					(byte) ((b & 0xff000000L) >> 24L),
-					(byte) ((b & 0xff0000L) >> 16L),
-					(byte) ((b & 0xff00L) >> 8L), (byte) (b & 0xffL) });
+			buf.write(new byte[] { (byte) 0xA0, (byte) ((b & 0xff0000000000L) >> 40L),
+					(byte) ((b & 0xff00000000L) >> 32L), (byte) ((b & 0xff000000L) >> 24L),
+					(byte) ((b & 0xff0000L) >> 16L), (byte) ((b & 0xff00L) >> 8L), (byte) (b & 0xffL) });
 			return;
 		case 7:
-			buf.write(new byte[] { (byte) 0xC0,
-					(byte) ((b & 0xff000000000000L) >> 48L),
-					(byte) ((b & 0xff0000000000L) >> 40L),
-					(byte) ((b & 0xff00000000L) >> 32L),
-					(byte) ((b & 0xff000000L) >> 24L),
-					(byte) ((b & 0xff0000L) >> 16L),
-					(byte) ((b & 0xff00L) >> 8L), (byte) (b & 0xffL) });
+			buf.write(new byte[] { (byte) 0xC0, (byte) ((b & 0xff000000000000L) >> 48L),
+					(byte) ((b & 0xff0000000000L) >> 40L), (byte) ((b & 0xff00000000L) >> 32L),
+					(byte) ((b & 0xff000000L) >> 24L), (byte) ((b & 0xff0000L) >> 16L), (byte) ((b & 0xff00L) >> 8L),
+					(byte) (b & 0xffL) });
 			return;
 		case 8:
-			buf.write(new byte[] { (byte) 0xE0,
-					(byte) ((b & 0xff00000000000000L) >> 56L),
-					(byte) ((b & 0xff000000000000L) >> 48L),
-					(byte) ((b & 0xff0000000000L) >> 40L),
-					(byte) ((b & 0xff00000000L) >> 32L),
-					(byte) ((b & 0xff000000L) >> 24L),
-					(byte) ((b & 0xff0000L) >> 16L),
-					(byte) ((b & 0xff00L) >> 8L), (byte) (b & 0xffL) });
+			buf.write(new byte[] { (byte) 0xE0, (byte) ((b & 0xff00000000000000L) >> 56L),
+					(byte) ((b & 0xff000000000000L) >> 48L), (byte) ((b & 0xff0000000000L) >> 40L),
+					(byte) ((b & 0xff00000000L) >> 32L), (byte) ((b & 0xff000000L) >> 24L),
+					(byte) ((b & 0xff0000L) >> 16L), (byte) ((b & 0xff00L) >> 8L), (byte) (b & 0xffL) });
 			return;
 		}
 	}
@@ -314,8 +266,7 @@ public final class LevelValues {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final void stringBinary(JniBuffer buf, String s)
-			throws Exception {
+	public static final void stringBinary(JniBuffer buf, String s) throws Exception {
 		int len = JniIO.utf16Length(s);
 		buf.recreate(true, buf.position + len + 7);
 		byte4(buf, len);
@@ -334,8 +285,7 @@ public final class LevelValues {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final void levelArrayBinary(JniBuffer buf, LevelArray ary)
-			throws Exception {
+	public static final void levelArrayBinary(JniBuffer buf, LevelArray ary) throws Exception {
 		int i;
 		Object[] a, b;
 		int len = ary.length;
@@ -362,8 +312,7 @@ public final class LevelValues {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final void twoKeyBinary(JniBuffer buf, TwoKey twoKey)
-			throws Exception {
+	public static final void twoKeyBinary(JniBuffer buf, TwoKey twoKey) throws Exception {
 
 		byte4(buf, twoKey.toBufferLength());
 		twoKey.toBuffer(buf);
@@ -379,8 +328,7 @@ public final class LevelValues {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final void serialBinary(JniBuffer buf, Serializable s)
-			throws Exception {
+	public static final void serialBinary(JniBuffer buf, Serializable s) throws Exception {
 		byte[] b = toBinary(s);
 		byte4(buf, b.length); // 長さ.
 		buf.write(b, 0, b.length); // body.
@@ -436,8 +384,7 @@ public final class LevelValues {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final void encodeObject(JniBuffer buf, Object o)
-			throws Exception {
+	public static final void encodeObject(JniBuffer buf, Object o) throws Exception {
 		byte[] b;
 		if (o == null) {
 			head(buf, 0xff); // null.
@@ -673,8 +620,7 @@ public final class LevelValues {
 
 	/** 2バイト数値変換. **/
 	public static final int byte2Int(long b, int[] off) {
-		return ((JniIO.get(b, off[0]++) & 0xff) << 8)
-				| (JniIO.get(b, off[0]++) & 0xff);
+		return ((JniIO.get(b, off[0]++) & 0xff) << 8) | (JniIO.get(b, off[0]++) & 0xff);
 	}
 
 	/** 4バイト数値変換. **/
@@ -689,19 +635,15 @@ public final class LevelValues {
 				return (JniIO.get(b, o + 1) & 0xff);
 			case 1:
 				off[0] += 3;
-				return ((JniIO.get(b, o + 1) & 0xff) << 8)
-						| (JniIO.get(b, o + 2) & 0xff);
+				return ((JniIO.get(b, o + 1) & 0xff) << 8) | (JniIO.get(b, o + 2) & 0xff);
 			case 2:
 				off[0] += 4;
-				return ((JniIO.get(b, o + 1) & 0xff) << 16)
-						| ((JniIO.get(b, o + 2) & 0xff) << 8)
+				return ((JniIO.get(b, o + 1) & 0xff) << 16) | ((JniIO.get(b, o + 2) & 0xff) << 8)
 						| (JniIO.get(b, o + 3) & 0xff);
 			case 3:
 				off[0] += 5;
-				return ((JniIO.get(b, o + 1) & 0xff) << 24)
-						| ((JniIO.get(b, o + 2) & 0xff) << 16)
-						| ((JniIO.get(b, o + 3) & 0xff) << 8)
-						| (JniIO.get(b, o + 4) & 0xff);
+				return ((JniIO.get(b, o + 1) & 0xff) << 24) | ((JniIO.get(b, o + 2) & 0xff) << 16)
+						| ((JniIO.get(b, o + 3) & 0xff) << 8) | (JniIO.get(b, o + 4) & 0xff);
 			}
 			throw new IllegalArgumentException("Invalid byte4Int condition:" + off[0]);
 		}
@@ -715,12 +657,10 @@ public final class LevelValues {
 			return ((h & 0x3f) << 8) | (JniIO.get(b, o + 1) & 0xff);
 		case 2:
 			off[0] += 3;
-			return ((h & 0x3f) << 16) | ((JniIO.get(b, o + 1) & 0xff) << 8)
-					| (JniIO.get(b, o + 2) & 0xff);
+			return ((h & 0x3f) << 16) | ((JniIO.get(b, o + 1) & 0xff) << 8) | (JniIO.get(b, o + 2) & 0xff);
 		case 3:
 			off[0] += 4;
-			return ((h & 0x3f) << 24) | ((JniIO.get(b, o + 1) & 0xff) << 16)
-					| ((JniIO.get(b, o + 2) & 0xff) << 8)
+			return ((h & 0x3f) << 24) | ((JniIO.get(b, o + 1) & 0xff) << 16) | ((JniIO.get(b, o + 2) & 0xff) << 8)
 					| (JniIO.get(b, o + 3) & 0xff);
 		}
 		throw new IllegalArgumentException("Invalid byte4Int condition:" + off[0]);
@@ -738,53 +678,37 @@ public final class LevelValues {
 				return (long) (JniIO.get(b, o + 1) & 0xff);
 			case 1:
 				off[0] += 3;
-				return (long) (((JniIO.get(b, o + 1) & 0xff) << 8) | (JniIO
-						.get(b, o + 2) & 0xff));
+				return (long) (((JniIO.get(b, o + 1) & 0xff) << 8) | (JniIO.get(b, o + 2) & 0xff));
 			case 2:
 				off[0] += 4;
-				return (long) (((JniIO.get(b, o + 1) & 0xff) << 16)
-						| ((JniIO.get(b, o + 2) & 0xff) << 8) | (JniIO.get(b,
-						o + 3) & 0xff));
+				return (long) (((JniIO.get(b, o + 1) & 0xff) << 16) | ((JniIO.get(b, o + 2) & 0xff) << 8)
+						| (JniIO.get(b, o + 3) & 0xff));
 			case 3:
 				off[0] += 5;
-				return (long) (((JniIO.get(b, o + 1) & 0xff) << 24)
-						| ((JniIO.get(b, o + 2) & 0xff) << 16)
-						| ((JniIO.get(b, o + 3) & 0xff) << 8) | (JniIO.get(b,
-						o + 4) & 0xff));
+				return (long) (((JniIO.get(b, o + 1) & 0xff) << 24) | ((JniIO.get(b, o + 2) & 0xff) << 16)
+						| ((JniIO.get(b, o + 3) & 0xff) << 8) | (JniIO.get(b, o + 4) & 0xff));
 			case 4:
 				off[0] += 6;
-				return (long) (((JniIO.get(b, o + 1) & 0xffL) << 32L)
-						| ((JniIO.get(b, o + 2) & 0xffL) << 24L)
-						| ((JniIO.get(b, o + 3) & 0xffL) << 16L)
-						| ((JniIO.get(b, o + 4) & 0xffL) << 8L) | (JniIO.get(b,
-						o + 5) & 0xffL));
+				return (long) (((JniIO.get(b, o + 1) & 0xffL) << 32L) | ((JniIO.get(b, o + 2) & 0xffL) << 24L)
+						| ((JniIO.get(b, o + 3) & 0xffL) << 16L) | ((JniIO.get(b, o + 4) & 0xffL) << 8L)
+						| (JniIO.get(b, o + 5) & 0xffL));
 			case 5:
 				off[0] += 7;
-				return (long) (((JniIO.get(b, o + 1) & 0xffL) << 40L)
-						| ((JniIO.get(b, o + 2) & 0xffL) << 32L)
-						| ((JniIO.get(b, o + 3) & 0xffL) << 24L)
-						| ((JniIO.get(b, o + 4) & 0xffL) << 16L)
-						| ((JniIO.get(b, o + 5) & 0xffL) << 8L) | (JniIO.get(b,
-						o + 6) & 0xffL));
+				return (long) (((JniIO.get(b, o + 1) & 0xffL) << 40L) | ((JniIO.get(b, o + 2) & 0xffL) << 32L)
+						| ((JniIO.get(b, o + 3) & 0xffL) << 24L) | ((JniIO.get(b, o + 4) & 0xffL) << 16L)
+						| ((JniIO.get(b, o + 5) & 0xffL) << 8L) | (JniIO.get(b, o + 6) & 0xffL));
 			case 6:
 				off[0] += 8;
-				return (long) (((JniIO.get(b, o + 1) & 0xffL) << 48L)
-						| ((JniIO.get(b, o + 2) & 0xffL) << 40L)
-						| ((JniIO.get(b, o + 3) & 0xffL) << 32L)
-						| ((JniIO.get(b, o + 4) & 0xffL) << 24L)
-						| ((JniIO.get(b, o + 5) & 0xffL) << 16L)
-						| ((JniIO.get(b, o + 6) & 0xffL) << 8L) | (JniIO.get(b,
-						o + 7) & 0xffL));
+				return (long) (((JniIO.get(b, o + 1) & 0xffL) << 48L) | ((JniIO.get(b, o + 2) & 0xffL) << 40L)
+						| ((JniIO.get(b, o + 3) & 0xffL) << 32L) | ((JniIO.get(b, o + 4) & 0xffL) << 24L)
+						| ((JniIO.get(b, o + 5) & 0xffL) << 16L) | ((JniIO.get(b, o + 6) & 0xffL) << 8L)
+						| (JniIO.get(b, o + 7) & 0xffL));
 			case 7:
 				off[0] += 9;
-				return (long) (((JniIO.get(b, o + 1) & 0xffL) << 56L)
-						| ((JniIO.get(b, o + 2) & 0xffL) << 48L)
-						| ((JniIO.get(b, o + 3) & 0xffL) << 40L)
-						| ((JniIO.get(b, o + 4) & 0xffL) << 32L)
-						| ((JniIO.get(b, o + 5) & 0xffL) << 24L)
-						| ((JniIO.get(b, o + 6) & 0xffL) << 16L)
-						| ((JniIO.get(b, o + 7) & 0xffL) << 8L) | (JniIO.get(b,
-						o + 8) & 0xffL));
+				return (long) (((JniIO.get(b, o + 1) & 0xffL) << 56L) | ((JniIO.get(b, o + 2) & 0xffL) << 48L)
+						| ((JniIO.get(b, o + 3) & 0xffL) << 40L) | ((JniIO.get(b, o + 4) & 0xffL) << 32L)
+						| ((JniIO.get(b, o + 5) & 0xffL) << 24L) | ((JniIO.get(b, o + 6) & 0xffL) << 16L)
+						| ((JniIO.get(b, o + 7) & 0xffL) << 8L) | (JniIO.get(b, o + 8) & 0xffL));
 			}
 			throw new IllegalArgumentException("Invalid byte8Long condition:" + off[0]);
 		}
@@ -798,49 +722,33 @@ public final class LevelValues {
 			return (long) (((h & 0x1f) << 8) | (JniIO.get(b, o + 1) & 0xff));
 		case 2:
 			off[0] += 3;
-			return (long) (((h & 0x1f) << 16)
-					| ((JniIO.get(b, o + 1) & 0xff) << 8) | (JniIO
-					.get(b, o + 2) & 0xff));
+			return (long) (((h & 0x1f) << 16) | ((JniIO.get(b, o + 1) & 0xff) << 8) | (JniIO.get(b, o + 2) & 0xff));
 		case 3:
 			off[0] += 4;
-			return (long) (((h & 0x1f) << 24)
-					| ((JniIO.get(b, o + 1) & 0xff) << 16)
-					| ((JniIO.get(b, o + 2) & 0xff) << 8) | (JniIO
-					.get(b, o + 3) & 0xff));
+			return (long) (((h & 0x1f) << 24) | ((JniIO.get(b, o + 1) & 0xff) << 16)
+					| ((JniIO.get(b, o + 2) & 0xff) << 8) | (JniIO.get(b, o + 3) & 0xff));
 		case 4:
 			off[0] += 5;
-			return (long) (((h & 0x1fL) << 32L)
-					| ((JniIO.get(b, o + 1) & 0xffL) << 24L)
-					| ((JniIO.get(b, o + 2) & 0xffL) << 16L)
-					| ((JniIO.get(b, o + 3) & 0xffL) << 8L) | (JniIO.get(b,
-					o + 4) & 0xffL));
+			return (long) (((h & 0x1fL) << 32L) | ((JniIO.get(b, o + 1) & 0xffL) << 24L)
+					| ((JniIO.get(b, o + 2) & 0xffL) << 16L) | ((JniIO.get(b, o + 3) & 0xffL) << 8L)
+					| (JniIO.get(b, o + 4) & 0xffL));
 		case 5:
 			off[0] += 6;
-			return (long) (((h & 0x1fL) << 40L)
-					| ((JniIO.get(b, o + 1) & 0xffL) << 32L)
-					| ((JniIO.get(b, o + 2) & 0xffL) << 24L)
-					| ((JniIO.get(b, o + 3) & 0xffL) << 16L)
-					| ((JniIO.get(b, o + 4) & 0xffL) << 8L) | (JniIO.get(b,
-					o + 5) & 0xffL));
+			return (long) (((h & 0x1fL) << 40L) | ((JniIO.get(b, o + 1) & 0xffL) << 32L)
+					| ((JniIO.get(b, o + 2) & 0xffL) << 24L) | ((JniIO.get(b, o + 3) & 0xffL) << 16L)
+					| ((JniIO.get(b, o + 4) & 0xffL) << 8L) | (JniIO.get(b, o + 5) & 0xffL));
 		case 6:
 			off[0] += 7;
-			return (long) (((h & 0x1fL) << 48L)
-					| ((JniIO.get(b, o + 1) & 0xffL) << 40L)
-					| ((JniIO.get(b, o + 2) & 0xffL) << 32L)
-					| ((JniIO.get(b, o + 3) & 0xffL) << 24L)
-					| ((JniIO.get(b, o + 4) & 0xffL) << 16L)
-					| ((JniIO.get(b, o + 5) & 0xffL) << 8L) | (JniIO.get(b,
-					o + 6) & 0xffL));
+			return (long) (((h & 0x1fL) << 48L) | ((JniIO.get(b, o + 1) & 0xffL) << 40L)
+					| ((JniIO.get(b, o + 2) & 0xffL) << 32L) | ((JniIO.get(b, o + 3) & 0xffL) << 24L)
+					| ((JniIO.get(b, o + 4) & 0xffL) << 16L) | ((JniIO.get(b, o + 5) & 0xffL) << 8L)
+					| (JniIO.get(b, o + 6) & 0xffL));
 		case 7:
 			off[0] += 8;
-			return (long) (((h & 0x1fL) << 56L)
-					| ((JniIO.get(b, o + 1) & 0xffL) << 48L)
-					| ((JniIO.get(b, o + 2) & 0xffL) << 40L)
-					| ((JniIO.get(b, o + 3) & 0xffL) << 32L)
-					| ((JniIO.get(b, o + 4) & 0xffL) << 24L)
-					| ((JniIO.get(b, o + 5) & 0xffL) << 16L)
-					| ((JniIO.get(b, o + 6) & 0xffL) << 8L) | (JniIO.get(b,
-					o + 7) & 0xffL));
+			return (long) (((h & 0x1fL) << 56L) | ((JniIO.get(b, o + 1) & 0xffL) << 48L)
+					| ((JniIO.get(b, o + 2) & 0xffL) << 40L) | ((JniIO.get(b, o + 3) & 0xffL) << 32L)
+					| ((JniIO.get(b, o + 4) & 0xffL) << 24L) | ((JniIO.get(b, o + 5) & 0xffL) << 16L)
+					| ((JniIO.get(b, o + 6) & 0xffL) << 8L) | (JniIO.get(b, o + 7) & 0xffL));
 		}
 		throw new IllegalArgumentException("Invalid byte8Long condition:" + off[0]);
 	}
@@ -879,8 +787,7 @@ public final class LevelValues {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final LevelArray byteLevelArray(int[] pos, JniBuffer b,
-			int length) throws Exception {
+	public static final LevelArray byteLevelArray(int[] pos, JniBuffer b, int length) throws Exception {
 		LevelArray ret = new LevelArray();
 		int len = byte4Int(b.address, pos);
 		if (len == 0) {
@@ -913,8 +820,7 @@ public final class LevelValues {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final TwoKey byteTwoKey(int code, int[] pos, JniBuffer b)
-			throws Exception {
+	public static final TwoKey byteTwoKey(int code, int[] pos, JniBuffer b) throws Exception {
 		int len = byte4Int(b.address, pos);
 		TwoKey ret = null;
 		switch (code) {
@@ -998,8 +904,7 @@ public final class LevelValues {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final Serializable toObject(byte[] bin, int off, int len)
-			throws Exception {
+	public static final Serializable toObject(byte[] bin, int off, int len) throws Exception {
 		if (bin == null || bin.length <= 0) {
 			throw new IllegalArgumentException("Binary length for serialization restore does not exist.");
 		}
@@ -1031,11 +936,9 @@ public final class LevelValues {
 	 *            対象の長さを設定します.
 	 * @return Object 変換されたオブジェクトが返却されます.
 	 */
-	public static final Object decodeObject(int[] pos, JniBuffer b, int length)
-			throws Exception {
+	public static final Object decodeObject(int[] pos, JniBuffer b, int length) throws Exception {
 		if (length <= pos[0]) {
-			throw new IOException("Processing exceeds the specified length ["+ length +" byte]:"
-					+ pos[0]);
+			throw new IOException("Processing exceeds the specified length [" + length + " byte]:" + pos[0]);
 		}
 
 		long addr = b.address;
@@ -1233,8 +1136,7 @@ public final class LevelValues {
 			len = byte4Int(addr, pos);
 			Map map = new HashMap();
 			for (i = 0; i < len; i++) {
-				map.put(decodeObject(pos, b, length), decodeObject(pos, b,
-						length));
+				map.put(decodeObject(pos, b, length), decodeObject(pos, b, length));
 			}
 			return map;
 		}
@@ -1264,7 +1166,7 @@ public final class LevelValues {
 			return null;
 		}
 		}
-		throw new IOException("Unknown type ["+ code +"] detected.");
+		throw new IOException("Unknown type [" + code + "] detected.");
 	}
 
 	/**
@@ -1309,11 +1211,12 @@ public final class LevelValues {
 	 * Levelテーブル専用オブジェクト変換.
 	 * 
 	 * @params buf 出力先のバッファ先を設定します.
-	 * @param c LevelTableの１行情報を設定します.
-	 * @exception Exception 例外.
+	 * @param c
+	 *            LevelTableの１行情報を設定します.
+	 * @exception Exception
+	 *                例外.
 	 */
-	public static final void encodeTableObject(JniBuffer buf, Object[] c)
-			throws Exception {
+	public static final void encodeTableObject(JniBuffer buf, Object[] c) throws Exception {
 		head(buf, 50); // 他配列.
 		byte4(buf, 0); // Object配列.
 		int len = c.length;

@@ -57,8 +57,7 @@ public final class JniIO {
 	 * @param len
 	 *            セットする長さを設定します.
 	 */
-	public static final void memset(final long addr, final int code,
-			final int len) {
+	public static final void memset(final long addr, final int code, final int len) {
 		jni.memset(addr, (byte) code, len);
 	}
 
@@ -72,8 +71,7 @@ public final class JniIO {
 	 * @param len
 	 *            セットする長さを設定します.
 	 */
-	public static final void memset(final long addr, final byte code,
-			final int len) {
+	public static final void memset(final long addr, final byte code, final int len) {
 		jni.memset(addr, code, len);
 	}
 
@@ -87,8 +85,7 @@ public final class JniIO {
 	 * @param len
 	 *            セットする長さを設定します.
 	 */
-	public static final void memcpy(final long dest, final long src,
-			final int len) {
+	public static final void memcpy(final long dest, final long src, final int len) {
 		jni.memcpy(dest, src, len);
 	}
 
@@ -141,8 +138,7 @@ public final class JniIO {
 	 * @param value
 	 *            対象の１バイト情報を設定します.
 	 */
-	public static final void put(final long address, final int index,
-			final byte value) {
+	public static final void put(final long address, final int index, final byte value) {
 		if (UnsafeMode) {
 			unsafe.putByte(address + index, value);
 		} else {
@@ -165,8 +161,8 @@ public final class JniIO {
 	 *            対象のデータ長を設定します.
 	 * @return int 設定された長さが返されます.
 	 */
-	public static final int putBinary(final long address, final int index,
-			final byte[] value, final int offset, final int length) {
+	public static final int putBinary(final long address, final int index, final byte[] value, final int offset,
+			final int length) {
 		jni.putBinary(address + index, value, offset, length);
 		return length;
 	}
@@ -186,8 +182,8 @@ public final class JniIO {
 	 *            対象のデータ長を設定します.
 	 * @return int 設定された長さが返されます.
 	 */
-	public static final int getBinary(final long address, final int index,
-			final byte[] value, final int offset, final int length) {
+	public static final int getBinary(final long address, final int index, final byte[] value, final int offset,
+			final int length) {
 		jni.getBinary(address + index, value, offset, length);
 		return length;
 	}
@@ -202,8 +198,7 @@ public final class JniIO {
 	 * @param value
 	 *            設定対象の情報を設定します.
 	 */
-	public static final void putBoolean(final long address, final int index,
-			final boolean value) {
+	public static final void putBoolean(final long address, final int index, final boolean value) {
 		if (UnsafeMode) {
 			unsafe.putByte(address + index, ((value) ? (byte) 1 : (byte) 0));
 		} else {
@@ -237,8 +232,7 @@ public final class JniIO {
 	 * @param value
 	 *            設定対象の情報を設定します.
 	 */
-	public static final void putChar(final long address, final int index,
-			char value) {
+	public static final void putChar(final long address, final int index, char value) {
 		if (UnsafeMode) {
 			unsafe.putChar(address + index, value);
 		} else {
@@ -291,8 +285,7 @@ public final class JniIO {
 	 * @param value
 	 *            設定対象の情報を設定します.
 	 */
-	public static final void putShort(final long address, final int index,
-			final short value) {
+	public static final void putShort(final long address, final int index, final short value) {
 		if (UnsafeMode) {
 			unsafe.putShort(address + index, value);
 		} else {
@@ -345,8 +338,7 @@ public final class JniIO {
 	 * @param value
 	 *            設定対象の情報を設定します.
 	 */
-	public static final void putInt(final long address, final int index,
-			final int value) {
+	public static final void putInt(final long address, final int index, final int value) {
 		if (UnsafeMode) {
 			unsafe.putInt(address + index, value);
 		} else {
@@ -399,8 +391,7 @@ public final class JniIO {
 	 * @param value
 	 *            設定対象の情報を設定します.
 	 */
-	public static final void putLong(final long address, final int index,
-			final long value) {
+	public static final void putLong(final long address, final int index, final long value) {
 		if (UnsafeMode) {
 			unsafe.putLong(address + index, value);
 		} else {
@@ -453,8 +444,7 @@ public final class JniIO {
 	 * @param value
 	 *            設定対象の情報を設定します.
 	 */
-	public static final void putFloat(final long address, final int index,
-			final float value) {
+	public static final void putFloat(final long address, final int index, final float value) {
 		putInt(address, index, Float.floatToIntBits(value));
 	}
 
@@ -500,8 +490,7 @@ public final class JniIO {
 	 * @param value
 	 *            設定対象の情報を設定します.
 	 */
-	public static final void putDouble(final long address, final int index,
-			final double value) {
+	public static final void putDouble(final long address, final int index, final double value) {
 		putLong(address, index, Double.doubleToLongBits(value));
 	}
 
@@ -532,8 +521,7 @@ public final class JniIO {
 	 */
 	public static final double getDoubleE(final long address, final int index) {
 		if (Unsafe.BIG_ENDIAN) {
-			return Double
-					.longBitsToDouble(Unsafe.swap(getLong(address, index)));
+			return Double.longBitsToDouble(Unsafe.swap(getLong(address, index)));
 		}
 		return getDouble(address, index);
 	}
@@ -556,8 +544,7 @@ public final class JniIO {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final long getDirectByteBufferAddress(final ByteBuffer buf)
-			throws Exception {
+	public static final long getDirectByteBufferAddress(final ByteBuffer buf) throws Exception {
 		return Unsafe.getDirectByteBufferAddress(buf);
 	}
 
@@ -596,8 +583,7 @@ public final class JniIO {
 	 *            文字列の長さを設定します.
 	 * @return int バイナリ変換される文字列の長さを設定します.
 	 */
-	public static final int utf8Length(final String value, final int off,
-			final int len) {
+	public static final int utf8Length(final String value, final int off, final int len) {
 		int c;
 		int ret = 0;
 		for (int i = off; i < len; i++) {
@@ -605,8 +591,7 @@ public final class JniIO {
 
 			// サロゲートペア処理.
 			if (c >= 0xd800 && c <= 0xdbff) {
-				c = 0x10000 + (((c - 0xd800) << 10) | ((int) value
-						.charAt(i + 1) - 0xdc00));
+				c = 0x10000 + (((c - 0xd800) << 10) | ((int) value.charAt(i + 1) - 0xdc00));
 				i++;
 			}
 
@@ -636,8 +621,7 @@ public final class JniIO {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final int putUtf8(final long address, final int index,
-			final String value) throws Exception {
+	public static final int putUtf8(final long address, final int index, final String value) throws Exception {
 		return putUtf8(address, index, value, 0, value.length());
 	}
 
@@ -656,8 +640,8 @@ public final class JniIO {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final int putUtf8(final long address, final int index,
-			final String value, final int len) throws Exception {
+	public static final int putUtf8(final long address, final int index, final String value, final int len)
+			throws Exception {
 		return putUtf8(address, index, value, 0, len);
 	}
 
@@ -678,8 +662,8 @@ public final class JniIO {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final int putUtf8(final long address, final int index,
-			final String value, final int off, final int len) throws Exception {
+	public static final int putUtf8(final long address, final int index, final String value, final int off,
+			final int len) throws Exception {
 		if (len == 0) {
 			return 0;
 		}
@@ -691,8 +675,7 @@ public final class JniIO {
 
 				// サロゲートペア処理.
 				if (c >= 0xd800 && c <= 0xdbff) {
-					c = 0x10000 + (((c - 0xd800) << 10) | ((int) value
-							.charAt(i + 1) - 0xdc00));
+					c = 0x10000 + (((c - 0xd800) << 10) | ((int) value.charAt(i + 1) - 0xdc00));
 					i++;
 				}
 
@@ -723,8 +706,7 @@ public final class JniIO {
 
 				// サロゲートペア処理.
 				if (c >= 0xd800 && c <= 0xdbff) {
-					c = 0x10000 + (((c - 0xd800) << 10) | ((int) value
-							.charAt(i + 1) - 0xdc00));
+					c = 0x10000 + (((c - 0xd800) << 10) | ((int) value.charAt(i + 1) - 0xdc00));
 					i++;
 				}
 
@@ -765,8 +747,7 @@ public final class JniIO {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final String getUtf8(final long address, final int index,
-			final int length) throws Exception {
+	public static final String getUtf8(final long address, final int index, final int length) throws Exception {
 		if (length == 0) {
 			return "";
 		}
@@ -784,16 +765,13 @@ public final class JniIO {
 					p += 2;
 					i += 1;
 				} else if ((c >> 4) == 0x0e) {
-					n = (int) (((c & 0x0f) << 12)
-							| (((unsafe.getByte(p + 1)) & 0x3f) << 6) | ((unsafe
-							.getByte(p + 2)) & 0x3f));
+					n = (int) (((c & 0x0f) << 12) | (((unsafe.getByte(p + 1)) & 0x3f) << 6)
+							| ((unsafe.getByte(p + 2)) & 0x3f));
 					p += 3;
 					i += 2;
 				} else {
-					n = (int) (((c & 0x07) << 18)
-							| (((unsafe.getByte(p + 1)) & 0x3f) << 12)
-							| (((unsafe.getByte(p + 2)) & 0x3f) << 6) | ((unsafe
-							.getByte(p + 3)) & 0x3f));
+					n = (int) (((c & 0x07) << 18) | (((unsafe.getByte(p + 1)) & 0x3f) << 12)
+							| (((unsafe.getByte(p + 2)) & 0x3f) << 6) | ((unsafe.getByte(p + 3)) & 0x3f));
 					p += 4;
 					i += 3;
 				}
@@ -818,16 +796,13 @@ public final class JniIO {
 					p += 2;
 					i += 1;
 				} else if ((c >> 4) == 0x0e) {
-					n = (int) (((c & 0x0f) << 12)
-							| (((jni.getByte(p + 1)) & 0x3f) << 6) | ((jni
-							.getByte(p + 2)) & 0x3f));
+					n = (int) (((c & 0x0f) << 12) | (((jni.getByte(p + 1)) & 0x3f) << 6)
+							| ((jni.getByte(p + 2)) & 0x3f));
 					p += 3;
 					i += 2;
 				} else {
-					n = (int) (((c & 0x07) << 18)
-							| (((jni.getByte(p + 1)) & 0x3f) << 12)
-							| (((jni.getByte(p + 2)) & 0x3f) << 6) | ((jni
-							.getByte(p + 3)) & 0x3f));
+					n = (int) (((c & 0x07) << 18) | (((jni.getByte(p + 1)) & 0x3f) << 12)
+							| (((jni.getByte(p + 2)) & 0x3f) << 6) | ((jni.getByte(p + 3)) & 0x3f));
 					p += 4;
 					i += 3;
 				}
@@ -881,8 +856,7 @@ public final class JniIO {
 	 *            文字列の長さを設定します.
 	 * @return int バイナリ変換される文字列の長さを設定します.
 	 */
-	public static final int utf16Length(final String value, final int off,
-			final int len) {
+	public static final int utf16Length(final String value, final int off, final int len) {
 		return len == 0 ? 0 : (len << 1);
 	}
 
@@ -895,13 +869,12 @@ public final class JniIO {
 	 *            対象のインデックス位置を設定します.
 	 * @param value
 	 *            対象の文字列を設定します.
-	 * @return int 変換された文字列の長さを設定します. この値は別にこの戻り値を使わなくても、 ( len << 1 ) + 2 or (
-	 *         len * 2 ) + 2 で値は求められます.
+	 * @return int 変換された文字列の長さを設定します. この値は別にこの戻り値を使わなくても、 ( len << 1 ) + 2 or ( len
+	 *         * 2 ) + 2 で値は求められます.
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final int putUtf16(final long address, final int index,
-			final String value) throws Exception {
+	public static final int putUtf16(final long address, final int index, final String value) throws Exception {
 		return putUtf16(address, index, value, 0, value.length());
 	}
 
@@ -916,13 +889,13 @@ public final class JniIO {
 	 *            対象の文字列を設定します.
 	 * @param len
 	 *            文字列の長さを設定します.
-	 * @return int 変換された文字列の長さを設定します. この値は別にこの戻り値を使わなくても、 ( len << 1 ) + 2 or (
-	 *         len * 2 ) + 2 で値は求められます.
+	 * @return int 変換された文字列の長さを設定します. この値は別にこの戻り値を使わなくても、 ( len << 1 ) + 2 or ( len
+	 *         * 2 ) + 2 で値は求められます.
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final int putUtf16(final long address, final int index,
-			final String value, final int len) throws Exception {
+	public static final int putUtf16(final long address, final int index, final String value, final int len)
+			throws Exception {
 		return putUtf16(address, index, value, 0, len);
 	}
 
@@ -939,13 +912,13 @@ public final class JniIO {
 	 *            文字列のオフセット値を設定します.
 	 * @param len
 	 *            文字列の長さを設定します.
-	 * @return int 変換された文字列の長さを設定します. この値は別にこの戻り値を使わなくても、 ( len << 1 ) + 2 or (
-	 *         len * 2 ) + 2 で値は求められます.
+	 * @return int 変換された文字列の長さを設定します. この値は別にこの戻り値を使わなくても、 ( len << 1 ) + 2 or ( len
+	 *         * 2 ) + 2 で値は求められます.
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final int putUtf16(final long address, final int index,
-			final String value, final int off, final int len) throws Exception {
+	public static final int putUtf16(final long address, final int index, final String value, final int off,
+			final int len) throws Exception {
 		if (len == 0) {
 			return 0;
 		}
@@ -983,8 +956,7 @@ public final class JniIO {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final String getUtf16(final long address, final int index,
-			final int length) throws Exception {
+	public static final String getUtf16(final long address, final int index, final int length) throws Exception {
 		if (length == 0) {
 			return "";
 		}
@@ -1004,8 +976,7 @@ public final class JniIO {
 			if (a == 0xff && b == 0xfe) {
 				buf = new char[len];
 				for (int i = 0; i < len; i++) {
-					buf[cnt++] = (char) (((unsafe.getByte(p + 1) & 255) << 8) | (unsafe
-							.getByte(p) & 255));
+					buf[cnt++] = (char) (((unsafe.getByte(p + 1) & 255) << 8) | (unsafe.getByte(p) & 255));
 					p += 2;
 				}
 			}
@@ -1013,8 +984,7 @@ public final class JniIO {
 			else if (a == 0xfe && b == 0xff) {
 				buf = new char[len];
 				for (int i = 0; i < len; i++) {
-					buf[cnt++] = (char) (((unsafe.getByte(p) & 255) << 8) | (unsafe
-							.getByte(p + 1) & 255));
+					buf[cnt++] = (char) (((unsafe.getByte(p) & 255) << 8) | (unsafe.getByte(p + 1) & 255));
 					p += 2;
 				}
 			}
@@ -1024,8 +994,7 @@ public final class JniIO {
 				buf = new char[len];
 				buf[cnt++] = (char) (((a & 255) << 8) | (b & 255));
 				for (int i = 1; i < len; i++) {
-					buf[cnt++] = (char) (((unsafe.getByte(p) & 255) << 8) | (unsafe
-							.getByte(p + 1) & 255));
+					buf[cnt++] = (char) (((unsafe.getByte(p) & 255) << 8) | (unsafe.getByte(p + 1) & 255));
 					p += 2;
 				}
 			}
@@ -1040,8 +1009,7 @@ public final class JniIO {
 			if (a == 0xff && b == 0xfe) {
 				buf = new char[len];
 				for (int i = 0; i < len; i++) {
-					buf[cnt++] = (char) (((jni.getByte(p + 1) & 255) << 8) | (jni
-							.getByte(p) & 255));
+					buf[cnt++] = (char) (((jni.getByte(p + 1) & 255) << 8) | (jni.getByte(p) & 255));
 					p += 2;
 				}
 			}
@@ -1049,8 +1017,7 @@ public final class JniIO {
 			else if (a == 0xfe && b == 0xff) {
 				buf = new char[len];
 				for (int i = 0; i < len; i++) {
-					buf[cnt++] = (char) (((jni.getByte(p) & 255) << 8) | (jni
-							.getByte(p + 1) & 255));
+					buf[cnt++] = (char) (((jni.getByte(p) & 255) << 8) | (jni.getByte(p + 1) & 255));
 					p += 2;
 				}
 			}
@@ -1060,8 +1027,7 @@ public final class JniIO {
 				buf = new char[len];
 				buf[cnt++] = (char) (((a & 255) << 8) | (b & 255));
 				for (int i = 1; i < len; i++) {
-					buf[cnt++] = (char) (((jni.getByte(p) & 255) << 8) | (jni
-							.getByte(p + 1) & 255));
+					buf[cnt++] = (char) (((jni.getByte(p) & 255) << 8) | (jni.getByte(p + 1) & 255));
 					p += 2;
 				}
 			}

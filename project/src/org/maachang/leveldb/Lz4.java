@@ -4,7 +4,8 @@ package org.maachang.leveldb;
  * Lz4圧縮／解凍.
  */
 public final class Lz4 {
-	protected Lz4() {}
+	protected Lz4() {
+	}
 
 	/**
 	 * 圧縮処理.

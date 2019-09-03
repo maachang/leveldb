@@ -13,8 +13,11 @@ public class LeveldbIterator {
 
 	/**
 	 * コンストラクタ.
-	 * @param mode [true]の場合、スナップショット用のIteratorを生成します.
-	 * @param p Leveldbオブジェクトを設定します.
+	 * 
+	 * @param mode
+	 *            [true]の場合、スナップショット用のIteratorを生成します.
+	 * @param p
+	 *            Leveldbオブジェクトを設定します.
 	 */
 	protected LeveldbIterator(boolean mode, Leveldb p) {
 		if (p == null || p.isClose()) {
@@ -59,6 +62,7 @@ public class LeveldbIterator {
 
 	/**
 	 * クローズしているかチェック.
+	 * 
 	 * @return boolean [true]の場合、クローズしています.
 	 */
 	public boolean isClose() {
@@ -90,7 +94,9 @@ public class LeveldbIterator {
 
 	/**
 	 * カーソル位置を指定条件の位置まで移動.
-	 * @param key 検索対象のキーを設定します.
+	 * 
+	 * @param key
+	 *            検索対象のキーを設定します.
 	 */
 	public void seek(final JniBuffer key) {
 		check();
@@ -119,6 +125,7 @@ public class LeveldbIterator {
 
 	/**
 	 * 現在位置の情報が存在するかチェック.
+	 * 
 	 * @return boolean [true]の場合、存在します.
 	 */
 	public boolean valid() {
@@ -128,7 +135,9 @@ public class LeveldbIterator {
 
 	/**
 	 * 指定位置のキー情報を取得.
-	 * @param out 格納先のJniBufferを設定します.
+	 * 
+	 * @param out
+	 *            格納先のJniBufferを設定します.
 	 * @return int サイズが返却されます.
 	 */
 	public int key(final JniBuffer out) {
@@ -140,7 +149,7 @@ public class LeveldbIterator {
 		int len = jni.leveldb_itr_key(addr, n, out.length());
 		if (len <= 0) {
 			return 0;
-		// leveldb_itr_keyでバッファが拡張された場合.
+			// leveldb_itr_keyでバッファが拡張された場合.
 		} else if (len > out.length()) {
 			// バッファ内容を再セット.
 			out.set(n[0], len, len);
@@ -153,7 +162,9 @@ public class LeveldbIterator {
 
 	/**
 	 * 指定位置の要素情報を取得.
-	 * @param out 格納先のJniBufferを設定します.
+	 * 
+	 * @param out
+	 *            格納先のJniBufferを設定します.
 	 * @return int サイズが返却されます.
 	 */
 	public int value(final JniBuffer out) {
@@ -165,7 +176,7 @@ public class LeveldbIterator {
 		int len = jni.leveldb_itr_value(addr, n, out.length());
 		if (len <= 0) {
 			return 0;
-		// leveldb_itr_valueでバッファが拡張された場合.
+			// leveldb_itr_valueでバッファが拡張された場合.
 		} else if (len > out.length()) {
 			// バッファ内容を再セット.
 			out.set(n[0], len, len);

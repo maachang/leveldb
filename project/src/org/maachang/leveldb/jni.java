@@ -68,9 +68,8 @@ final class jni {
 		// arm系の処理.
 		String arm = System.getProperty("os.arch");
 		if (arm.startsWith("arm")) {
-			System.load(targetDynamincLib(true, new StringBuilder(LIB_NAME)
-					.append("-arm-").append(
-							VERSION).append(LINUX_LIB_PLUS).toString()));
+			System.load(targetDynamincLib(true,
+					new StringBuilder(LIB_NAME).append("-arm-").append(VERSION).append(LINUX_LIB_PLUS).toString()));
 			initFlag = true;
 		}
 		// intel系の処理.
@@ -136,9 +135,8 @@ final class jni {
 	public static final String targetDynamincLib(boolean mode, String lib) {
 		String sp = System.getProperty("file.separator");
 		File targetDir = null;
-		targetDir = new File(new StringBuilder().append(
-				System.getProperty("user.home")).append(sp).append(DEFAULT_DIR)
-				.toString());
+		targetDir = new File(
+				new StringBuilder().append(System.getProperty("user.home")).append(sp).append(DEFAULT_DIR).toString());
 
 		if (targetDir.exists() == false) {
 			targetDir.mkdirs();
@@ -153,12 +151,11 @@ final class jni {
 			if (ntvDir.startsWith("/")) {
 				ntvDir = ntvDir.substring(1);
 			}
-			InputStream is = new BufferedInputStream(Thread.currentThread()
-					.getContextClassLoader().getResourceAsStream(ntvDir + lib));
+			InputStream is = new BufferedInputStream(
+					Thread.currentThread().getContextClassLoader().getResourceAsStream(ntvDir + lib));
 			if (isLibFile(outFile, is)) {
 				try {
-					OutputStream os = new BufferedOutputStream(
-							new FileOutputStream(outFile));
+					OutputStream os = new BufferedOutputStream(new FileOutputStream(outFile));
 					try {
 						try {
 							int n;
@@ -281,11 +278,9 @@ final class jni {
 
 	public static native void putByte(long address, byte value);
 
-	public static native void getBinary(long address, byte[] binary,
-		int off, int len);
+	public static native void getBinary(long address, byte[] binary, int off, int len);
 
-	public static native void putBinary(long address, byte[] binary,
-		int off, int len);
+	public static native void putBinary(long address, byte[] binary, int off, int len);
 
 	public static native void putChar(long address, char value);
 
@@ -308,54 +303,43 @@ final class jni {
 	// snappy.
 	public static native int snappyMaxCompressedLength(int oneCompressLength);
 
-	public static native int snappyCompress(long src, int src_len, long dst,
-			int[] dst_len);
+	public static native int snappyCompress(long src, int src_len, long dst, int[] dst_len);
 
-	public static native int snappyDecompress(long src, int src_len,
-			long dst, int[] dst_len);
-	
+	public static native int snappyDecompress(long src, int src_len, long dst, int[] dst_len);
+
 	// lz4.
 	public static native int lz4MaxCompressedLength(int oneCompressLength);
 
 	public static native int lz4UncompressLength(long src);
 
-	public static native int lz4Compress(long src, int src_len, long dst,
-			int[] dst_len);
+	public static native int lz4Compress(long src, int src_len, long dst, int[] dst_len);
 
-	public static native int lz4Decompress(long src, int src_len,
-			long dst, int[] dst_len);
+	public static native int lz4Decompress(long src, int src_len, long dst, int[] dst_len);
 
 	// leveldb.
-	public static native void leveldb_destroy(long name, int type,
-			int write_buffer_size, int max_open_files, int block_size,
-			int block_restart_interval);
+	public static native void leveldb_destroy(long name, int type, int write_buffer_size, int max_open_files,
+			int block_size, int block_restart_interval);
 
-	public static native void leveldb_repair(long name, int type,
-			int write_buffer_size, int max_open_files, int block_size,
-			int block_restart_interval);
+	public static native void leveldb_repair(long name, int type, int write_buffer_size, int max_open_files,
+			int block_size, int block_restart_interval);
 
-	public static native long leveldb_open(long name, int type,
-			int write_buffer_size, int max_open_files, int block_size,
-			int block_restart_interval, int block_cache);
+	public static native long leveldb_open(long name, int type, int write_buffer_size, int max_open_files,
+			int block_size, int block_restart_interval, int block_cache);
 
 	// leveldb-i/o.
 	public static native void leveldb_close(long db);
 
-	public static native int leveldb_put(long db, long key, int kLen,
-			long value, int vLen);
+	public static native int leveldb_put(long db, long key, int kLen, long value, int vLen);
 
-	public static native int leveldb_get(long db, long key, int len,
-			long[] buf, int bufLen);
+	public static native int leveldb_get(long db, long key, int len, long[] buf, int bufLen);
 
 	public static native int leveldb_remove(long db, long key, int len);
 
 	public static native long leveldb_iterator(long db);
 
-	public static native int leveldb_property(long db, long cmd, int cmdLen,
-			long[] buf, int bufLen);
+	public static native int leveldb_property(long db, long cmd, int cmdLen, long[] buf, int bufLen);
 
-	public static native int leveldb_vacuum(long db, long start,
-			int startLen, long end, int endLen);
+	public static native int leveldb_vacuum(long db, long start, int startLen, long end, int endLen);
 
 	// leveldb-iterator.
 	public static native void leveldb_itr_delete(long itr); // iterator close.
@@ -374,8 +358,7 @@ final class jni {
 
 	public static native int leveldb_itr_key(long itr, long[] buf, int bufLen);
 
-	public static native int leveldb_itr_value(long itr, long[] buf,
-			int bufLen);
+	public static native int leveldb_itr_value(long itr, long[] buf, int bufLen);
 
 	// Write-Batch.
 	public static native long leveldb_wb_create();
@@ -388,8 +371,7 @@ final class jni {
 
 	public static native void leveldb_wb_clear(long wb);
 
-	public static native void leveldb_wb_put(long wb, long key, int kLen,
-			long value, int vLen);
+	public static native void leveldb_wb_put(long wb, long key, int kLen, long value, int vLen);
 
 	public static native void leveldb_wb_remove(long wb, long key, int len);
 

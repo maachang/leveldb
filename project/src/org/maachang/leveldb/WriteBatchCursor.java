@@ -11,28 +11,28 @@ public class WriteBatchCursor {
 	// <db/write_batch.cc>
 	// // [START]add maachang.
 	// WriteBatch::WriteBatch( const size_t size ) {
-	//   Clear( size ) ;
+	// Clear( size ) ;
 	// }
 	// void WriteBatch::Clear( const size_t size ) {
-	//   rep_.clear() ;
-	//   rep_.reserve(size) ;
-	//   rep_.resize(kHeader) ;
+	// rep_.clear() ;
+	// rep_.reserve(size) ;
+	// rep_.resize(kHeader) ;
 	// }
 	// const char* WriteBatch::Values() {
-	//     return &(rep_[0]) ;
+	// return &(rep_[0]) ;
 	// }
 	// size_t WriteBatch::ValuesSize() {
-	//     return rep_.size() ;
+	// return rep_.size() ;
 	// }
 	// [END]add maachang.
 	//
 	// </include/leveldb/write_batch.h>
 	//
 	// // [START]add maachang.
-	//   WriteBatch( const size_t size );
-	//   void Clear( const size_t size );
-	//   const char* Values() ;
-	//   size_t ValuesSize() ;
+	// WriteBatch( const size_t size );
+	// void Clear( const size_t size );
+	// const char* Values() ;
+	// size_t ValuesSize() ;
 	// // [END]add maachang.
 	//
 	// それぞれに追加が必須.
@@ -57,7 +57,7 @@ public class WriteBatchCursor {
 	// [Put][KeyLength][Key...][ValueLength][Value...]
 	// [Delete][KeyLength][Key...]
 	// (1) : PUT or Delete.
-	// 
+	//
 	// PUTの場合、
 	// (1-5) : Keyの長さ.
 	// Keyの長さ分のBinary.

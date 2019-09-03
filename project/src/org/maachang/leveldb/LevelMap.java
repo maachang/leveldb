@@ -10,7 +10,7 @@ import org.maachang.leveldb.util.ConvertMap;
 /**
  * LeveldbのMap実装.
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class LevelMap implements ConvertMap {
 
 	/** LevelDbオブジェクト. **/
@@ -25,7 +25,8 @@ public class LevelMap implements ConvertMap {
 	/**
 	 * コンストラクタ.
 	 * 
-	 * @param name 対象のデータベース名を設定します.
+	 * @param name
+	 *            対象のデータベース名を設定します.
 	 */
 	public LevelMap(String name) {
 		this(name, null);
@@ -34,19 +35,22 @@ public class LevelMap implements ConvertMap {
 	/**
 	 * コンストラクタ.
 	 * 
-	 * @param name 対象のデータベース名を設定します.
-	 * @param option Leveldbオプションを設定します.
+	 * @param name
+	 *            対象のデータベース名を設定します.
+	 * @param option
+	 *            Leveldbオプションを設定します.
 	 */
 	public LevelMap(String name, LevelOption option) {
 		this.leveldb = new Leveldb(name, option);
 		this.type = this.leveldb.getOption().getType();
 		this.set = null;
 	}
-	
+
 	/**
 	 * コンストラクタ.
 	 * 
-	 * @param db 対象のLeveldbオブジェクトを設定します.
+	 * @param db
+	 *            対象のLeveldbオブジェクトを設定します.
 	 */
 	public LevelMap(Leveldb db) {
 		this.leveldb = db;
@@ -105,8 +109,8 @@ public class LevelMap implements ConvertMap {
 	}
 
 	/**
-	 * 情報クリア. ※Iteratorで処理をするので、件数が多い場合は、処理に時間がかかります.
-	 * この処理を呼び出すと、対象のLeveldbに登録されている すべての要素をすべてクリアします.
+	 * 情報クリア. ※Iteratorで処理をするので、件数が多い場合は、処理に時間がかかります. この処理を呼び出すと、対象のLeveldbに登録されている
+	 * すべての要素をすべてクリアします.
 	 */
 	public void clear() {
 		JniBuffer key = null;
@@ -354,7 +358,7 @@ public class LevelMap implements ConvertMap {
 		}
 		return ret;
 	}
-	
+
 	/**
 	 * 指定キー情報に対する要素を取得.
 	 * 
@@ -487,6 +491,7 @@ public class LevelMap implements ConvertMap {
 
 	/**
 	 * 情報が空かチェック.
+	 * 
 	 * @return boolean データが空の場合[true]が返却されます.
 	 */
 	public boolean isEmpty() {
@@ -506,8 +511,7 @@ public class LevelMap implements ConvertMap {
 	}
 
 	/**
-	 * 登録データ数を取得. ※Iteratorでカウントするので、件数が多い場合は、処理に時間がかかります. return int
-	 * 登録データ数が返却されます.
+	 * 登録データ数を取得. ※Iteratorでカウントするので、件数が多い場合は、処理に時間がかかります. return int 登録データ数が返却されます.
 	 */
 	public int size() {
 		try {

@@ -57,8 +57,7 @@ public class CsvWriter {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public CsvWriter(boolean newFile, String name, String charset, String cut)
-			throws Exception {
+	public CsvWriter(boolean newFile, String name, String charset, String cut) throws Exception {
 		this.open(newFile, name, charset, cut);
 	}
 
@@ -111,8 +110,7 @@ public class CsvWriter {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public void open(boolean newFile, String name, String charset, String cut)
-			throws Exception {
+	public void open(boolean newFile, String name, String charset, String cut) throws Exception {
 		if (charset == null || charset.length() <= 0) {
 			charset = "UTF8";
 		}
@@ -122,8 +120,7 @@ public class CsvWriter {
 		if (isOpen()) {
 			close();
 		}
-		this.writer = new BufferedWriter(new OutputStreamWriter(
-				new FileOutputStream(name, !newFile), charset));
+		this.writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(name, !newFile), charset));
 		this.cut = cut;
 		this.count = 0;
 	}

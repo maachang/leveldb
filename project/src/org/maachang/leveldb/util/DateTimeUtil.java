@@ -24,8 +24,7 @@ public final class DateTimeUtil {
 	}
 
 	/** グリニッジ標準時タイムゾーン. **/
-	protected static final TimeZone GMT_TIMEZONE = TimeZone
-			.getTimeZone("Europe/London");
+	protected static final TimeZone GMT_TIMEZONE = TimeZone.getTimeZone("Europe/London");
 
 	/** 先頭日付の文字数に併せた、西暦取得. **/
 	private static final int getYear(String v) {
@@ -86,11 +85,10 @@ public final class DateTimeUtil {
 			case 1:
 				return new java.sql.Date(getYear(list.get(0)), 0, 1);
 			case 2:
-				return new java.sql.Date(getYear(list.get(0)), Utils
-						.parseInt(list.get(1)) - 1, 1);
+				return new java.sql.Date(getYear(list.get(0)), Utils.parseInt(list.get(1)) - 1, 1);
 			default:
-				return new java.sql.Date(getYear(list.get(0)), Utils
-						.parseInt(list.get(1)) - 1, Utils.parseInt(list.get(2)));
+				return new java.sql.Date(getYear(list.get(0)), Utils.parseInt(list.get(1)) - 1,
+						Utils.parseInt(list.get(2)));
 			}
 		}
 		// java.sql.Time.
@@ -98,16 +96,14 @@ public final class DateTimeUtil {
 			switch (len) {
 			case 0:
 				Date d = new java.util.Date();
-				return new java.sql.Time(d.getHours(), d.getMinutes(), d
-						.getSeconds());
+				return new java.sql.Time(d.getHours(), d.getMinutes(), d.getSeconds());
 			case 1:
 				return new java.sql.Time(Utils.parseInt(list.get(0)), 0, 0);
 			case 2:
-				return new java.sql.Time(Utils.parseInt(list.get(0)), Utils
-						.parseInt(list.get(1)), 0);
+				return new java.sql.Time(Utils.parseInt(list.get(0)), Utils.parseInt(list.get(1)), 0);
 			default:
-				return new java.sql.Time(Utils.parseInt(list.get(0)), Utils
-						.parseInt(list.get(1)), Utils.parseInt(list.get(2)));
+				return new java.sql.Time(Utils.parseInt(list.get(0)), Utils.parseInt(list.get(1)),
+						Utils.parseInt(list.get(2)));
 			}
 		}
 		// java.sql.Timestamp.
@@ -116,39 +112,26 @@ public final class DateTimeUtil {
 			case 0:
 				return new java.sql.Timestamp(System.currentTimeMillis());
 			case 1:
-				return new java.sql.Timestamp(getYear(list.get(0)), 0, 1, 0, 0,
-						0, 0);
+				return new java.sql.Timestamp(getYear(list.get(0)), 0, 1, 0, 0, 0, 0);
 			case 2:
-				return new java.sql.Timestamp(getYear(list.get(0)), Utils
-						.parseInt(list.get(1)) - 1, 1, 0, 0, 0, 0);
+				return new java.sql.Timestamp(getYear(list.get(0)), Utils.parseInt(list.get(1)) - 1, 1, 0, 0, 0, 0);
 			case 3:
-				return new java.sql.Timestamp(getYear(list.get(0)), Utils
-						.parseInt(list.get(1)) - 1,
+				return new java.sql.Timestamp(getYear(list.get(0)), Utils.parseInt(list.get(1)) - 1,
 						Utils.parseInt(list.get(2)), 0, 0, 0, 0);
 			case 4:
-				return new java.sql.Timestamp(getYear(list.get(0)), Utils
-						.parseInt(list.get(1)) - 1,
-						Utils.parseInt(list.get(2)), Utils
-								.parseInt(list.get(3)), 0, 0, 0);
+				return new java.sql.Timestamp(getYear(list.get(0)), Utils.parseInt(list.get(1)) - 1,
+						Utils.parseInt(list.get(2)), Utils.parseInt(list.get(3)), 0, 0, 0);
 			case 5:
-				return new java.sql.Timestamp(getYear(list.get(0)), Utils
-						.parseInt(list.get(1)) - 1,
-						Utils.parseInt(list.get(2)), Utils
-								.parseInt(list.get(3)), Utils.parseInt(list
-								.get(4)), 0, 0);
+				return new java.sql.Timestamp(getYear(list.get(0)), Utils.parseInt(list.get(1)) - 1,
+						Utils.parseInt(list.get(2)), Utils.parseInt(list.get(3)), Utils.parseInt(list.get(4)), 0, 0);
 			case 6:
-				return new java.sql.Timestamp(getYear(list.get(0)), Utils
-						.parseInt(list.get(1)) - 1,
-						Utils.parseInt(list.get(2)), Utils
-								.parseInt(list.get(3)), Utils.parseInt(list
-								.get(4)), Utils.parseInt(list.get(5)), 0);
+				return new java.sql.Timestamp(getYear(list.get(0)), Utils.parseInt(list.get(1)) - 1,
+						Utils.parseInt(list.get(2)), Utils.parseInt(list.get(3)), Utils.parseInt(list.get(4)),
+						Utils.parseInt(list.get(5)), 0);
 			default:
-				return new java.sql.Timestamp(getYear(list.get(0)), Utils
-						.parseInt(list.get(1)) - 1,
-						Utils.parseInt(list.get(2)), Utils
-								.parseInt(list.get(3)), Utils.parseInt(list
-								.get(4)), Utils.parseInt(list.get(5)),
-						getMilliByNano(list.get(6)));
+				return new java.sql.Timestamp(getYear(list.get(0)), Utils.parseInt(list.get(1)) - 1,
+						Utils.parseInt(list.get(2)), Utils.parseInt(list.get(3)), Utils.parseInt(list.get(4)),
+						Utils.parseInt(list.get(5)), getMilliByNano(list.get(6)));
 			}
 		}
 	}
@@ -170,8 +153,7 @@ public final class DateTimeUtil {
 			if (len < 4) {
 				if (len == 0) {
 					Date d = new java.util.Date();
-					return new java.sql.Date(d.getYear(), d.getMonth(), d
-							.getDate());
+					return new java.sql.Date(d.getYear(), d.getMonth(), d.getDate());
 				} else {
 					return new java.sql.Date(getYear(value), 0, 1);
 				}
@@ -179,12 +161,10 @@ public final class DateTimeUtil {
 			if (len < 6) {
 				return new java.sql.Date(getYear(value), 0, 1);
 			} else if (len < 8) {
-				return new java.sql.Date(getYear(value.substring(0, 4)), Utils
-						.parseInt(value.substring(4, 6)) - 1, 1);
+				return new java.sql.Date(getYear(value.substring(0, 4)), Utils.parseInt(value.substring(4, 6)) - 1, 1);
 			} else {
-				return new java.sql.Date(getYear(value.substring(0, 4)), Utils
-						.parseInt(value.substring(4, 6)) - 1, Utils
-						.parseInt(value.substring(6, 8)));
+				return new java.sql.Date(getYear(value.substring(0, 4)), Utils.parseInt(value.substring(4, 6)) - 1,
+						Utils.parseInt(value.substring(6, 8)));
 			}
 		}
 		// java.sql.Time.
@@ -192,22 +172,19 @@ public final class DateTimeUtil {
 			if (len < 2) {
 				if (len == 0) {
 					Date d = new java.util.Date();
-					return new java.sql.Time(d.getHours(), d.getMinutes(), d
-							.getSeconds());
+					return new java.sql.Time(d.getHours(), d.getMinutes(), d.getSeconds());
 				} else {
 					return new java.sql.Time(Utils.parseInt(value), 0, 0);
 				}
 			}
 			if (len < 4) {
-				return new java.sql.Time(Utils.parseInt(value.substring(0, 2)),
-						0, 0);
+				return new java.sql.Time(Utils.parseInt(value.substring(0, 2)), 0, 0);
 			} else if (len < 6) {
-				return new java.sql.Time(Utils.parseInt(value.substring(0, 2)),
-						Utils.parseInt(value.substring(2, 4)), 0);
+				return new java.sql.Time(Utils.parseInt(value.substring(0, 2)), Utils.parseInt(value.substring(2, 4)),
+						0);
 			} else {
-				return new java.sql.Time(Utils.parseInt(value.substring(0, 2)),
-						Utils.parseInt(value.substring(2, 4)), Utils
-								.parseInt(value.substring(4, 6)));
+				return new java.sql.Time(Utils.parseInt(value.substring(0, 2)), Utils.parseInt(value.substring(2, 4)),
+						Utils.parseInt(value.substring(4, 6)));
 			}
 		}
 		// java.sql.Timestamp.
@@ -216,57 +193,40 @@ public final class DateTimeUtil {
 				if (len == 0) {
 					return new java.sql.Timestamp(System.currentTimeMillis());
 				} else {
-					return new java.sql.Timestamp(getYear(value), 0, 1, 0, 0,
-							0, 0);
+					return new java.sql.Timestamp(getYear(value), 0, 1, 0, 0, 0, 0);
 				}
 			}
 			if (len < 6) {
 				return new java.sql.Timestamp(getYear(value), 0, 1, 0, 0, 0, 0);
 			} else if (len < 8) {
-				return new java.sql.Timestamp(getYear(value.substring(0, 4)),
-						Utils.parseInt(value.substring(4, 6)) - 1, 1, 0, 0, 0,
-						0);
+				return new java.sql.Timestamp(getYear(value.substring(0, 4)), Utils.parseInt(value.substring(4, 6)) - 1,
+						1, 0, 0, 0, 0);
 			} else if (len < 10) {
-				return new java.sql.Timestamp(getYear(value.substring(0, 4)),
-						Utils.parseInt(value.substring(4, 6)) - 1, Utils
-								.parseInt(value.substring(6, 8)), 0, 0, 0, 0);
+				return new java.sql.Timestamp(getYear(value.substring(0, 4)), Utils.parseInt(value.substring(4, 6)) - 1,
+						Utils.parseInt(value.substring(6, 8)), 0, 0, 0, 0);
 			} else if (len < 12) {
-				return new java.sql.Timestamp(getYear(value.substring(0, 4)),
-						Utils.parseInt(value.substring(4, 6)) - 1, Utils
-								.parseInt(value.substring(6, 8)), Utils
-								.parseInt(value.substring(8, 10)), 0, 0, 0);
+				return new java.sql.Timestamp(getYear(value.substring(0, 4)), Utils.parseInt(value.substring(4, 6)) - 1,
+						Utils.parseInt(value.substring(6, 8)), Utils.parseInt(value.substring(8, 10)), 0, 0, 0);
 			} else if (len < 14) {
-				return new java.sql.Timestamp(getYear(value.substring(0, 4)),
-						Utils.parseInt(value.substring(4, 6)) - 1, Utils
-								.parseInt(value.substring(6, 8)), Utils
-								.parseInt(value.substring(8, 10)), Utils
-								.parseInt(value.substring(10, 12)), 0, 0);
+				return new java.sql.Timestamp(getYear(value.substring(0, 4)), Utils.parseInt(value.substring(4, 6)) - 1,
+						Utils.parseInt(value.substring(6, 8)), Utils.parseInt(value.substring(8, 10)),
+						Utils.parseInt(value.substring(10, 12)), 0, 0);
 			} else if (len < 17) {
 				if (len == 14) {
-					return new java.sql.Timestamp(
-							getYear(value.substring(0, 4)), Utils
-									.parseInt(value.substring(4, 6)) - 1, Utils
-									.parseInt(value.substring(6, 8)), Utils
-									.parseInt(value.substring(8, 10)), Utils
-									.parseInt(value.substring(10, 12)), Utils
-									.parseInt(value.substring(12, 14)), 0);
+					return new java.sql.Timestamp(getYear(value.substring(0, 4)),
+							Utils.parseInt(value.substring(4, 6)) - 1, Utils.parseInt(value.substring(6, 8)),
+							Utils.parseInt(value.substring(8, 10)), Utils.parseInt(value.substring(10, 12)),
+							Utils.parseInt(value.substring(12, 14)), 0);
 				} else {
-					return new java.sql.Timestamp(
-							getYear(value.substring(0, 4)), Utils
-									.parseInt(value.substring(4, 6)) - 1, Utils
-									.parseInt(value.substring(6, 8)), Utils
-									.parseInt(value.substring(8, 10)), Utils
-									.parseInt(value.substring(10, 12)), Utils
-									.parseInt(value.substring(12, 14)),
-							getMilliByNano(value.substring(14)));
+					return new java.sql.Timestamp(getYear(value.substring(0, 4)),
+							Utils.parseInt(value.substring(4, 6)) - 1, Utils.parseInt(value.substring(6, 8)),
+							Utils.parseInt(value.substring(8, 10)), Utils.parseInt(value.substring(10, 12)),
+							Utils.parseInt(value.substring(12, 14)), getMilliByNano(value.substring(14)));
 				}
 			} else {
-				return new java.sql.Timestamp(getYear(value.substring(0, 4)),
-						Utils.parseInt(value.substring(4, 6)) - 1, Utils
-								.parseInt(value.substring(6, 8)), Utils
-								.parseInt(value.substring(8, 10)), Utils
-								.parseInt(value.substring(10, 12)), Utils
-								.parseInt(value.substring(12, 14)),
+				return new java.sql.Timestamp(getYear(value.substring(0, 4)), Utils.parseInt(value.substring(4, 6)) - 1,
+						Utils.parseInt(value.substring(6, 8)), Utils.parseInt(value.substring(8, 10)),
+						Utils.parseInt(value.substring(10, 12)), Utils.parseInt(value.substring(12, 14)),
 						getMilliByNano(value.substring(14)));
 			}
 		}
@@ -327,8 +287,8 @@ public final class DateTimeUtil {
 	}
 
 	/**
-	 * Web上の日付フォーマットをTimestampに変換. こんな感じのフォーマット[Wed, 19-Mar-2014 03:55:33
-	 * GMT]を解析して 日付フォーマットに変換します.
+	 * Web上の日付フォーマットをTimestampに変換. こんな感じのフォーマット[Wed, 19-Mar-2014 03:55:33 GMT]を解析して
+	 * 日付フォーマットに変換します.
 	 * 
 	 * @param timestamp
 	 *            変換対象のHTMLタイムスタンプを設定します.

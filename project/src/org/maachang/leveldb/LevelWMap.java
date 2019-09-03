@@ -16,7 +16,7 @@ import org.maachang.leveldb.util.ConvertMap;
  * 便利な点としては、書き込みのキャンセルができること snapShotにより、一貫性の読み込みができること.
  * 欠点としては、snapShot作成に時間がかかることで、 読み込み速度が、LevelMapより遅くなることです.
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class LevelWMap implements ConvertMap {
 
 	/** LevelMapオブジェクト. **/
@@ -44,7 +44,8 @@ public class LevelWMap implements ConvertMap {
 	/**
 	 * コンストラクタ. この処理でオープンした場合は、close処理では、Leveldbが クローズされます.
 	 * 
-	 * @param name 対象のデータベース名を設定します.
+	 * @param name
+	 *            対象のデータベース名を設定します.
 	 */
 	public LevelWMap(String name) {
 		this(name, null);
@@ -53,8 +54,10 @@ public class LevelWMap implements ConvertMap {
 	/**
 	 * コンストラクタ. この処理でオープンした場合は、close処理では、Leveldb本体が クローズされます.
 	 * 
-	 * @param name 対象のデータベース名を設定します.
-	 * @param option 対象のLeveldbオプションを設定します.
+	 * @param name
+	 *            対象のデータベース名を設定します.
+	 * @param option
+	 *            対象のLeveldbオプションを設定します.
 	 */
 	public LevelWMap(String name, LevelOption option) {
 		this.map = new LevelMap(name, option);
@@ -64,11 +67,12 @@ public class LevelWMap implements ConvertMap {
 		this.sub = true;
 		createBuffer();
 	}
-	
+
 	/**
 	 * コンストラクタ. この処理でオープンした場合は、close処理では、Leveldbが クローズされます.
 	 * 
-	 * @param db 対象のLeveldbオブジェクトを設定します.
+	 * @param db
+	 *            対象のLeveldbオブジェクトを設定します.
 	 */
 	public LevelWMap(Leveldb db) {
 		this.map = new LevelMap(db);
@@ -82,7 +86,8 @@ public class LevelWMap implements ConvertMap {
 	/**
 	 * コンストラクタ. この処理では、close処理を行ったとしても、元のLeveldb本体は クローズされません.
 	 * 
-	 * @param map 対象のLevelMapを設定します.
+	 * @param map
+	 *            対象のLevelMapを設定します.
 	 */
 	public LevelWMap(LevelMap map) {
 		this.map = map;
@@ -259,8 +264,8 @@ public class LevelWMap implements ConvertMap {
 	}
 
 	/**
-	 * 情報クリア. ※Iteratorで処理をするので、件数が多い場合は、処理に時間がかかります.
-	 * この処理を呼び出すと、対象のLeveldbに登録されている すべての要素をすべてクリアします.
+	 * 情報クリア. ※Iteratorで処理をするので、件数が多い場合は、処理に時間がかかります. この処理を呼び出すと、対象のLeveldbに登録されている
+	 * すべての要素をすべてクリアします.
 	 */
 	public void clear() {
 		check();
@@ -441,8 +446,7 @@ public class LevelWMap implements ConvertMap {
 			if (snapShot.valid()) {
 				outBuf = value();
 				snapShot.key(outBuf);
-				return JniIO.equals(keyBuf.address, keyBuf.position,
-						outBuf.address, outBuf.position);
+				return JniIO.equals(keyBuf.address, keyBuf.position, outBuf.address, outBuf.position);
 			}
 			return false;
 		} catch (LeveldbException le) {
@@ -684,8 +688,7 @@ public class LevelWMap implements ConvertMap {
 	}
 
 	/**
-	 * 登録データ数を取得. ※Iteratorでカウントするので、件数が多い場合は、処理に時間がかかります. return int
-	 * 登録データ数が返却されます.
+	 * 登録データ数を取得. ※Iteratorでカウントするので、件数が多い場合は、処理に時間がかかります. return int 登録データ数が返却されます.
 	 */
 	public int size() {
 		check();
@@ -758,13 +761,16 @@ public class LevelWMap implements ConvertMap {
 	/** LevelWMapSet. **/
 	protected static class LevelWMapSet implements Set {
 		private LevelWMap map;
+
 		public LevelWMapSet(LevelWMap map) {
 			this.map = map;
 		}
+
 		public boolean add(Object arg0) {
 			map.put(arg0, null);
 			return false;
 		}
+
 		public boolean addAll(Collection arg0) {
 			Iterator it = arg0.iterator();
 			while (it.hasNext()) {
@@ -772,12 +778,15 @@ public class LevelWMap implements ConvertMap {
 			}
 			return true;
 		}
+
 		public void clear() {
 			map.clear();
 		}
+
 		public boolean contains(Object arg0) {
 			return map.containsKey(arg0);
 		}
+
 		public boolean containsAll(Collection arg0) {
 			Iterator it = arg0.iterator();
 			while (it.hasNext()) {
@@ -788,15 +797,19 @@ public class LevelWMap implements ConvertMap {
 			}
 			return true;
 		}
+
 		public boolean isEmpty() {
 			return map.isEmpty();
 		}
+
 		public Iterator<Object> iterator() {
 			return map.iterator();
 		}
+
 		public boolean remove(Object arg0) {
 			return (Boolean) map.remove(arg0);
 		}
+
 		public boolean removeAll(Collection arg0) {
 			boolean ret = false;
 			Iterator it = arg0.iterator();
@@ -807,15 +820,19 @@ public class LevelWMap implements ConvertMap {
 			}
 			return ret;
 		}
+
 		public boolean retainAll(Collection arg0) {
 			throw new LeveldbException("Not supported.");
 		}
+
 		public int size() {
 			return map.size();
 		}
+
 		public Object[] toArray() {
 			throw new LeveldbException("Not supported.");
 		}
+
 		public Object[] toArray(Object[] arg0) {
 			throw new LeveldbException("Not supported.");
 		}

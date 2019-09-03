@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * ディープ系処理.
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public final class Deep {
 	protected Deep() {
 	}
@@ -41,9 +41,8 @@ public final class Deep {
 			return null;
 		} else if (o instanceof Number) {
 
-			if (o instanceof Byte || o instanceof Short || o instanceof Integer
-					|| o instanceof Long || o instanceof Float
-					|| o instanceof Double) {
+			if (o instanceof Byte || o instanceof Short || o instanceof Integer || o instanceof Long
+					|| o instanceof Float || o instanceof Double) {
 				return o;
 			} else if (o instanceof AtomicInteger) {
 				return new AtomicInteger(((AtomicInteger) o).intValue());
@@ -54,8 +53,7 @@ public final class Deep {
 			} else if (o instanceof BigInteger) {
 				return new BigInteger(o.toString());
 			}
-		} else if (o instanceof String || o instanceof Boolean
-				|| o instanceof Character) {
+		} else if (o instanceof String || o instanceof Boolean || o instanceof Character) {
 			return o;
 		} else if (o instanceof java.util.Date) {
 			if (o instanceof java.sql.Date) {
@@ -176,16 +174,14 @@ public final class Deep {
 				oos = new ObjectOutputStream(baos);
 				oos.writeObject(o);
 				oos.flush();
-				ois = new ObjectInputStream(new ByteArrayInputStream(baos
-						.toByteArray()));
+				ois = new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()));
 				ret = ois.readObject();
 				oos.close();
 				ois.close();
 				oos = null;
 				ois = null;
 			} catch (Exception e) {
-				throw new IOException("オブジェクト[" + o.getClass().getName()
-						+ "]のコピーに失敗しました", e);
+				throw new IOException("オブジェクト[" + o.getClass().getName() + "]のコピーに失敗しました", e);
 			} finally {
 				if (oos != null) {
 					try {
@@ -202,8 +198,7 @@ public final class Deep {
 			}
 			return ret;
 		}
-		throw new IOException("オブジェクト[" + o.getClass().getName()
-				+ "]のコピーに失敗しました");
+		throw new IOException("オブジェクト[" + o.getClass().getName() + "]のコピーに失敗しました");
 	}
 
 	/**

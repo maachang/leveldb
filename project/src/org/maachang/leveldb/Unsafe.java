@@ -41,7 +41,7 @@ public final class Unsafe {
 		boolean md = false;
 
 		if (unsafe != null) {
-			sun.misc.Unsafe uo = (sun.misc.Unsafe)unsafe;
+			sun.misc.Unsafe uo = (sun.misc.Unsafe) unsafe;
 			long a = uo.allocateMemory(8);
 			try {
 				uo.putLong(a, 0x0102030405060708L);
@@ -85,8 +85,7 @@ public final class Unsafe {
 		// ///////////////////////////////////////////////
 		Method dbAddrMethod = null;
 		try {
-			Class<?> directByteBuffer = Class
-					.forName("java.nio.DirectByteBuffer");
+			Class<?> directByteBuffer = Class.forName("java.nio.DirectByteBuffer");
 			dbAddrMethod = directByteBuffer.getDeclaredMethod("address");
 			dbAddrMethod.setAccessible(true);
 		} catch (Exception e) {
@@ -102,8 +101,8 @@ public final class Unsafe {
 	 * @return sun.misc.Unsafe オブジェクトが返されます.
 	 */
 	public static final sun.misc.Unsafe get() {
-		if(unsafe != null) {
-			return (sun.misc.Unsafe)unsafe;
+		if (unsafe != null) {
+			return (sun.misc.Unsafe) unsafe;
 		}
 		return null;
 	}
@@ -117,16 +116,14 @@ public final class Unsafe {
 	 * @exception Exception
 	 *                例外.
 	 */
-	public static final long getDirectByteBufferAddress(final ByteBuffer buf)
-			throws Exception {
+	public static final long getDirectByteBufferAddress(final ByteBuffer buf) throws Exception {
 		if (directByteBufferAddress == null || buf == null || !buf.isDirect()) {
 			if (directByteBufferAddress == null) {
 				throw new IllegalStateException("このメソッドはサポートされていません");
 			} else if (buf == null) {
 				throw new IllegalArgumentException("引数は不正です");
 			}
-			throw new IllegalArgumentException(
-					"指定ByteBufferはDirectByteBufferではありません");
+			throw new IllegalArgumentException("指定ByteBufferはDirectByteBufferではありません");
 		}
 		return (Long) directByteBufferAddress.invoke(buf);
 	}
@@ -149,20 +146,17 @@ public final class Unsafe {
 	 * intSwap.
 	 */
 	public static final int swap(final int x) {
-		return (((x & 0x000000ff) << 24) | ((x & 0x0000ff00) << 8)
-				| ((x & 0x00ff0000) >> 8) | (((x & 0xff000000) >> 24) & 0x000000ff));
+		return (((x & 0x000000ff) << 24) | ((x & 0x0000ff00) << 8) | ((x & 0x00ff0000) >> 8)
+				| (((x & 0xff000000) >> 24) & 0x000000ff));
 	}
 
 	/**
 	 * longSwap.
 	 */
 	public static final long swap(final long x) {
-		return (((x & 0x00000000000000ffL) << 56L)
-				| ((x & 0x000000000000ff00L) << 40L)
-				| ((x & 0x0000000000ff0000L) << 24L)
-				| ((x & 0x00000000ff000000L) << 8L)
-				| ((x & 0x000000ff00000000L) >> 8L)
-				| ((x & 0x0000ff0000000000L) >> 24L)
+		return (((x & 0x00000000000000ffL) << 56L) | ((x & 0x000000000000ff00L) << 40L)
+				| ((x & 0x0000000000ff0000L) << 24L) | ((x & 0x00000000ff000000L) << 8L)
+				| ((x & 0x000000ff00000000L) >> 8L) | ((x & 0x0000ff0000000000L) >> 24L)
 				| ((x & 0x00ff000000000000L) >> 40L) | (((x & 0xff00000000000000L) >> 56L) & 0x00000000000000ffL));
 	}
 }

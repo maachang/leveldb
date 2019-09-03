@@ -46,19 +46,14 @@ public final class Leveldb {
 			s = new File(path).getCanonicalPath();
 			b = new JniBuffer();
 			b.setJniChar(s);
-			a = jni.leveldb_open(
-				b.address(),
-				LevelOption.getLeveldbKeyType(option.type),
-				option.write_buffer_size,
-				option.max_open_files,
-				option.block_size,
-				option.block_restart_interval,
-				option.block_cache);
-			b.destroy(); b = null;
-		} catch(Exception e) {
+			a = jni.leveldb_open(b.address(), LevelOption.getLeveldbKeyType(option.type), option.write_buffer_size,
+					option.max_open_files, option.block_size, option.block_restart_interval, option.block_cache);
+			b.destroy();
+			b = null;
+		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			if(b != null) {
+			if (b != null) {
 				b.destroy();
 			}
 		}
@@ -82,7 +77,7 @@ public final class Leveldb {
 	/**
 	 * クローズ.
 	 */
-	public synchronized final void close() {
+	public final void close() {
 		if (!closeFlag.setToGetBefore(true)) {
 			jni.leveldb_close(addr);
 			addr = 0L;
@@ -200,9 +195,8 @@ public final class Leveldb {
 	 * @param out
 	 *            取得用のJniBufferを設定します.
 	 * @param cmd
-	 *            対象のコマンドを設定します. [leveldb.num-files-at-level?]
-	 *            このコマンドの後の?に番号をセットします. leveldb.stats ステータスが返却されます.
-	 *            leveldb.sstables sstable情報が返却されます.
+	 *            対象のコマンドを設定します. [leveldb.num-files-at-level?] このコマンドの後の?に番号をセットします.
+	 *            leveldb.stats ステータスが返却されます. leveldb.sstables sstable情報が返却されます.
 	 * @return int 取得されたデータ長が返却されます.
 	 */
 	public final int property(final JniBuffer out, final JniBuffer cmd) {
@@ -246,6 +240,7 @@ public final class Leveldb {
 
 	/**
 	 * 情報が空かチェック.
+	 * 
 	 * @return boolean [true]の場合、空です.
 	 */
 	public boolean isEmpty() {
@@ -257,12 +252,12 @@ public final class Leveldb {
 			itr.close();
 			itr = null;
 			return ret;
-		} catch(LeveldbException le) {
+		} catch (LeveldbException le) {
 			throw le;
-		} catch(Exception e) {
+		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			if(itr != null) {
+			if (itr != null) {
 				itr.close();
 			}
 		}
@@ -298,18 +293,14 @@ public final class Leveldb {
 			String s = new File(path).getCanonicalPath();
 			b = new JniBuffer();
 			b.setJniChar(s);
-			jni.leveldb_repair(
-				b.address(),
-				LevelOption.getLeveldbKeyType(option.type),
-				option.write_buffer_size,
-				option.max_open_files,
-				option.block_size,
-				option.block_restart_interval);
-			b.destroy(); b = null;
-		} catch(Exception e) {
+			jni.leveldb_repair(b.address(), LevelOption.getLeveldbKeyType(option.type), option.write_buffer_size,
+					option.max_open_files, option.block_size, option.block_restart_interval);
+			b.destroy();
+			b = null;
+		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			if(b != null) {
+			if (b != null) {
 				b.destroy();
 			}
 		}
@@ -334,7 +325,7 @@ public final class Leveldb {
 	 *            Leveldbオプションを設定します.
 	 */
 	@SuppressWarnings("resource")
-	public static final void destroy(String path, LevelOption option)  {
+	public static final void destroy(String path, LevelOption option) {
 		if (path == null || (path = path.trim()).length() <= 0) {
 			return;
 		} else if (option == null) {
@@ -345,18 +336,14 @@ public final class Leveldb {
 			String s = new File(path).getCanonicalPath();
 			b = new JniBuffer();
 			b.setJniChar(s);
-			jni.leveldb_destroy(
-				b.address(),
-				LevelOption.getLeveldbKeyType(option.type),
-				option.write_buffer_size,
-				option.max_open_files,
-				option.block_size,
-				option.block_restart_interval);
-			b.destroy(); b = null;
-		} catch(Exception e) {
+			jni.leveldb_destroy(b.address(), LevelOption.getLeveldbKeyType(option.type), option.write_buffer_size,
+					option.max_open_files, option.block_size, option.block_restart_interval);
+			b.destroy();
+			b = null;
+		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			if(b != null) {
+			if (b != null) {
 				b.destroy();
 			}
 		}

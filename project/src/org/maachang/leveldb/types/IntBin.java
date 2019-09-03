@@ -132,8 +132,7 @@ public final class IntBin extends TwoKey {
 	 *            対象のJniBufferを設定します.
 	 * @exception Exception.
 	 */
-	public static final void convertBuffer(Object one, Object two, JniBuffer buf)
-			throws Exception {
+	public static final void convertBuffer(Object one, Object two, JniBuffer buf) throws Exception {
 		int pos = buf.position;
 
 		// それぞれの長さを取得.
@@ -145,8 +144,7 @@ public final class IntBin extends TwoKey {
 
 		// two.
 		if (len2 != 0) {
-			JniIO.putBinary(addr, pos + 4, (byte[]) two, 0,
-					((byte[]) two).length);
+			JniIO.putBinary(addr, pos + 4, (byte[]) two, 0, ((byte[]) two).length);
 		}
 		buf.position += 4 + len2;
 	}
@@ -287,8 +285,7 @@ public final class IntBin extends TwoKey {
 	 * @return String 文字列が返却されます.
 	 */
 	public final String toString() {
-		return new StringBuilder("[num32-bin]").append(one).append(
-				Utils.binaryToHexString(two)).toString();
+		return new StringBuilder("[num32-bin]").append(one).append(Utils.binaryToHexString(two)).toString();
 	}
 
 	/**

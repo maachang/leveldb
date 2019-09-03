@@ -17,7 +17,7 @@ public final class JniLz4 {
 	public static final int calcMaxCompressLength(int len) {
 		return jni.lz4MaxCompressedLength(len);
 	}
-	
+
 	/**
 	 * 解凍バッファサイズの取得.
 	 * 

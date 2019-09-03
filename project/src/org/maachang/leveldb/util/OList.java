@@ -6,7 +6,7 @@ import java.util.Comparator;
 /**
  * オブジェクトリスト.
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class OList<T> {
 	private static final int DEF_LENGTH = 8;
 	private Object[] list;
@@ -145,8 +145,8 @@ public class OList<T> {
 		} else {
 			// 厳密な削除.
 			/*
-			 * length -- ; for( int i = no ; i < length ; i ++ ) { list[ i ] =
-			 * list[ i + 1 ] ; } list[ length ] = null ;
+			 * length -- ; for( int i = no ; i < length ; i ++ ) { list[ i ] = list[ i + 1 ]
+			 * ; } list[ length ] = null ;
 			 */
 
 			// 速度重視の削除.

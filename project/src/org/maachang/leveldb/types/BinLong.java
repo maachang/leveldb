@@ -132,8 +132,7 @@ public final class BinLong extends TwoKey {
 	 *            対象のJniBufferを設定します.
 	 * @exception Exception.
 	 */
-	public static final void convertBuffer(Object one, Object two, JniBuffer buf)
-			throws Exception {
+	public static final void convertBuffer(Object one, Object two, JniBuffer buf) throws Exception {
 		int pos = buf.position;
 
 		// それぞれの長さを取得.
@@ -276,8 +275,7 @@ public final class BinLong extends TwoKey {
 	 * @return String 文字列が返却されます.
 	 */
 	public final String toString() {
-		return new StringBuilder("[bin-num32]").append(
-				Utils.binaryToHexString(one)).append(two).toString();
+		return new StringBuilder("[bin-num32]").append(Utils.binaryToHexString(one)).append(two).toString();
 	}
 
 	/**

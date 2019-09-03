@@ -75,8 +75,8 @@ public final class LevelOption {
 	/**
 	 * パラメータ長リスト. 0の場合は、マルチキー. 1の場合は単一キー. 2の場合は２キー.
 	 */
-	protected static final int[] TYPE_PARAM_LENGTH = new int[] { 1, 1, 1, 2, 2,
-		2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1 };
+	protected static final int[] TYPE_PARAM_LENGTH = new int[] { 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+			2, 0, 1 };
 
 	/** block_cache最小値. **/
 	private static final int MIN_BLOCK_SIZE = 8;
@@ -91,12 +91,11 @@ public final class LevelOption {
 
 	/**
 	 * LevelOption生成.
-	 * @param args オプションパラメータを設定します.
-	 * 		[0]type.				キータイプ.
-	 * 		[1]write_buffer_size.	書き込みバッファ数.
-	 * 		[2]max_open_files.		オープン最大ファイル数.
-	 * 		[3]block_size.			ブロックサイズ.
-	 * 		[4]block_cache.			ブロックキャッシュ.
+	 * 
+	 * @param args
+	 *            オプションパラメータを設定します. [0]type. キータイプ. [1]write_buffer_size. 書き込みバッファ数.
+	 *            [2]max_open_files. オープン最大ファイル数. [3]block_size. ブロックサイズ.
+	 *            [4]block_cache. ブロックキャッシュ.
 	 */
 	public static final LevelOption create(Object... args) {
 		return new LevelOption(args);
@@ -104,22 +103,23 @@ public final class LevelOption {
 
 	/**
 	 * LevelOption生成.
-	 * @param buf JniBufferを設定します.
+	 * 
+	 * @param buf
+	 *            JniBufferを設定します.
 	 */
 	public static final LevelOption create(JniBuffer buf) {
 		return new LevelOption(buf);
 	}
-	
+
 	/**
 	 * LevelOption生成.
-	 * @param args オプションパラメータを設定します.
-	 * 		args.get("type")		キータイプ.
-	 * 		args.get("bufferSize")	書き込みバッファサイズ.
-	 * 		args.get("openFiles")	オープン最大ファイル数.
-	 * 		args.get("blockSize")	ブロックサイズ.
-	 * 		args.get("blockCache")	ブロックキャッシュ.
+	 * 
+	 * @param args
+	 *            オプションパラメータを設定します. args.get("type") キータイプ. args.get("bufferSize")
+	 *            書き込みバッファサイズ. args.get("openFiles") オープン最大ファイル数.
+	 *            args.get("blockSize") ブロックサイズ. args.get("blockCache") ブロックキャッシュ.
 	 */
-	public static final LevelOption create(Map<String,Object> args) {
+	public static final LevelOption create(Map<String, Object> args) {
 		return new LevelOption(args);
 	}
 
@@ -131,8 +131,11 @@ public final class LevelOption {
 
 	/**
 	 * コンストラクタ.
-	 * @param o バッファポジションを設定します.
-	 * @param buf 対象のJniBufferを設定します.
+	 * 
+	 * @param o
+	 *            バッファポジションを設定します.
+	 * @param buf
+	 *            対象のJniBufferを設定します.
 	 */
 	public LevelOption(int[] o, JniBuffer buf) {
 		long p = buf.address;
@@ -146,13 +149,11 @@ public final class LevelOption {
 
 	/**
 	 * コンストラクタ.
-	 * @param args オプションパラメータを設定します.
-	 * 		[0]type.				キータイプ.
-	 * 		[1]write_buffer_size.	書き込みバッファ数.
-	 * 		[2]max_open_files.		オープン最大ファイル数.
-	 * 		[3]block_size.			ブロックサイズ.
-	 * 		[4]block_cache.			ブロックキャッシュ.
-	 * 		[5]block_restart_interval 
+	 * 
+	 * @param args
+	 *            オプションパラメータを設定します. [0]type. キータイプ. [1]write_buffer_size. 書き込みバッファ数.
+	 *            [2]max_open_files. オープン最大ファイル数. [3]block_size. ブロックサイズ.
+	 *            [4]block_cache. ブロックキャッシュ. [5]block_restart_interval
 	 */
 	public LevelOption(Object... args) {
 		if (args == null || args.length == 0) {
@@ -181,23 +182,21 @@ public final class LevelOption {
 		if (len >= 6 && Utils.isNumeric(args[5])) {
 			setBlockRestartInterval(Utils.convertInt(args[5]));
 		}
-		
+
 	}
-	
+
 	/**
 	 * コンストラクタ.
-	 * @param args オプションパラメータを設定します.
-	 * 		args.get("type")		キータイプ.
-	 * 		args.get("bufferSize")	書き込みバッファサイズ.
-	 * 		args.get("openFiles")	オープン最大ファイル数.
-	 * 		args.get("blockSize")	ブロックサイズ.
-	 * 		args.get("blockCache")	ブロックキャッシュ.
-	 * 		args.get("blockRestartInterval");
+	 * 
+	 * @param args
+	 *            オプションパラメータを設定します. args.get("type") キータイプ. args.get("bufferSize")
+	 *            書き込みバッファサイズ. args.get("openFiles") オープン最大ファイル数.
+	 *            args.get("blockSize") ブロックサイズ. args.get("blockCache") ブロックキャッシュ.
+	 *            args.get("blockRestartInterval");
 	 */
-	public LevelOption(Map<String,Object> args) {
-		this(args.get("type"), args.get("bufferSize"),
-			args.get("openFiles"), args.get("blockSize"),
-			args.get("blockCache"), args.get("blockRestartInterval"));
+	public LevelOption(Map<String, Object> args) {
+		this(args.get("type"), args.get("bufferSize"), args.get("openFiles"), args.get("blockSize"),
+				args.get("blockCache"), args.get("blockRestartInterval"));
 	}
 
 	/** タイプパターン定義. **/
@@ -252,53 +251,37 @@ public final class LevelOption {
 			return LevelOption.TYPE_NUMBER32;
 		} else if (pattern(0, PATTERN_LONG, value)) {
 			return LevelOption.TYPE_NUMBER64;
-		} else if (pattern(1, PATTERN_STR, value)
-				&& pattern(2, PATTERN_STR, value)) {
+		} else if (pattern(1, PATTERN_STR, value) && pattern(2, PATTERN_STR, value)) {
 			return LevelOption.TYPE_STR_STR;
-		} else if (pattern(1, PATTERN_STR, value)
-				&& pattern(2, PATTERN_INT, value)) {
+		} else if (pattern(1, PATTERN_STR, value) && pattern(2, PATTERN_INT, value)) {
 			return LevelOption.TYPE_STR_N32;
-		} else if (pattern(1, PATTERN_STR, value)
-				&& pattern(2, PATTERN_LONG, value)) {
+		} else if (pattern(1, PATTERN_STR, value) && pattern(2, PATTERN_LONG, value)) {
 			return LevelOption.TYPE_STR_N64;
-		} else if (pattern(1, PATTERN_INT, value)
-				&& pattern(2, PATTERN_STR, value)) {
+		} else if (pattern(1, PATTERN_INT, value) && pattern(2, PATTERN_STR, value)) {
 			return LevelOption.TYPE_N32_STR;
-		} else if (pattern(1, PATTERN_INT, value)
-				&& pattern(2, PATTERN_INT, value)) {
+		} else if (pattern(1, PATTERN_INT, value) && pattern(2, PATTERN_INT, value)) {
 			return LevelOption.TYPE_N32_N32;
-		} else if (pattern(1, PATTERN_INT, value)
-				&& pattern(2, PATTERN_LONG, value)) {
+		} else if (pattern(1, PATTERN_INT, value) && pattern(2, PATTERN_LONG, value)) {
 			return LevelOption.TYPE_N32_N64;
-		} else if (pattern(1, PATTERN_LONG, value)
-				&& pattern(2, PATTERN_STR, value)) {
+		} else if (pattern(1, PATTERN_LONG, value) && pattern(2, PATTERN_STR, value)) {
 			return LevelOption.TYPE_N64_STR;
-		} else if (pattern(1, PATTERN_LONG, value)
-				&& pattern(2, PATTERN_INT, value)) {
+		} else if (pattern(1, PATTERN_LONG, value) && pattern(2, PATTERN_INT, value)) {
 			return LevelOption.TYPE_N64_N32;
-		} else if (pattern(1, PATTERN_LONG, value)
-				&& pattern(2, PATTERN_LONG, value)) {
+		} else if (pattern(1, PATTERN_LONG, value) && pattern(2, PATTERN_LONG, value)) {
 			return LevelOption.TYPE_N64_N64;
-		} else if (pattern(1, PATTERN_STR, value)
-				&& pattern(2, PATTERN_BINARY, value)) {
+		} else if (pattern(1, PATTERN_STR, value) && pattern(2, PATTERN_BINARY, value)) {
 			return LevelOption.TYPE_STR_BIN;
-		} else if (pattern(1, PATTERN_INT, value)
-				&& pattern(2, PATTERN_BINARY, value)) {
+		} else if (pattern(1, PATTERN_INT, value) && pattern(2, PATTERN_BINARY, value)) {
 			return LevelOption.TYPE_N32_BIN;
-		} else if (pattern(1, PATTERN_LONG, value)
-				&& pattern(2, PATTERN_BINARY, value)) {
+		} else if (pattern(1, PATTERN_LONG, value) && pattern(2, PATTERN_BINARY, value)) {
 			return LevelOption.TYPE_N64_BIN;
-		} else if (pattern(1, PATTERN_BINARY, value)
-				&& pattern(2, PATTERN_STR, value)) {
+		} else if (pattern(1, PATTERN_BINARY, value) && pattern(2, PATTERN_STR, value)) {
 			return LevelOption.TYPE_BIN_STR;
-		} else if (pattern(1, PATTERN_BINARY, value)
-				&& pattern(2, PATTERN_INT, value)) {
+		} else if (pattern(1, PATTERN_BINARY, value) && pattern(2, PATTERN_INT, value)) {
 			return LevelOption.TYPE_BIN_N32;
-		} else if (pattern(1, PATTERN_BINARY, value)
-				&& pattern(2, PATTERN_LONG, value)) {
+		} else if (pattern(1, PATTERN_BINARY, value) && pattern(2, PATTERN_LONG, value)) {
 			return LevelOption.TYPE_BIN_N64;
-		} else if (pattern(1, PATTERN_BINARY, value)
-				&& pattern(2, PATTERN_BINARY, value)) {
+		} else if (pattern(1, PATTERN_BINARY, value) && pattern(2, PATTERN_BINARY, value)) {
 			return LevelOption.TYPE_BIN_BIN;
 		} else if (pattern(1, PATTERN_MULTI, value)) {
 			return LevelOption.TYPE_MULTI;
@@ -483,11 +466,11 @@ public final class LevelOption {
 		case LevelOption.TYPE_N64_N64:
 			return LevelOption.TYPE_N64_N64;
 		case LevelOption.TYPE_STR_BIN:
-			return LevelOption.TYPE_STR_BIN;
+			return LevelOption.TYPE_STR_STR;
 		case LevelOption.TYPE_N32_BIN:
-			return LevelOption.TYPE_N32_BIN;
+			return LevelOption.TYPE_N32_STR;
 		case LevelOption.TYPE_N64_BIN:
-			return LevelOption.TYPE_N64_BIN;
+			return LevelOption.TYPE_N64_STR;
 		case LevelOption.TYPE_BIN_STR:
 			return LevelOption.TYPE_STR_STR;
 		case LevelOption.TYPE_BIN_N32:
@@ -495,7 +478,7 @@ public final class LevelOption {
 		case LevelOption.TYPE_BIN_N64:
 			return LevelOption.TYPE_STR_N64;
 		case LevelOption.TYPE_BIN_BIN:
-			return LevelOption.TYPE_STR_BIN;
+			return LevelOption.TYPE_STR_STR;
 		case LevelOption.TYPE_MULTI:
 			return LevelOption.TYPE_STRING;
 		case LevelOption.TYPE_FREE:
@@ -601,8 +584,7 @@ public final class LevelOption {
 		}
 		this.block_cache = block_cache;
 	}
-	
-	
+
 	public int getBlockRestartInterval() {
 		return block_restart_interval;
 	}
@@ -620,13 +602,10 @@ public final class LevelOption {
 	 * @return String 文字列が返却されます.
 	 */
 	public final String toString() {
-		return new StringBuilder().append(" type:").append(stringType(type))
-				.append(" write_buffer_size:").append(write_buffer_size)
-				.append(" max_open_files:").append(max_open_files)
-				.append(" block_size:").append(block_size)
-				.append(" block_cache:").append(block_cache)
-				.append(" block_restart_interval:").append(block_restart_interval)
-				.toString();
+		return new StringBuilder().append(" type:").append(stringType(type)).append(" write_buffer_size:")
+				.append(write_buffer_size).append(" max_open_files:").append(max_open_files).append(" block_size:")
+				.append(block_size).append(" block_cache:").append(block_cache).append(" block_restart_interval:")
+				.append(block_restart_interval).toString();
 	}
 
 	/**

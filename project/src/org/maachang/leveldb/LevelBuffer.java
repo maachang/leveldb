@@ -48,32 +48,20 @@ public final class LevelBuffer {
 	/**
 	 * KeyBufferを取得.
 	 * 
-	 * @param type
-	 *            キータイプを設定します.
-	 * @param key
-	 *            対象のキー名を設定した場合、その内容がバッファに割り当てられます.
-	 * @return JniBuffer KeyBufferが返却されます.
-	 * @exception
+	 * @param type キータイプを設定します. @param key 対象のキー名を設定した場合、その内容がバッファに割り当てられます. @return
+	 * JniBuffer KeyBufferが返却されます. @exception
 	 */
-	public static final JniBuffer key(int type, Object key)
-		throws Exception {
+	public static final JniBuffer key(int type, Object key) throws Exception {
 		return key(type, key, null);
 	}
 
 	/**
 	 * KeyBufferを取得.
 	 * 
-	 * @param type
-	 *            キータイプを設定します.
-	 * @param key
-	 *            対象のキー名を設定した場合、その内容がバッファに割り当てられます.
-	 * @param twoKey
-	 *            ２つ目のキーを設定します.
-	 * @return JniBuffer KeyBufferが返却されます.
-	 * @exception
+	 * @param type キータイプを設定します. @param key 対象のキー名を設定した場合、その内容がバッファに割り当てられます. @param
+	 * twoKey ２つ目のキーを設定します. @return JniBuffer KeyBufferが返却されます. @exception
 	 */
-	public static final JniBuffer key(int type, Object key, Object twoKey)
-		throws Exception {
+	public static final JniBuffer key(int type, Object key, Object twoKey) throws Exception {
 		JniBuffer ret = keyBuffer.get();
 		if (ret == null) {
 			ret = new JniBuffer();
@@ -102,13 +90,10 @@ public final class LevelBuffer {
 	/**
 	 * ValueBufferを取得.
 	 * 
-	 * @param value
-	 *            対象の要素を設定した場合、その内容がバッファに割り当てられます.
-	 * @return JniBuffer ValueBufferが返却されます.
-	 * @exception
+	 * @param value 対象の要素を設定した場合、その内容がバッファに割り当てられます. @return JniBuffer
+	 * ValueBufferが返却されます. @exception
 	 */
-	public static final JniBuffer value(Object value)
-		throws Exception {
+	public static final JniBuffer value(Object value) throws Exception {
 		JniBuffer ret = valueBuffer.get();
 		if (ret == null) {
 			ret = new JniBuffer();
@@ -120,6 +105,7 @@ public final class LevelBuffer {
 
 	/**
 	 * バッファ情報をクリア.
+	 * 
 	 * @param key
 	 * @param value
 	 */
