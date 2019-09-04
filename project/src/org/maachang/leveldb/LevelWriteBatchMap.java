@@ -69,7 +69,7 @@ public class LevelWriteBatchMap implements ConvertMap {
 	}
 
 	/**
-	 * コンストラクタ. この処理でオープンした場合は、close処理では、Leveldbが クローズされます.
+	 * コンストラクタ. この処理でオープンした場合は、close処理では、Leveldbが クローズされません.
 	 * 
 	 * @param db
 	 *            対象のLeveldbオブジェクトを設定します.
@@ -77,7 +77,7 @@ public class LevelWriteBatchMap implements ConvertMap {
 	public LevelWriteBatchMap(Leveldb db) {
 		this.map = new LevelMap(db);
 		this.set = null;
-		this.sub = true;
+		this.sub = false;
 		this._batch = null;
 		this._snapShot = null;
 		this.closeFlag.set(false);
@@ -473,22 +473,16 @@ public class LevelWriteBatchMap implements ConvertMap {
 			// snapShotで検索.
 			LeveldbIterator snapShot = getSnapshot();
 			if (key instanceof JniBuffer) {
-				if (twoKey == null) {
-					keyBuf = (JniBuffer) key;
-				} else {
-					throw new LeveldbException("twoKey is specified for key = jniBuffer");
-				}
+				keyBuf = (JniBuffer) key;
 			} else {
 				keyBuf = LevelBuffer.key(map.getType(), key, twoKey);
 			}
 			snapShot.seek(keyBuf);
 			// 条件が存在する場合.
 			if (snapShot.valid()) {
-				buf.clear();
 				snapShot.key(buf);
 				// 対象キーが正しい場合.
 				if (JniIO.equals(keyBuf.address, keyBuf.position, buf.address, buf.position)) {
-					buf.clear();
 					snapShot.value(buf);
 					ret = true;
 				}
@@ -499,9 +493,6 @@ public class LevelWriteBatchMap implements ConvertMap {
 			throw new LeveldbException(e);
 		} finally {
 			LevelBuffer.clearBuffer(keyBuf, null);
-			if (!ret) {
-				buf.clear();
-			}
 		}
 		return ret;
 	}
@@ -631,6 +622,9 @@ public class LevelWriteBatchMap implements ConvertMap {
 	public boolean isEmpty() {
 		check();
 		try {
+			if(allClearFlag) {
+				return true;
+			}
 			// 1件以上のIteratorが存在する場合は[false].
 			LeveldbIterator snapShot = getSnapshot();
 			snapShot.first();

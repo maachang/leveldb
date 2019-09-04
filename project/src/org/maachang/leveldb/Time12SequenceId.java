@@ -214,6 +214,18 @@ public class Time12SequenceId {
 	public static final int getMachineId(final byte[] value) {
 		return (((int) value[10] & 0x000000ff) << 8) | (((int) value[11] & 0x000000ff) << 0);
 	}
+	
+	/**
+	 * マシンIDとシーケンスIDを０に設定.
+	 * 
+	 * @param value
+	 */
+	public static final void first(final byte[] value) {
+		value[8] = 0;
+		value[9] = 0;
+		value[10] = 0;
+		value[11] = 0;
+	}
 
 	/**
 	 * バイナリを16進数文字列に変換.

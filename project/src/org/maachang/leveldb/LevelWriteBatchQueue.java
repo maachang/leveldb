@@ -3,20 +3,23 @@ package org.maachang.leveldb;
 import org.maachang.leveldb.util.Flag;
 
 /**
- * Levelキュー情報.
+ * WriteBatch対応のQueueオブジェクト.
  */
-public class LevelQueue implements Queue {
+public class LevelWriteBatchQueue implements Queue {
 	protected Leveldb leveldb;
 	protected Time12SequenceId sequenceId;
-	protected Flag closeFlag = new Flag();
-	
+	protected boolean sub = false;
+	protected WriteBatch _batch;
+	protected LeveldbIterator _snapShot;
+	protected final Flag closeFlag = new Flag();
+
 	/**
 	 * コンストラクタ.
 	 * 
 	 * @param name
 	 *            対象のデータベース名を設定します.
 	 */
-	public LevelQueue(String name) {
+	public LevelWriteBatchQueue(String name) {
 		this(0, name, null);
 	}
 	
@@ -28,7 +31,7 @@ public class LevelQueue implements Queue {
 	 * @param option
 	 *            Leveldbオプションを設定します.
 	 */
-	public LevelQueue(String name, LevelOption option) {
+	public LevelWriteBatchQueue(String name, LevelOption option) {
 		this(0, name, option);
 	}
 
@@ -40,7 +43,7 @@ public class LevelQueue implements Queue {
 	 * @param name
 	 *            対象のデータベース名を設定します.
 	 */
-	public LevelQueue(int machineId, String name) {
+	public LevelWriteBatchQueue(int machineId, String name) {
 		this(machineId, name, null);
 	}
 
@@ -54,11 +57,14 @@ public class LevelQueue implements Queue {
 	 * @param option
 	 *            Leveldbオプションを設定します.
 	 */
-	public LevelQueue(int machineId, String name, LevelOption option) {
+	public LevelWriteBatchQueue(int machineId, String name, LevelOption option) {
 		// keyタイプは free(Time12SequenceId).
 		option.type = LevelOption.TYPE_FREE;
 		this.leveldb = new Leveldb(name, option);
 		this.sequenceId = new Time12SequenceId(machineId);
+		this.sub = true;
+		this._batch = null;
+		this._snapShot = null;
 		this.closeFlag.set(false);
 	}
 	
@@ -68,7 +74,7 @@ public class LevelQueue implements Queue {
 	 * @param db
 	 *            Leveldbを設定します.
 	 */
-	public LevelQueue(Leveldb db) {
+	public LevelWriteBatchQueue(Leveldb db) {
 		this(0, db);
 	}
 	
@@ -80,30 +86,131 @@ public class LevelQueue implements Queue {
 	 * @param db
 	 *            Leveldbを設定します.
 	 */
-	public LevelQueue(int machineId, Leveldb db) {
+	public LevelWriteBatchQueue(int machineId, Leveldb db) {
 		if(db.getType() != LevelOption.TYPE_FREE) {
 			throw new LeveldbException("The key type of the opened Leveldb is not TYPE_FREE.");
 		}
 		this.leveldb = db;
 		this.sequenceId = new Time12SequenceId(machineId);
+		this.sub = false;
+		this._batch = null;
+		this._snapShot = null;
+		this.closeFlag.set(false);
+	}
+	
+	/**
+	 * コンストラクタ.
+	 * 
+	 * @param queue
+	 *            LevelQueueを設定します.
+	 */
+	public LevelWriteBatchQueue(LevelQueue queue) {
+		this.leveldb = queue.leveldb;
+		this.sequenceId = queue.sequenceId;
+		this.sub = false;
+		this._batch = null;
+		this._snapShot = null;
 		this.closeFlag.set(false);
 	}
 
-	// ファイナライズ.
-	protected void finalize() throws Exception {
-		this.close();
-	}
-
 	/**
-	 * クローズ処理.
+	 * デストラクタ.
+	 */
+	protected void finalize() throws Exception {
+		close();
+	}
+	
+	/**
+	 * オブジェクトクローズ.
 	 */
 	public void close() {
 		if(!closeFlag.setToGetBefore(true)) {
-			Leveldb db = leveldb; leveldb = null;
-			if (db != null) {
-				db.close();
-				db = null;
+			if (_batch != null) {
+				_batch.close();
+				_batch = null;
 			}
+			if (_snapShot != null) {
+				_snapShot.close();
+				_snapShot = null;
+			}
+			if (sub) {
+				leveldb.close();
+			}
+			leveldb = null;
+			sequenceId = null;
+		}
+	}
+
+	/** チェック処理. **/
+	private void checkClose() {
+		if (closeFlag.get()) {
+			throw new LeveldbException("The object has already been cleared.");
+		}
+	}
+
+	/** バッチ情報を作成. **/
+	private WriteBatch writeBatch() {
+		if (_batch == null) {
+			_batch = new WriteBatch();
+		}
+		return _batch;
+	}
+
+	/** Snapshotを作成. **/
+	private LeveldbIterator getSnapshot() {
+		if (_snapShot == null) {
+			_snapShot = leveldb.snapShot();
+		}
+		return _snapShot;
+	}
+
+	/**
+	 * WriteBatchオブジェクトを取得.
+	 * 
+	 * @return WriteBatch WriteBatchオブジェクトが返却されます.
+	 */
+	public WriteBatch getWriteBatch() {
+		return writeBatch();
+	}
+
+	/**
+	 * WriteBatch内容を反映.
+	 * 
+	 * @exception Exception
+	 *                例外.
+	 */
+	public void commit() throws Exception {
+		checkClose();
+		// バッチ反映.
+		if (_batch != null) {
+			_batch.flush(leveldb);
+			_batch.close();
+			_batch = null;
+		}
+		// スナップショットをクリア.
+		if (_snapShot != null) {
+			_snapShot.close();
+			_snapShot = null;
+		}
+	}
+
+	/**
+	 * WriteBatch内容を破棄.
+	 * 
+	 * @exception Exception
+	 *                例外.
+	 */
+	public void rollback() throws Exception {
+		checkClose();
+		// バッチクリア.
+		if (_batch != null) {
+			_batch.close();
+			_batch = null;
+		}
+		// スナップショットをクリア.
+		if (_snapShot != null) {
+			_snapShot.close();
+			_snapShot = null;
 		}
 	}
 
@@ -112,17 +219,10 @@ public class LevelQueue implements Queue {
 	 * 
 	 * @return boolean [true]の場合、クローズしています.
 	 */
-	public final boolean isClose() {
+	public boolean isClose() {
 		return closeFlag.get();
 	}
-
-	// クローズチェック.
-	protected final void checkClose() {
-		if (closeFlag.get()) {
-			throw new LeveldbException("Already closed.");
-		}
-	}
-
+	
 	/**
 	 * 現在オープン中のLeveldbパス名を取得.
 	 * 
@@ -142,11 +242,11 @@ public class LevelQueue implements Queue {
 		checkClose();
 		return leveldb;
 	}
-	
+
 	/**
-	 * Levedbオープンオプションを取得.
+	 * Leveldbのオプションを取得.
 	 * 
-	 * @return LevelOption オプション情報が返却されます.
+	 * @return LevelOption オプションが返却されます.
 	 */
 	public LevelOption getOption() {
 		checkClose();
@@ -166,11 +266,12 @@ public class LevelQueue implements Queue {
 		try {
 			byte[] key = sequenceId.next();
 			keyBuf = LevelBuffer.key(LevelOption.TYPE_FREE, key);
-			if(o instanceof JniBuffer) {
-				leveldb.put(keyBuf, (JniBuffer)o);
+			WriteBatch b = writeBatch();
+			if (o instanceof JniBuffer) {
+				b.put(keyBuf, (JniBuffer) o);
 			} else {
 				valBuf = LevelBuffer.value(o);
-				leveldb.put(keyBuf, valBuf);
+				b.put(keyBuf, valBuf);
 			}
 			return key;
 		} catch (LeveldbException le) {
@@ -202,44 +303,33 @@ public class LevelQueue implements Queue {
 	 */
 	public Object get(String[] out) {
 		checkClose();
-		Object ret = null;
 		LeveldbIterator itr = null;
 		JniBuffer keyBuf = null;
 		JniBuffer valBuf = null;
 		try {
-			itr = leveldb.iterator();
-			while(true) {
-				ret = null;
-				if (itr.valid()) {
-					keyBuf = LevelBuffer.key();
-					valBuf = LevelBuffer.value();
-					itr.key(keyBuf);
-					itr.value(valBuf);
-					if (out != null) {
-						out[0] = Time12SequenceId.toString(keyBuf.getBinary());
-					}
-					ret = LevelValues.decode(valBuf);
-					if(!leveldb.remove(keyBuf)) {
-						// 削除に失敗した場合はやり直す.
-						continue;
-					}
+			itr = getSnapshot();
+			if (itr.valid()) {
+				keyBuf = LevelBuffer.key();
+				valBuf = LevelBuffer.value();
+				itr.key(keyBuf);
+				itr.value(valBuf);
+				itr.next();
+				writeBatch().remove(keyBuf);
+				if (out != null) {
+					out[0] = Time12SequenceId.toString(keyBuf.getBinary());
 				}
-				itr.close();
-				itr = null;
-				return ret;
+				return LevelValues.decode(valBuf);
 			}
+			return null;
 		} catch (LeveldbException le) {
 			throw le;
 		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			if (itr != null) {
-				itr.close();
-			}
 			LevelBuffer.clearBuffer(keyBuf, valBuf);
 		}
 	}
-
+	
 	/**
 	 * 情報が空かチェック.
 	 * 
@@ -247,9 +337,13 @@ public class LevelQueue implements Queue {
 	 */
 	public boolean isEmpty() {
 		checkClose();
-		return leveldb.isEmpty();
+		LeveldbIterator itr = getSnapshot();
+		if (itr.valid()) {
+			return false;
+		}
+		return true;
 	}
-
+	
 	/**
 	 * iteratorを取得.
 	 * 
@@ -257,7 +351,7 @@ public class LevelQueue implements Queue {
 	 * @return
 	 */
 	public QueueIterator iterator() {
-		return new QueueIterator(this, leveldb.snapShot(), null);
+		return new QueueIterator(this, getSnapshot(), null);
 	}
 
 	/**
@@ -291,6 +385,6 @@ public class LevelQueue implements Queue {
 	 */
 	public QueueIterator iterator(byte[] key) {
 		Time12SequenceId.first(key);
-		return new QueueIterator(this, leveldb.snapShot(), key);
+		return new QueueIterator(this, getSnapshot(), key);
 	}
 }

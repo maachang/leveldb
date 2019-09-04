@@ -135,7 +135,6 @@ public class LevelMap implements ConvertMap {
 		check();
 		JniBuffer key = null;
 		try {
-
 			// Iteratorで削除するので、超遅い.
 			LeveldbIterator it = leveldb.iterator();
 			key = LevelBuffer.key(type, null);
@@ -366,7 +365,6 @@ public class LevelMap implements ConvertMap {
 		JniBuffer keyBuf = null;
 		try {
 			keyBuf = LevelBuffer.key(type, key, twoKey);
-			buf.clear();
 			if (leveldb.get(buf, keyBuf) != 0) {
 				ret = true;
 			}
@@ -376,9 +374,6 @@ public class LevelMap implements ConvertMap {
 			throw new LeveldbException(e);
 		} finally {
 			LevelBuffer.clearBuffer(keyBuf, null);
-			if (!ret) {
-				buf.clear();
-			}
 		}
 		return ret;
 	}
@@ -434,9 +429,7 @@ public class LevelMap implements ConvertMap {
 		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			if (buf != null) {
-				buf.clear();
-			}
+			LevelBuffer.clearBuffer(null, buf);
 		}
 		return null;
 	}
