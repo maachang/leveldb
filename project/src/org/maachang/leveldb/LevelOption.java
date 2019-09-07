@@ -205,7 +205,9 @@ public final class LevelOption {
 	private static final String[] PATTERN_LONG = new String[] { "n64", "long", "number64", "bigint" };
 	private static final String[] PATTERN_BINARY = new String[] { "binary", "bin" };
 	private static final String[] PATTERN_MULTI = new String[] { "multi" };
+	private static final String[] PATTERN_FREE = new String[] { "free" };
 
+	// パターンチェック.
 	private static final boolean pattern(int mode, String[] n, String c) {
 		int len = n.length;
 		// eq.
@@ -285,7 +287,7 @@ public final class LevelOption {
 			return LevelOption.TYPE_BIN_BIN;
 		} else if (pattern(1, PATTERN_MULTI, value)) {
 			return LevelOption.TYPE_MULTI;
-		} else if (pattern(1, PATTERN_BINARY, value)) {
+		} else if (pattern(1, PATTERN_BINARY, value) || pattern(0, PATTERN_FREE, value)) {
 			return LevelOption.TYPE_FREE;
 		}
 		return LevelOption.TYPE_STRING;

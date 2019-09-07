@@ -1,11 +1,14 @@
-package org.maachang.leveldb;
+package org.maachang.leveldb.types;
 
+import org.maachang.leveldb.JniBuffer;
+import org.maachang.leveldb.JniIO;
+import org.maachang.leveldb.LeveldbException;
 import org.maachang.leveldb.util.OList;
 
 /**
  * マルチID. バイナリキー系の複数ID管理.
  */
-public class MultiId {
+public class Multi implements Comparable<Object> {
 	private static final int TYPE_STRING = 0;
 	private static final int TYPE_INT = 1;
 	private static final int TYPE_LONG = 2;
@@ -16,7 +19,7 @@ public class MultiId {
 	/**
 	 * コンストラクタ.
 	 */
-	public MultiId() {
+	public Multi() {
 		list = new OList<Object>();
 	}
 
@@ -26,7 +29,7 @@ public class MultiId {
 	 * @param 対象の配列長を設定します
 	 *            .
 	 */
-	public MultiId(int len) {
+	public Multi(int len) {
 		list = new OList<Object>(len);
 	}
 
@@ -36,7 +39,7 @@ public class MultiId {
 	 * @param binary
 	 *            対象のバイナリを設定します.
 	 */
-	public MultiId(byte[] binary) {
+	public Multi(byte[] binary) {
 		toObject(binary);
 	}
 
@@ -46,7 +49,7 @@ public class MultiId {
 	 * @param buf
 	 *            対象のJniBufferを設定します.
 	 */
-	public MultiId(JniBuffer buf) {
+	public Multi(JniBuffer buf) {
 		toObject(buf);
 	}
 
@@ -56,7 +59,7 @@ public class MultiId {
 	 * @param args
 	 *            パラメータを設定します.
 	 */
-	public MultiId(Object... args) {
+	public Multi(Object... args) {
 		Object o;
 		int len = (args == null || args.length == 0) ? 0 : args.length;
 		binaryLength = 0;
@@ -87,7 +90,7 @@ public class MultiId {
 	 *            指定以下の値の場合は、この値で配列を作成します.
 	 * @return MultiId オブジェクトが返却されます.
 	 */
-	public MultiId clear(int len) {
+	public Multi clear(int len) {
 		list.clear(len);
 		binaryLength = 0;
 		return this;
@@ -98,7 +101,7 @@ public class MultiId {
 	 * 
 	 * @return MultiId オブジェクトが返却されます.
 	 */
-	public MultiId clear() {
+	public Multi clear() {
 		list.clear();
 		binaryLength = 0;
 		return this;
@@ -111,7 +114,7 @@ public class MultiId {
 	 *            対象の情報を設定します.
 	 * @return MultiId オブジェクトが返却されます.
 	 */
-	public MultiId add(Object... args) {
+	public Multi add(Object... args) {
 		Object o;
 		int len = (args == null || args.length == 0) ? 0 : args.length;
 		for (int i = 0; i < len; i++) {
@@ -141,7 +144,7 @@ public class MultiId {
 	 *            対象の情報を設定します.
 	 * @return MultiId オブジェクトが返却されます.
 	 */
-	public MultiId add(String n) {
+	public Multi add(String n) {
 		if (n == null) {
 			n = "";
 		}
@@ -157,7 +160,7 @@ public class MultiId {
 	 *            対象の情報を設定します.
 	 * @return MultiId オブジェクトが返却されます.
 	 */
-	public MultiId add(Integer n) {
+	public Multi add(Integer n) {
 		if (n == null) {
 			n = 0;
 		}
@@ -173,7 +176,7 @@ public class MultiId {
 	 *            対象の情報を設定します.
 	 * @return MultiId オブジェクトが返却されます.
 	 */
-	public MultiId add(Float n) {
+	public Multi add(Float n) {
 		if (n == null) {
 			n = 0.0f;
 		}
@@ -189,7 +192,7 @@ public class MultiId {
 	 *            対象の情報を設定します.
 	 * @return MultiId オブジェクトが返却されます.
 	 */
-	public MultiId add(Long n) {
+	public Multi add(Long n) {
 		if (n == null) {
 			n = 0L;
 		}
@@ -205,7 +208,7 @@ public class MultiId {
 	 *            対象の情報を設定します.
 	 * @return MultiId オブジェクトが返却されます.
 	 */
-	public MultiId add(Double n) {
+	public Multi add(Double n) {
 		if (n == null) {
 			n = 0.0d;
 		}
@@ -385,7 +388,7 @@ public class MultiId {
 	 *            対象のバイナリを設定します.
 	 * @return MultiId オブジェクトが返却されます.
 	 */
-	public MultiId toObject(byte[] binary) {
+	public Multi toObject(byte[] binary) {
 		if (binary == null || binary.length == 0) {
 			if (list == null) {
 				list = new OList<Object>();
@@ -472,7 +475,7 @@ public class MultiId {
 	 *            対象のJniBufferオブジェクトを設定します.
 	 * @return MultiId オブジェクトが返却されます.
 	 */
-	public MultiId toObject(JniBuffer buf) {
+	public Multi toObject(JniBuffer buf) {
 		if (buf.position == 0) {
 			if (list == null) {
 				list = new OList<Object>();
@@ -634,4 +637,30 @@ public class MultiId {
 		JniIO.put(addr, pos + 7, (byte) (n & 255L));
 	}
 
+	/**
+	 * 判別処理.
+	 * 
+	 * @param o
+	 *            対象のオブジェクトを設定します.
+	 * @return int 判別結果が返却されます. このオブジェクトが指定されたオブジェクトより小さい場合は負の整数、
+	 *         等しい場合はゼロ、大きい場合は正の整数
+	 */
+	@Override
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public int compareTo(Object o) {
+		if(o == this) {
+			return 0;
+		}
+		Multi m = (Multi)o;
+		int n;
+		int len = list.size();
+		for(int i = 0; i < len; i ++) {
+			n = ((Comparable)list.get(i)).compareTo(m.list.get(i));
+			if(n == 0) {
+				continue;
+			}
+			return n;
+		}
+		return 0;
+	}
 }

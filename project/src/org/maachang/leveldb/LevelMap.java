@@ -3,31 +3,22 @@ package org.maachang.leveldb;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.maachang.leveldb.util.ConvertMap;
-import org.maachang.leveldb.util.Flag;
 
 /**
  * LeveldbのMap実装.
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class LevelMap implements ConvertMap {
-
-	/** LevelDbオブジェクト. **/
-	protected Leveldb leveldb;
-
-	/** LevelDbマップセット用オブジェクト. **/
+public class LevelMap extends CommitRollback implements ConvertMap {
 	protected LevelMapSet set;
-
-	/** キータイプ. **/
 	protected int type;
-	
-	/** クローズフラグ. **/
-	protected final Flag closeFlag = new Flag();
 
 	/**
 	 * コンストラクタ.
+	 * writeBatchを無効にして生成します.
 	 * 
 	 * @param name
 	 *            対象のデータベース名を設定します.
@@ -38,6 +29,7 @@ public class LevelMap implements ConvertMap {
 
 	/**
 	 * コンストラクタ.
+	 * writeBatchを無効にして生成します.
 	 * 
 	 * @param name
 	 *            対象のデータベース名を設定します.
@@ -45,113 +37,64 @@ public class LevelMap implements ConvertMap {
 	 *            Leveldbオプションを設定します.
 	 */
 	public LevelMap(String name, LevelOption option) {
-		this.leveldb = new Leveldb(name, option);
-		this.type = this.leveldb.getOption().getType();
+		Leveldb db = new Leveldb(name, option);
+		super.init(db, true, false);
+		this.type = db.getOption().getType();
 		this.set = null;
-		this.closeFlag.set(false);
 	}
-
+	
 	/**
 	 * コンストラクタ.
+	 * writeBatchを有効にして生成します.
 	 * 
 	 * @param db
 	 *            対象のLeveldbオブジェクトを設定します.
 	 */
 	public LevelMap(Leveldb db) {
+		this(true, db);
+	}
+
+	/**
+	 * コンストラクタ.
+	 * 
+	 * @param writeBatch
+	 *            writeBatchを有効にする場合は[true].
+	 * @param db
+	 *            対象のLeveldbオブジェクトを設定します.
+	 */
+	public LevelMap(boolean writeBatch, Leveldb db) {
 		this.leveldb = db;
+		if(writeBatch) {
+			super.init(db, true, false);
+		} else {
+			super.init(db, false, true);
+		}
 		this.type = db.getOption().getType();
 		this.set = null;
-		this.closeFlag.set(false);
-	}
-
-	/**
-	 * デストラクタ.
-	 */
-	protected void finalize() throws Exception {
-		close();
-	}
-
-	/**
-	 * オブジェクトクローズ.
-	 */
-	public void close() {
-		if(!closeFlag.setToGetBefore(true)) {
-			leveldb.close();
-			leveldb = null;
-		}
 	}
 	
-	/** チェック処理. **/
-	private void check() {
-		if (closeFlag.get()) {
-			throw new LeveldbException("The object has already been cleared.");
-		}
-	}
-
 	/**
-	 * クローズしているかチェック.
+	 * コンストラクタ.
+	 * writeBatchを有効にして生成します.
 	 * 
-	 * @return boolean [true]の場合、クローズしています.
+	 * @param map
 	 */
-	public boolean isClose() {
-		return closeFlag.get();
+	public LevelMap(LevelMap map) {
+		this(true, map.leveldb);
 	}
-
-	/**
-	 * Leveldbオブジェクトを取得.
-	 * 
-	 * @return Leveldb Leveldbオブジェクトが返却されます.
-	 */
-	public Leveldb getLeveldb() {
-		check();
-		return leveldb;
+	
+	@Override
+	public void close() {
+		this.set = null;
+		super.close();
 	}
-
+	
 	/**
-	 * Leveldbのオプションを取得.
-	 * 
-	 * @return LevelOption オプションが返却されます.
-	 */
-	public LevelOption getOption() {
-		check();
-		return leveldb.getOption();
-	}
-
-	/**
-	 * Leveldbキータイプを取得.
-	 * 
-	 * @return int キータイプが返却されます.
-	 */
-	public int getType() {
-		check();
-		return type;
-	}
-
-	/**
-	 * 情報クリア. ※Iteratorで処理をするので、件数が多い場合は、処理に時間がかかります. この処理を呼び出すと、対象のLeveldbに登録されている
-	 * すべての要素をすべてクリアします.
+	 * 情報のクリア.
+	 * LevelMapはこの処理はサポートされていません.
 	 */
 	public void clear() {
-		check();
-		JniBuffer key = null;
-		try {
-			// Iteratorで削除するので、超遅い.
-			LeveldbIterator it = leveldb.iterator();
-			key = LevelBuffer.key(type, null);
-			while (it.valid()) {
-				key.clear(true);
-				if (it.key(key) > 0) {
-					leveldb.remove(key);
-				}
-				it.next();
-			}
-		} catch (LeveldbException le) {
-			throw le;
-		} catch (Exception e) {
-			throw new LeveldbException(e);
-		} finally {
-			LevelBuffer.clearBuffer(key, null);
-		}
+		throw new LeveldbException("clear is not support.");
 	}
 
 	/**
@@ -161,7 +104,7 @@ public class LevelMap implements ConvertMap {
 	 *            追加対象のMapを設定します.
 	 */
 	public void putAll(Map toMerge) {
-		check();
+		checkClose();
 		Object k;
 		Iterator it = toMerge.keySet().iterator();
 		while (it.hasNext()) {
@@ -177,29 +120,31 @@ public class LevelMap implements ConvertMap {
 	 * @return boolean trueの場合、一致する条件が存在します.
 	 */
 	public boolean containsValue(Object value) {
-		check();
+		checkClose();
 		// Iteratorで、存在するまでチェック(超遅い).
-		JniBuffer v = null;
+		JniBuffer valBuf = null;
+		LeveldbIterator it = null;
 		try {
-			LeveldbIterator it = leveldb.iterator();
-			v = LevelBuffer.value();
+			if(writeBatchFlag) {
+				it = getSnapshot();
+				it.first();
+			} else {
+				it = leveldb.iterator();
+			}
+			valBuf = LevelBuffer.value();
 			if (value == null) {
 				while (it.valid()) {
-					v.clear();
-					if (it.value(v) > 0) {
-						if (LevelValues.decode(v) == null) {
-							return true;
-						}
+					LevelBuffer.clearBuffer(null, valBuf);
+					if (it.value(valBuf) > 0 && LevelValues.decode(valBuf) == null) {
+						return true;
 					}
 					it.next();
 				}
 			} else {
 				while (it.valid()) {
-					v.clear();
-					if (it.value(v) > 0) {
-						if (value.equals(LevelValues.decode(v))) {
-							return true;
-						}
+					LevelBuffer.clearBuffer(null, valBuf);
+					if (it.value(valBuf) > 0 && value.equals(LevelValues.decode(valBuf))) {
+						return true;
 					}
 					it.next();
 				}
@@ -210,7 +155,10 @@ public class LevelMap implements ConvertMap {
 		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			LevelBuffer.clearBuffer(null, v);
+			if(!writeBatchFlag) {
+				it.close();
+			}
+			LevelBuffer.clearBuffer(null, valBuf);
 		}
 	}
 
@@ -241,7 +189,7 @@ public class LevelMap implements ConvertMap {
 	 * @return Object [null]が返却されます.
 	 */
 	public Object put(Object key, Object twoKey, Object value) {
-		check();
+		checkClose();
 		if (value != null && value instanceof LevelMap) {
 			throw new LeveldbException("LevelMap element cannot be set for the element.");
 		}
@@ -250,10 +198,18 @@ public class LevelMap implements ConvertMap {
 		try {
 			keyBuf = LevelBuffer.key(type, key, twoKey);
 			if (value instanceof JniBuffer) {
-				leveldb.put(keyBuf, (JniBuffer) value);
+				if(writeBatchFlag) {
+					writeBatch().put(keyBuf, (JniBuffer) value);
+				} else {
+					leveldb.put(keyBuf, (JniBuffer) value);
+				}
 			} else {
 				valBuf = LevelBuffer.value(value);
-				leveldb.put(keyBuf, valBuf);
+				if(writeBatchFlag) {
+					writeBatch().put(keyBuf, valBuf);
+				} else {
+					leveldb.put(keyBuf, valBuf);
+				}
 			}
 			return null;
 		} catch (LeveldbException le) {
@@ -306,14 +262,25 @@ public class LevelMap implements ConvertMap {
 	 * @return boolean [true]の場合、存在します.
 	 */
 	public boolean containsKey(Object key, Object twoKey) {
-		check();
+		checkClose();
 		JniBuffer keyBuf = null;
 		JniBuffer valBuf = null;
 		try {
 			keyBuf = LevelBuffer.key(type, key, twoKey);
-			valBuf = LevelBuffer.value();
-			int res = leveldb.get(valBuf, keyBuf);
-			return res != 0;
+			if(writeBatchFlag) {
+				LeveldbIterator snapShot = getSnapshot();
+				snapShot.seek(keyBuf);
+				if (snapShot.valid()) {
+					valBuf = LevelBuffer.value();
+					snapShot.key(valBuf);
+					return JniIO.equals(keyBuf.address, keyBuf.position, valBuf.address, valBuf.position);
+				}
+				return false;
+			} else {
+				valBuf = LevelBuffer.value();
+				int res = leveldb.get(valBuf, keyBuf);
+				return res != 0;
+			}
 		} catch (LeveldbException le) {
 			throw le;
 		} catch (Exception e) {
@@ -360,11 +327,28 @@ public class LevelMap implements ConvertMap {
 	 * @return boolean [true]の場合、セットされました.
 	 */
 	public boolean getBuffer(JniBuffer buf, Object key, Object twoKey) {
-		check();
+		checkClose();
 		boolean ret = false;
 		JniBuffer keyBuf = null;
 		try {
-			keyBuf = LevelBuffer.key(type, key, twoKey);
+			if (key instanceof JniBuffer) {
+				keyBuf = (JniBuffer) key;
+			} else {
+				keyBuf = LevelBuffer.key(type, key, twoKey);
+			}
+			if(writeBatchFlag) {
+				LeveldbIterator snapShot = getSnapshot();
+				snapShot.seek(keyBuf);
+				// 条件が存在する場合.
+				if (snapShot.valid()) {
+					snapShot.key(buf);
+					// 対象キーが正しい場合.
+					if (JniIO.equals(keyBuf.address, keyBuf.position, buf.address, buf.position)) {
+						snapShot.value(buf);
+						ret = true;
+					}
+				}
+			}
 			if (leveldb.get(buf, keyBuf) != 0) {
 				ret = true;
 			}
@@ -373,7 +357,9 @@ public class LevelMap implements ConvertMap {
 		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			LevelBuffer.clearBuffer(keyBuf, null);
+			if (!(key instanceof JniBuffer)) {
+				LevelBuffer.clearBuffer(keyBuf, null);
+			}
 		}
 		return ret;
 	}
@@ -417,7 +403,7 @@ public class LevelMap implements ConvertMap {
 	 * @return Object 対象の要素が返却されます.
 	 */
 	public Object get(Object key, Object twoKey) {
-		check();
+		checkClose();
 		JniBuffer buf = null;
 		try {
 			buf = LevelBuffer.value();
@@ -469,10 +455,15 @@ public class LevelMap implements ConvertMap {
 	 * @return Object 削除できた場合[true]が返却されます.
 	 */
 	public boolean remove(Object key, Object twoKey) {
-		check();
+		checkClose();
 		JniBuffer keyBuf = null;
 		try {
 			keyBuf = LevelBuffer.key(type, key, twoKey);
+			if(writeBatchFlag) {
+				WriteBatch b = writeBatch();
+				b.remove(keyBuf);
+				return true;
+			}
 			return leveldb.remove(keyBuf);
 		} catch (LeveldbException le) {
 			throw le;
@@ -514,7 +505,21 @@ public class LevelMap implements ConvertMap {
 	 * @return boolean データが空の場合[true]が返却されます.
 	 */
 	public boolean isEmpty() {
-		check();
+		checkClose();
+		if(writeBatchFlag) {
+			try {
+				LeveldbIterator snapShot = getSnapshot();
+				snapShot.first();
+				if (snapShot.valid()) {
+					return false;
+				}
+				return true;
+			} catch (LeveldbException le) {
+				throw le;
+			} catch (Exception e) {
+				throw new LeveldbException(e);
+			}
+		}
 		return leveldb.isEmpty();
 	}
 
@@ -524,7 +529,7 @@ public class LevelMap implements ConvertMap {
 	 * @return Set Setオブジェクトが返却されます.
 	 */
 	public Set keySet() {
-		check();
+		checkClose();
 		if (set == null) {
 			set = new LevelMapSet(this);
 		}
@@ -535,21 +540,30 @@ public class LevelMap implements ConvertMap {
 	 * 登録データ数を取得. ※Iteratorでカウントするので、件数が多い場合は、処理に時間がかかります. return int 登録データ数が返却されます.
 	 */
 	public int size() {
-		check();
+		checkClose();
+		LeveldbIterator it = null;
 		try {
 			int ret = 0;
 			// Iteratorで削除するので、超遅い.
-			LeveldbIterator it = leveldb.iterator();
+			if(writeBatchFlag) {
+				it = getSnapshot();
+				it.first();
+			} else {
+				it = leveldb.iterator();
+			}
 			while (it.valid()) {
 				ret++;
 				it.next();
 			}
-			it.close();
 			return ret;
 		} catch (LeveldbException le) {
 			throw le;
 		} catch (Exception e) {
 			throw new LeveldbException(e);
+		} finally {
+			if(!writeBatchFlag) {
+				it.close();
+			}
 		}
 	}
 
@@ -579,7 +593,7 @@ public class LevelMap implements ConvertMap {
 	 * @return String 空文字が返却されます.
 	 */
 	public String toString() {
-		check();
+		checkClose();
 		// 何もしない.
 		return "";
 	}
@@ -590,7 +604,7 @@ public class LevelMap implements ConvertMap {
 	 * @return String Leveldbパス名が返却されます.
 	 */
 	public String getPath() {
-		check();
+		checkClose();
 		return leveldb.getPath();
 	}
 
@@ -600,28 +614,256 @@ public class LevelMap implements ConvertMap {
 	 * @return LevelMapIterator LevelMapIteratorが返却されます.
 	 */
 	public LevelMapIterator iterator() {
-		return _iterator();
+		return _iterator(false, null, null);
+	}
+	
+	/**
+	 * LevelMapIteratorを取得.
+	 * 
+	 * @param key
+	 *            対象のキーを設定します.
+	 * @param twoKey
+	 *            対象のセカンドキーを設定します.
+	 * @return LevelMapIterator LevelMapIteratorが返却されます.
+	 */
+	public LevelMapIterator iterator(Object key, Object twoKey) {
+		return _iterator(false, key, twoKey);
 	}
 
+	/**
+	 * LevelMapIteratorを取得.
+	 * 
+	 * @param key
+	 *            対象のキーを設定します.
+	 * @return LevelMapIterator LevelMapIteratorが返却されます.
+	 */
+	public Object iterator(Object key) {
+		return _iterator(false, key, null);
+	}
+
+	/**
+	 * LevelMapIteratorを取得.
+	 * 
+	 * @param keys
+	 *            対象のキー群を設定します.
+	 * @return LevelMapIterator LevelMapIteratorが返却されます.
+	 */
+	public Object iteratorMultiKey(Object... keys) {
+		if (type != LevelOption.TYPE_MULTI) {
+			throw new LeveldbException("Leveldb definition key type is not multi-key.");
+		}
+		return _iterator(false, keys, null);
+	}
+	
+	/**
+	 * LevelMapIteratorを取得.
+	 * 
+	 * @param reverse
+	 *            カーソル移動を逆に移動する場合は[true]を設定します.
+	 * @param key
+	 *            対象のキーを設定します.
+	 * @param twoKey
+	 *            対象のセカンドキーを設定します.
+	 * @return LevelMapIterator LevelMapIteratorが返却されます.
+	 */
+	public LevelMapIterator iterator(boolean reverse, Object key, Object twoKey) {
+		return _iterator(reverse, key, twoKey);
+	}
+
+	/**
+	 * LevelMapIteratorを取得.
+	 * 
+	 * @param reverse
+	 *            カーソル移動を逆に移動する場合は[true]を設定します.
+	 * @param key
+	 *            対象のキーを設定します.
+	 * @return LevelMapIterator LevelMapIteratorが返却されます.
+	 */
+	public Object iterator(boolean reverse, Object key) {
+		return _iterator(reverse, key, null);
+	}
+
+	/**
+	 * LevelMapIteratorを取得.
+	 * 
+	 * @param reverse
+	 *            カーソル移動を逆に移動する場合は[true]を設定します.
+	 * @param keys
+	 *            対象のキー群を設定します.
+	 * @return LevelMapIterator LevelMapIteratorが返却されます.
+	 */
+	public Object iteratorMultiKey(boolean reverse, Object... keys) {
+		if (type != LevelOption.TYPE_MULTI) {
+			throw new LeveldbException("Leveldb definition key type is not multi-key.");
+		}
+		return _iterator(reverse, keys, null);
+	}
+	
 	/**
 	 * snapshotを取得.
 	 * 
 	 * @return LevelMapIterator LevelMapIteratorが返却されます.
 	 */
 	public LevelMapIterator snapshot() {
-		return _snapShot();
+		return _snapshot(false, null, null);
+	}
+	
+	/**
+	 * LevelMapIteratorを取得.
+	 * 
+	 * @param key
+	 *            対象のキーを設定します.
+	 * @param twoKey
+	 *            対象のセカンドキーを設定します.
+	 * @return LevelMapIterator LevelMapIteratorが返却されます.
+	 */
+	public LevelMapIterator snapshot(Object key, Object twoKey) {
+		return _snapshot(false, key, twoKey);
 	}
 
-	/** iterator作成. **/
-	protected LevelMapIterator _iterator() {
-		check();
-		return new LevelMapIterator(this, type, leveldb.iterator());
+	/**
+	 * LevelMapIteratorを取得.
+	 * 
+	 * @param key
+	 *            対象のキーを設定します.
+	 * @return LevelMapIterator LevelMapIteratorが返却されます.
+	 */
+	public Object snapshot(Object key) {
+		return _snapshot(false, key, null);
 	}
 
-	/** snapShort用のIteratorを作成. **/
-	protected LevelMapIterator _snapShot() {
-		check();
-		return new LevelMapIterator(this, type, leveldb.snapShot());
+	/**
+	 * LevelMapIteratorを取得.
+	 * 
+	 * @param keys
+	 *            対象のキー群を設定します.
+	 * @return LevelMapIterator LevelMapIteratorが返却されます.
+	 */
+	public Object snapshotMultiKey(Object... keys) {
+		if (type != LevelOption.TYPE_MULTI) {
+			throw new LeveldbException("Leveldb definition key type is not multi-key.");
+		}
+		return _snapshot(false, keys, null);
+	}
+	
+	/**
+	 * LevelMapIteratorを取得.
+	 * 
+	 * @param reverse
+	 *            カーソル移動を逆に移動する場合は[true]を設定します.
+	 * @param key
+	 *            対象のキーを設定します.
+	 * @param twoKey
+	 *            対象のセカンドキーを設定します.
+	 * @return LevelMapIterator LevelMapIteratorが返却されます.
+	 */
+	public LevelMapIterator snapshot(boolean reverse, Object key, Object twoKey) {
+		return _snapshot(reverse, key, twoKey);
+	}
+
+	/**
+	 * LevelMapIteratorを取得.
+	 * 
+	 * @param reverse
+	 *            カーソル移動を逆に移動する場合は[true]を設定します.
+	 * @param key
+	 *            対象のキーを設定します.
+	 * @return LevelMapIterator LevelMapIteratorが返却されます.
+	 */
+	public Object snapshot(boolean reverse, Object key) {
+		return _snapshot(reverse, key, null);
+	}
+
+	/**
+	 * LevelMapIteratorを取得.
+	 * 
+	 * @param reverse
+	 *            カーソル移動を逆に移動する場合は[true]を設定します.
+	 * @param keys
+	 *            対象のキー群を設定します.
+	 * @return LevelMapIterator LevelMapIteratorが返却されます.
+	 */
+	public Object snapshotMultiKey(boolean reverse, Object... keys) {
+		if (type != LevelOption.TYPE_MULTI) {
+			throw new LeveldbException("Leveldb definition key type is not multi-key.");
+		}
+		return _snapshot(reverse, keys, null);
+	}
+
+	// iterator作成.
+	protected LevelMapIterator _iterator(boolean reverse, Object key, Object key2) {
+		checkClose();
+		LevelMapIterator ret = null;
+		try {
+			ret = new LevelMapIterator(reverse, this, leveldb.iterator());
+			return _search(ret, key, key2);
+		} catch(LeveldbException le) {
+			if(ret != null) {
+				ret.close();
+			}
+			throw le;
+		} catch(Exception e) {
+			if(ret != null) {
+				ret.close();
+			}
+			throw new LeveldbException(e);
+		}
+	}
+
+	// snapShort用のIteratorを作成.
+	protected LevelMapIterator _snapshot(boolean reverse, Object key, Object key2) {
+		checkClose();
+		LevelMapIterator ret = null;
+		try {
+			ret = new LevelMapIterator(reverse, this, leveldb.snapShot());
+			return _search(ret, key, key2);
+		} catch(LeveldbException le) {
+			if(ret != null) {
+				ret.close();
+			}
+			throw le;
+		} catch(Exception e) {
+			if(ret != null) {
+				ret.close();
+			}
+			throw new LeveldbException(e);
+		}
+	}
+	
+	// 指定キーで検索処理.
+	protected LevelMapIterator _search(LevelMapIterator ret, Object key, Object key2) {
+		LeveldbIterator lv = ret.itr;
+		boolean reverse = ret.reverse;
+		if(key == null && key2 == null) {
+			return ret;
+		}
+		JniBuffer keyBuf = null;
+		try {
+			keyBuf = LevelBuffer.key(type, key, key2);
+			lv.seek(keyBuf);
+			LevelBuffer.clearBuffer(keyBuf, null);
+			if(lv.valid() && reverse) {
+				// 逆カーソル移動の場合は、対象keyより大きな値の条件の手前まで移動.
+				Comparable c, cc;
+				c = (Comparable)LevelId.id(type, key, key2);
+				while(lv.valid()) {
+					lv.key(keyBuf);
+					cc = (Comparable)LevelId.get(type, keyBuf);
+					LevelBuffer.clearBuffer(keyBuf, null);
+					if(c.compareTo(cc) < 0) {
+						break;
+					}
+					lv.next();
+				}
+			}
+			return ret;
+		} catch (LeveldbException le) {
+			throw le;
+		} catch (Exception e) {
+			throw new LeveldbException(e);
+		} finally {
+			LevelBuffer.clearBuffer(keyBuf, null);
+		}
 	}
 
 	/** LevelMapSet. **/
@@ -638,7 +880,7 @@ public class LevelMap implements ConvertMap {
 		}
 
 		public boolean addAll(Collection arg0) {
-			map.check();
+			map.checkClose();
 			Iterator it = arg0.iterator();
 			while (it.hasNext()) {
 				add(it.next());
@@ -655,7 +897,7 @@ public class LevelMap implements ConvertMap {
 		}
 
 		public boolean containsAll(Collection arg0) {
-			map.check();
+			map.checkClose();
 			Iterator it = arg0.iterator();
 			while (it.hasNext()) {
 				if (map.containsKey(it.next())) {
@@ -671,7 +913,7 @@ public class LevelMap implements ConvertMap {
 		}
 
 		public Iterator<Object> iterator() {
-			return map._iterator();
+			return map._iterator(false, null, null);
 		}
 
 		public boolean remove(Object arg0) {
@@ -679,7 +921,7 @@ public class LevelMap implements ConvertMap {
 		}
 
 		public boolean removeAll(Collection arg0) {
-			map.check();
+			map.checkClose();
 			boolean ret = false;
 			Iterator it = arg0.iterator();
 			while (it.hasNext()) {
@@ -704,6 +946,104 @@ public class LevelMap implements ConvertMap {
 
 		public Object[] toArray(Object[] arg0) {
 			throw new LeveldbException("Not supported.");
+		}
+	}
+	
+	/**
+	 * LevelMap用Iterator.
+	 */
+	public class LevelMapIterator implements LevelIterator<Object> {
+		LevelMap map;
+		LeveldbIterator itr;
+		int type;
+		boolean reverse;
+
+		/**
+		 * LevelMapIteratorの作成.
+		 * 
+		 * @param reverse
+		 *            逆カーソル移動させる場合は[true]
+		 * @param map
+		 *            対象の親オブジェクトを設定します.
+		 * @param itr
+		 *            LeveldbIteratorオブジェクトを設定します.
+		 */
+		LevelMapIterator(boolean reverse, LevelMap map, LeveldbIterator itr) {
+			this.map = map;
+			this.itr = itr;
+			this.type = map.getType();
+			this.reverse = reverse;
+		}
+
+		// ファイナライズ.
+		protected void finalize() throws Exception {
+			close();
+		}
+
+		/**
+		 * クローズ処理.
+		 */
+		public void close() {
+			if (itr != null) {
+				itr.close();
+				itr = null;
+			}
+		}
+		
+		/**
+		 * 逆カーソル移動かチェック.
+		 * @return
+		 */
+		public boolean isReverse() {
+			return reverse;
+		}
+
+		/**
+		 * 次の情報が存在するかチェック.
+		 * 
+		 * @return boolean [true]の場合、存在します.
+		 */
+		public boolean hasNext() {
+			if (map.isClose() || itr == null || !itr.valid()) {
+				close();
+				return false;
+			}
+			return true;
+		}
+
+		/**
+		 * 次の要素を取得.
+		 * 
+		 * @return Object 次の要素が返却されます.
+		 */
+		public Object next() {
+			if (map.isClose() || itr == null || !itr.valid()) {
+				close();
+				throw new NoSuchElementException();
+			}
+			JniBuffer keyBuf = null;
+			try {
+				keyBuf = LevelBuffer.key();
+				itr.key(keyBuf);
+				Object ret = LevelId.get(type, keyBuf);
+				LevelBuffer.clearBuffer(keyBuf, null);
+				keyBuf = null;
+				if(reverse) {
+					itr.before();
+				} else {
+					itr.next();
+				}
+				if(!itr.valid()) {
+					close();
+				}
+				return ret;
+			} catch (LeveldbException le) {
+				throw le;
+			} catch (Exception e) {
+				throw new LeveldbException(e);
+			} finally {
+				LevelBuffer.clearBuffer(keyBuf, null);
+			}
 		}
 	}
 }

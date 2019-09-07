@@ -14,6 +14,7 @@ import org.maachang.leveldb.types.LongBin;
 import org.maachang.leveldb.types.LongInt;
 import org.maachang.leveldb.types.LongLong;
 import org.maachang.leveldb.types.LongStr;
+import org.maachang.leveldb.types.Multi;
 import org.maachang.leveldb.types.StrBin;
 import org.maachang.leveldb.types.StrInt;
 import org.maachang.leveldb.types.StrLong;
@@ -777,16 +778,16 @@ public final class LevelId {
 		new ConvertCall() {
 			public final Object id(Object value, Object value2) {
 				if (value == null) {
-					MultiId ret = new MultiId();
+					Multi ret = new Multi();
 					ret.add((String) null);
 					return ret;
-				} else if (value instanceof MultiId) {
+				} else if (value instanceof Multi) {
 					return value;
 				} else if (value instanceof byte[]) {
-					return new MultiId((byte[]) value);
+					return new Multi((byte[]) value);
 				} else if (value.getClass().isArray()) {
 					Object o;
-					MultiId ret = new MultiId();
+					Multi ret = new Multi();
 					int len = Array.getLength(value);
 					for (int i = 0; i < len; i++) {
 						if ((o = Array.get(value, i)) == null) {
@@ -807,7 +808,7 @@ public final class LevelId {
 					}
 					return ret;
 				}
-				MultiId ret = new MultiId();
+				Multi ret = new Multi();
 				if (value instanceof String) {
 					ret.add((String) value);
 				} else if (value instanceof Integer) {
@@ -826,16 +827,16 @@ public final class LevelId {
 
 			public final void buf(JniBuffer buf, Object value, Object value2) throws Exception {
 				if (value == null) {
-					MultiId m = new MultiId();
+					Multi m = new Multi();
 					m.add((String) null);
 					m.toBinary(buf);
-				} else if (value instanceof MultiId) {
-					((MultiId) value).toBinary(buf);
+				} else if (value instanceof Multi) {
+					((Multi) value).toBinary(buf);
 				} else if (value instanceof byte[]) {
 					buf.setBinary((byte[]) value);
 				} else if (value.getClass().isArray()) {
 					Object o;
-					MultiId m = new MultiId();
+					Multi m = new Multi();
 					int len = Array.getLength(value);
 					for (int i = 0; i < len; i++) {
 						if ((o = Array.get(value, i)) == null) {
@@ -856,7 +857,7 @@ public final class LevelId {
 					}
 					m.toBinary(buf);
 				} else {
-					MultiId m = new MultiId();
+					Multi m = new Multi();
 					if (value instanceof String) {
 						m.add((String) value);
 					} else if (value instanceof Integer) {
@@ -875,11 +876,11 @@ public final class LevelId {
 			}
 
 			public final Object get(JniBuffer buf) throws Exception {
-				return new MultiId(buf);
+				return new Multi(buf);
 			}
 
 			public final void get(Object[] out, JniBuffer buf) throws Exception {
-				out[0] = new MultiId(buf);
+				out[0] = new Multi(buf);
 			}
 		},
 		// [20]自由定義(byte).
