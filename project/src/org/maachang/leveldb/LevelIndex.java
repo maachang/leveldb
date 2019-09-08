@@ -311,7 +311,7 @@ public class LevelIndex extends CommitRollback {
 
 		@Override
 		public boolean hasNext() {
-			if (itr == null || !itr.valid()) {
+			if (base.isClose() || itr == null || !itr.valid()) {
 				close();
 				return false;
 			}
@@ -461,6 +461,56 @@ public class LevelIndex extends CommitRollback {
 			throw new LeveldbException(e);
 		} finally {
 			LevelBuffer.clearBuffer(keyBuf, null);
+		}
+	}
+	
+	/**
+	 * インデックス情報を生成.
+	 */
+	public void toIndex() {
+		checkClose();
+		// ロールバック処理.
+		super.rollback();
+		// 全データを削除.
+		super.clearLeveldb();
+		// インデックスを作成.
+		LeveldbIterator it = null;
+		JniBuffer keyBuf = null;
+		JniBuffer valBuf = null;
+		try {
+			Object value;
+			byte[] keyBin;
+			it = parent.iterator();
+			keyBuf = LevelBuffer.key();
+			valBuf = LevelBuffer.value();
+			while(it.valid()) {
+				try {
+					it.key(keyBuf);
+					it.value(valBuf);
+					it.next();
+					value = LevelValues.decode(valBuf);
+					// インデックス元のvalueがMapじゃない場合、カラムが存在しない場合は処理しない.
+					if(!(value instanceof Map) ||
+						(value = getColumnByValue(columnNames, value)) == null) {
+						continue;
+					}
+					keyBin = keyBuf.getBinary();
+					keyBuf = LevelBuffer.key(columnType, value, keyBin);
+					valBuf.setBinary(keyBin);
+					leveldb.put(keyBuf, valBuf);
+				} catch (Exception e) {
+					// エラーは無視.
+					System.out.println(e);
+				} finally {
+					LevelBuffer.clearBuffer(keyBuf, valBuf);
+				}
+			}
+		} catch (LeveldbException le) {
+			throw le;
+		} catch (Exception e) {
+			throw new LeveldbException(e);
+		} finally {
+			LevelBuffer.clearBuffer(keyBuf, valBuf);
 		}
 	}
 }

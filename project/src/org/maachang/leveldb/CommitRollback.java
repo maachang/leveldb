@@ -122,11 +122,8 @@ abstract class CommitRollback {
 
 	/**
 	 * WriteBatch内容を反映.
-	 * 
-	 * @exception Exception
-	 *                例外.
 	 */
-	public void commit() throws Exception {
+	public void commit() {
 		checkClose();
 		if(writeBatchFlag) {
 			// バッチ反映.
@@ -145,11 +142,8 @@ abstract class CommitRollback {
 
 	/**
 	 * WriteBatch内容を破棄.
-	 * 
-	 * @exception Exception
-	 *                例外.
 	 */
-	public void rollback() throws Exception {
+	public void rollback() {
 		checkClose();
 		if(writeBatchFlag) {
 			// バッチクリア.
