@@ -832,38 +832,8 @@ public class LevelMap extends CommitRollback implements ConvertMap {
 	
 	// 指定キーで検索処理.
 	protected LevelMapIterator _search(LevelMapIterator ret, Object key, Object key2) {
-		LeveldbIterator lv = ret.itr;
-		boolean reverse = ret.reverse;
-		if(key == null && key2 == null) {
-			return ret;
-		}
-		JniBuffer keyBuf = null;
-		try {
-			keyBuf = LevelBuffer.key(type, key, key2);
-			lv.seek(keyBuf);
-			LevelBuffer.clearBuffer(keyBuf, null);
-			if(lv.valid() && reverse) {
-				// 逆カーソル移動の場合は、対象keyより大きな値の条件の手前まで移動.
-				Comparable c, cc;
-				c = (Comparable)LevelId.id(type, key, key2);
-				while(lv.valid()) {
-					lv.key(keyBuf);
-					cc = (Comparable)LevelId.get(type, keyBuf);
-					LevelBuffer.clearBuffer(keyBuf, null);
-					if(c.compareTo(cc) < 0) {
-						break;
-					}
-					lv.next();
-				}
-			}
-			return ret;
-		} catch (LeveldbException le) {
-			throw le;
-		} catch (Exception e) {
-			throw new LeveldbException(e);
-		} finally {
-			LevelBuffer.clearBuffer(keyBuf, null);
-		}
+		Leveldb.search(ret.itr, ret.reverse, type, key, key2);
+		return ret;
 	}
 
 	/** LevelMapSet. **/

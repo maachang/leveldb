@@ -342,4 +342,45 @@ public final class Leveldb {
 			}
 		}
 	}
+	
+	/**
+	 * 指定キーで検索処理.
+	 * @param reverse
+	 * @param type
+	 * @param lv
+	 * @param key
+	 * @param key2
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static final void search(LeveldbIterator lv, boolean reverse, int type, Object key, Object key2) {
+		if(key == null && key2 == null) {
+			return;
+		}
+		JniBuffer keyBuf = null;
+		try {
+			keyBuf = LevelBuffer.key(type, key, key2);
+			lv.seek(keyBuf);
+			LevelBuffer.clearBuffer(keyBuf, null);
+			if(lv.valid() && reverse) {
+				// 逆カーソル移動の場合は、対象keyより大きな値の条件の手前まで移動.
+				Comparable c, cc;
+				c = (Comparable)LevelId.id(type, key, key2);
+				while(lv.valid()) {
+					lv.key(keyBuf);
+					cc = (Comparable)LevelId.get(type, keyBuf);
+					LevelBuffer.clearBuffer(keyBuf, null);
+					if(c.compareTo(cc) < 0) {
+						break;
+					}
+					lv.next();
+				}
+			}
+		} catch (LeveldbException le) {
+			throw le;
+		} catch (Exception e) {
+			throw new LeveldbException(e);
+		} finally {
+			LevelBuffer.clearBuffer(keyBuf, null);
+		}
+	}
 }
