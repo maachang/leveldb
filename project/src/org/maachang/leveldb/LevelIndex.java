@@ -35,7 +35,7 @@ public class LevelIndex extends CommitRollback {
 			pOpt.getMaxOpenFiles(),
 			pOpt.getBlockSize(),
 			pOpt.getBlockCache());
-		Leveldb db = new Leveldb(parent.getPath() + ".second_index." + columnName, opt);
+		Leveldb db = new Leveldb(parent.getPath() + "@" + columnName, opt);
 		
 		// leveldbをクローズしてwriteBatchで処理しない.
 		super.init(db, true, false);
@@ -469,10 +469,6 @@ public class LevelIndex extends CommitRollback {
 	 */
 	public void toIndex() {
 		checkClose();
-		// ロールバック処理.
-		super.rollback();
-		// 全データを削除.
-		super.clearLeveldb();
 		// インデックスを作成.
 		LeveldbIterator it = null;
 		JniBuffer keyBuf = null;
@@ -480,6 +476,12 @@ public class LevelIndex extends CommitRollback {
 		try {
 			Object value;
 			byte[] keyBin;
+			
+			// ロールバック処理.
+			super.rollback();
+			// 全データを削除.
+			super.clearLeveldb();
+			
 			it = parent.iterator();
 			keyBuf = LevelBuffer.key();
 			valBuf = LevelBuffer.value();
@@ -500,7 +502,7 @@ public class LevelIndex extends CommitRollback {
 					leveldb.put(keyBuf, valBuf);
 				} catch (Exception e) {
 					// エラーは無視.
-					System.out.println(e);
+					e.printStackTrace();
 				} finally {
 					LevelBuffer.clearBuffer(keyBuf, valBuf);
 				}
