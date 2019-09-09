@@ -916,4 +916,31 @@ public class JniBuffer extends OutputStream {
 		}
 		return false;
 	}
+	
+	/**
+	 * バッファのアドレスが[malloc]で再定義された場合の処理.
+	 * @param addr jni側の処理結果の戻されたアドレスを設定します.
+	 * @param len jni側の処理結果の長さを設定します.
+	 */
+	protected final void setting(long[] addr, int len) {
+		settingJniBuffer(this, addr, len);
+	}
+	
+	/**
+	 * バッファのアドレスが[malloc]で再定義された場合の処理.
+	 * @param buf JniBufferを設定します.
+	 * @param addr jni側の処理結果の戻されたアドレスを設定します.
+	 * @param len jni側の処理結果の長さを設定します.
+	 */
+	protected static final void settingJniBuffer(final JniBuffer buf, long[] addr, int len) {
+		// バッファが拡張された場合.
+		if (len > buf.length()) {
+			// バッファ内容を再セット.
+			buf.set(addr[0], len, len);
+		// バッファ範囲内の場合.
+		} else {
+			// ポジジョンだけをセット.
+			buf.position(len);
+		}
+	}
 }

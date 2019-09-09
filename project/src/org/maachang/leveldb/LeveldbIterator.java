@@ -149,13 +149,8 @@ public class LeveldbIterator {
 		int len = jni.leveldb_itr_key(addr, n, out.length());
 		if (len <= 0) {
 			return 0;
-			// leveldb_itr_keyでバッファが拡張された場合.
-		} else if (len > out.length()) {
-			// バッファ内容を再セット.
-			out.set(n[0], len, len);
 		} else {
-			// ポジジョンをセット.
-			out.position(len);
+			out.setting(n, len);
 		}
 		return len;
 	}
@@ -176,13 +171,8 @@ public class LeveldbIterator {
 		int len = jni.leveldb_itr_value(addr, n, out.length());
 		if (len <= 0) {
 			return 0;
-			// leveldb_itr_valueでバッファが拡張された場合.
-		} else if (len > out.length()) {
-			// バッファ内容を再セット.
-			out.set(n[0], len, len);
 		} else {
-			// ポジジョンをセット.
-			out.position(len);
+			out.setting(n, len);
 		}
 		return len;
 	}

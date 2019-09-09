@@ -1,5 +1,6 @@
 package org.maachang.leveldb;
 
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -7,6 +8,8 @@ import java.util.NoSuchElementException;
  * Levelインデックス.
  */
 public class LevelIndex extends CommitRollback {
+	protected static final int MAX_ERROR = 32;
+	
 	protected Leveldb parent;
 	protected int parentType;
 	protected int columnType;
@@ -412,7 +415,7 @@ public class LevelIndex extends CommitRollback {
 		checkClose();
 		LevelIndexIterator ret = null;
 		try {
-			ret = new LevelIndexIterator(reverse, this, leveldb.snapShot());
+			ret = new LevelIndexIterator(reverse, this, leveldb.snapshot());
 			return _search(ret, columnValue);
 		} catch(LeveldbException le) {
 			if(ret != null) {
@@ -466,14 +469,25 @@ public class LevelIndex extends CommitRollback {
 	
 	/**
 	 * インデックス情報を生成.
+	 * @return long インデックス化された件数が返却されます.
 	 */
-	public void toIndex() {
+	public long toIndex() {
+		return toIndex(null);
+	}
+	
+	/**
+	 * インデックス情報を生成.
+	 * @param outError エラー内容を格納します.
+	 * @return long インデックス化された件数が返却されます.
+	 */
+	public long toIndex(List<Exception> outError) {
 		checkClose();
 		// インデックスを作成.
 		LeveldbIterator it = null;
 		JniBuffer keyBuf = null;
 		JniBuffer valBuf = null;
 		try {
+			long ret = 0L;
 			Object value;
 			byte[] keyBin;
 			
@@ -482,7 +496,7 @@ public class LevelIndex extends CommitRollback {
 			// 全データを削除.
 			super.clearLeveldb();
 			
-			it = parent.iterator();
+			it = parent.snapshot();
 			keyBuf = LevelBuffer.key();
 			valBuf = LevelBuffer.value();
 			while(it.valid()) {
@@ -500,18 +514,24 @@ public class LevelIndex extends CommitRollback {
 					keyBuf = LevelBuffer.key(columnType, value, keyBin);
 					valBuf.setBinary(keyBin);
 					leveldb.put(keyBuf, valBuf);
+					ret ++;
 				} catch (Exception e) {
-					// エラーは無視.
-					e.printStackTrace();
-				} finally {
-					LevelBuffer.clearBuffer(keyBuf, valBuf);
+					if(outError != null && outError.size() < MAX_ERROR) {
+						outError.add(e);
+					}
 				}
 			}
+			it.close();
+			it = null;
+			return ret;
 		} catch (LeveldbException le) {
 			throw le;
 		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
+			if(it != null) {
+				it.close();
+			}
 			LevelBuffer.clearBuffer(keyBuf, valBuf);
 		}
 	}

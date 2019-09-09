@@ -77,7 +77,7 @@ abstract class CommitRollback {
 	protected LeveldbIterator getSnapshot() {
 		if(writeBatchFlag) {
 			if (_snapShot == null) {
-				_snapShot = leveldb.snapShot();
+				_snapShot = leveldb.snapshot();
 			}
 			return _snapShot;
 		}

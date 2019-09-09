@@ -815,7 +815,7 @@ public class LevelMap extends CommitRollback implements ConvertMap {
 		checkClose();
 		LevelMapIterator ret = null;
 		try {
-			ret = new LevelMapIterator(reverse, this, leveldb.snapShot());
+			ret = new LevelMapIterator(reverse, this, leveldb.snapshot());
 			return _search(ret, key, key2);
 		} catch(LeveldbException le) {
 			if(ret != null) {

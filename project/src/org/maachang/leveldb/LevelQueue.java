@@ -373,7 +373,7 @@ public class LevelQueue extends CommitRollback {
 	 * @return
 	 */
 	public LevelQueueIterator iterator() {
-		return new LevelQueueIterator(this, leveldb.snapShot(), null);
+		return new LevelQueueIterator(this, leveldb.snapshot(), null);
 	}
 
 	/**
@@ -407,6 +407,6 @@ public class LevelQueue extends CommitRollback {
 	 */
 	public LevelQueueIterator iterator(byte[] key) {
 		Time12SequenceId.first(key);
-		return new LevelQueueIterator(this, leveldb.snapShot(), key);
+		return new LevelQueueIterator(this, leveldb.snapshot(), key);
 	}
 }

@@ -166,14 +166,8 @@ public final class Leveldb {
 		final int len = jni.leveldb_get(addr, key.address(), key.position(), n, out.length());
 		if (len <= 0) {
 			return 0;
-		}
-		// leveldb_getでバッファが拡張された場合.
-		if (len > out.length()) {
-			// バッファ内容を再セット.
-			out.set(n[0], len, len);
 		} else {
-			// ポジジョンをセット.
-			out.position(len);
+			out.setting(n, len);
 		}
 		return len;
 	}
@@ -212,14 +206,8 @@ public final class Leveldb {
 		final int len = jni.leveldb_property(addr, cmd.address(), cmd.position(), n, out.length());
 		if (len <= 0) {
 			return 0;
-		}
-		// leveldb_getでバッファが拡張された場合.
-		if (len > out.length()) {
-			// バッファ内容を再セット.
-			out.set(n[0], len, len);
 		} else {
-			// ポジジョンをセット.
-			out.position(len);
+			out.setting(n, len);
 		}
 		return len;
 	}
@@ -239,7 +227,7 @@ public final class Leveldb {
 	 * 
 	 * @return LeveldbIterator Iteratorオブジェクトが返却されます.
 	 */
-	public final LeveldbIterator snapShot() {
+	public final LeveldbIterator snapshot() {
 		checkClose();
 		return new LeveldbIterator(true, this);
 	}
