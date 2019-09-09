@@ -10,7 +10,7 @@ abstract class CommitRollback {
 	protected boolean writeBatchFlag = true;
 	protected Leveldb leveldb;
 	protected WriteBatch _batch;
-	protected LeveldbIterator _snapShot;
+	protected LeveldbIterator _snapshot;
 	protected Flag closeFlag = new Flag();
 	
 	/**
@@ -43,9 +43,9 @@ abstract class CommitRollback {
 					_batch.close();
 					_batch = null;
 				}
-				if (_snapShot != null) {
-					_snapShot.close();
-					_snapShot = null;
+				if (_snapshot != null) {
+					_snapshot.close();
+					_snapshot = null;
 				}
 			}
 			if (sub) {
@@ -76,10 +76,10 @@ abstract class CommitRollback {
 	// Snapshotを作成.
 	protected LeveldbIterator getSnapshot() {
 		if(writeBatchFlag) {
-			if (_snapShot == null) {
-				_snapShot = leveldb.snapshot();
+			if (_snapshot == null) {
+				_snapshot = leveldb.snapshot();
 			}
-			return _snapShot;
+			return _snapshot;
 		}
 		return null;
 	}
@@ -133,9 +133,9 @@ abstract class CommitRollback {
 				_batch = null;
 			}
 			// スナップショットをクリア.
-			if (_snapShot != null) {
-				_snapShot.close();
-				_snapShot = null;
+			if (_snapshot != null) {
+				_snapshot.close();
+				_snapshot = null;
 			}
 		}
 	}
@@ -152,9 +152,9 @@ abstract class CommitRollback {
 				_batch = null;
 			}
 			// スナップショットをクリア.
-			if (_snapShot != null) {
-				_snapShot.close();
-				_snapShot = null;
+			if (_snapshot != null) {
+				_snapshot.close();
+				_snapshot = null;
 			}
 		}
 	}

@@ -253,8 +253,8 @@ public class LevelQueue extends CommitRollback {
 		checkClose();
 		if(writeBatchFlag) {
 			try {
-				LeveldbIterator snapShot = getSnapshot();
-				if (snapShot.valid()) {
+				LeveldbIterator snapshot = getSnapshot();
+				if (snapshot.valid()) {
 					return false;
 				}
 				return true;

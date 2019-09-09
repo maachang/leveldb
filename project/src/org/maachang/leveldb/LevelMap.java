@@ -268,11 +268,11 @@ public class LevelMap extends CommitRollback implements ConvertMap {
 		try {
 			keyBuf = LevelBuffer.key(type, key, twoKey);
 			if(writeBatchFlag) {
-				LeveldbIterator snapShot = getSnapshot();
-				snapShot.seek(keyBuf);
-				if (snapShot.valid()) {
+				LeveldbIterator snapshot = getSnapshot();
+				snapshot.seek(keyBuf);
+				if (snapshot.valid()) {
 					valBuf = LevelBuffer.value();
-					snapShot.key(valBuf);
+					snapshot.key(valBuf);
 					return JniIO.equals(keyBuf.address, keyBuf.position, valBuf.address, valBuf.position);
 				}
 				return false;
@@ -337,14 +337,14 @@ public class LevelMap extends CommitRollback implements ConvertMap {
 				keyBuf = LevelBuffer.key(type, key, twoKey);
 			}
 			if(writeBatchFlag) {
-				LeveldbIterator snapShot = getSnapshot();
-				snapShot.seek(keyBuf);
+				LeveldbIterator snapshot = getSnapshot();
+				snapshot.seek(keyBuf);
 				// 条件が存在する場合.
-				if (snapShot.valid()) {
-					snapShot.key(buf);
+				if (snapshot.valid()) {
+					snapshot.key(buf);
 					// 対象キーが正しい場合.
 					if (JniIO.equals(keyBuf.address, keyBuf.position, buf.address, buf.position)) {
-						snapShot.value(buf);
+						snapshot.value(buf);
 						ret = true;
 					}
 				}
@@ -508,9 +508,9 @@ public class LevelMap extends CommitRollback implements ConvertMap {
 		checkClose();
 		if(writeBatchFlag) {
 			try {
-				LeveldbIterator snapShot = getSnapshot();
-				snapShot.first();
-				if (snapShot.valid()) {
+				LeveldbIterator snapshot = getSnapshot();
+				snapshot.first();
+				if (snapshot.valid()) {
 					return false;
 				}
 				return true;
