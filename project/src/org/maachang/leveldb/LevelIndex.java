@@ -433,6 +433,14 @@ public class LevelIndex extends CommitRollback {
 	// ゼロバイナリ.
 	private static final byte[] ZERO_BIN = new byte[0];
 	
+	// 最大データ長バイナリ
+	private static final byte[] MAX_BIN = new byte[]{
+		(byte)255, (byte)255, (byte)255, (byte)255,
+		(byte)255, (byte)255, (byte)255, (byte)255,
+		(byte)255, (byte)255, (byte)255, (byte)255,
+		(byte)255, (byte)255, (byte)255, (byte)255
+	};
+	
 	// 指定キーで検索処理.
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected LevelIndexIterator _search(LevelIndexIterator ret, Object columnValue) {
@@ -446,12 +454,13 @@ public class LevelIndex extends CommitRollback {
 			if(lv.valid() && reverse) {
 				// 逆カーソル移動の場合は、対象keyより大きな値の条件の手前まで移動.
 				Comparable c, cc;
-				c = (Comparable)LevelId.id(columnType, columnValue, ZERO_BIN);
+				c = (Comparable)LevelId.id(columnType, columnValue, MAX_BIN);
 				while(lv.valid()) {
 					lv.key(keyBuf);
 					cc = (Comparable)LevelId.get(columnType, keyBuf);
 					LevelBuffer.clearBuffer(keyBuf, null);
 					if(c.compareTo(cc) < 0) {
+						lv.before();
 						break;
 					}
 					lv.next();
