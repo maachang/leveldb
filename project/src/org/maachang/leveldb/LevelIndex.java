@@ -65,6 +65,32 @@ public class LevelIndex extends CommitRollback {
 	}
 	
 	/**
+	 * インデックス対象のカラムタイプを取得.
+	 * @return
+	 */
+	public int getColumnType() {
+		checkClose();
+		return columnType;
+	}
+	
+	/**
+	 * インデックス対象のカラム名を取得.
+	 * @return
+	 */
+	public String getColumnName() {
+		checkClose();
+		StringBuilder buf = new StringBuilder();
+		int len = columnNames.length;
+		for(int i = 0; i < len; i ++) {
+			if(i != 0) {
+				buf.append(".");
+			}
+			buf.append(columnNames[i]);
+		}
+		return buf.toString();
+	}
+	
+	/**
 	 * 指定キーの情報をセット.
 	 * 
 	 * @param key
