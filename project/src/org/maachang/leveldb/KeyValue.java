@@ -13,7 +13,7 @@ public class KeyValue<K, V> {
 	/**
 	 * コンストラクタ.
 	 */
-	KeyValue() {
+	public KeyValue() {
 	}
 
 	/**
@@ -21,7 +21,7 @@ public class KeyValue<K, V> {
 	 * @param k
 	 * @param v
 	 */
-	KeyValue(K k, V v) {
+	public KeyValue(K k, V v) {
 		key = k;
 		value = v;
 	}

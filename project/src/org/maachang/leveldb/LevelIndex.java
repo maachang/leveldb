@@ -42,6 +42,7 @@ public class LevelIndex extends CommitRollback {
 		
 		// leveldbをクローズしてwriteBatchで処理しない.
 		super.init(db, true, false);
+		
 		this.parent = parent;
 		this.parentType = pOpt.type;
 		this.columnType = columnType;
@@ -50,18 +51,31 @@ public class LevelIndex extends CommitRollback {
 	
 	/**
 	 * コンストラクタ.
-	 * WriteBatchを有効にして作成.
+	 * writeBatchを有効にして生成します.
 	 * 
 	 * @param parnet
 	 */
 	public LevelIndex(LevelIndex parent) {
+		this(true, parent);
+	}
+	
+	/**
+	 * コンストラクタ.
+	 * 
+	 * @param writeBatch
+	 * @param parnet
+	 */
+	public LevelIndex(boolean writeBatch, LevelIndex parent) {
+		// leveldbをクローズせずwriteBatchで処理する.
+		if(writeBatch) {
+			super.init(parent.leveldb, false, true);
+		} else {
+			super.init(parent.leveldb, true, false);
+		}
 		this.parent = parent.leveldb;
 		this.parentType = parent.parentType;
 		this.columnType = parent.columnType;
 		this.columnNames = parent.columnNames;
-		
-		// leveldbをクローズせずwriteBatchで処理する.
-		super.init(parent.leveldb, false, true);
 	}
 	
 	/**

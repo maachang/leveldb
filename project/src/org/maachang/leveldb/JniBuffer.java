@@ -14,9 +14,9 @@ public class JniBuffer extends OutputStream {
 	protected static final int CLEAR_BY_MAX_BUFFER = 65535;
 
 	/** バッファ情報. **/
-	public long address;
-	public int length;
-	public int position;
+	private long address;
+	private int length;
+	private int position;
 
 	/**
 	 * ファイル内容を読み込んで取得.
@@ -89,7 +89,6 @@ public class JniBuffer extends OutputStream {
 	 *            対象のポジションを設定します.
 	 */
 	protected void set(long addr, int len, int pos) {
-
 		// 前回のメモリが存在する場合.
 		if (address != 0L) {
 			jni.free(address);
@@ -121,7 +120,6 @@ public class JniBuffer extends OutputStream {
 	 * @return long アドレスが返却されます.
 	 */
 	public long recreate(boolean copy, int newLen) {
-
 		// 現在の長さよりも小さい場合は、生成しない.
 		if (length >= newLen) {
 			return address;
@@ -182,8 +180,6 @@ public class JniBuffer extends OutputStream {
 			address = 0L;
 			length = 0;
 			position = 0;
-
-			// new Throwable( "trace" ).printStackTrace() ;
 		}
 		return this;
 	}
@@ -202,9 +198,14 @@ public class JniBuffer extends OutputStream {
 				return this;
 			}
 			jni.free(address);
+			address = 0L;
 		}
-		address = jni.malloc(len);
-		length = len;
+		if(len > 0) {
+			address = jni.malloc(len);
+			length = len;
+		} else {
+			length = 0;
+		}
 		position = 0;
 		return this;
 	}
