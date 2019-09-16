@@ -4,12 +4,13 @@ import java.lang.reflect.Array;
 import java.util.List;
 
 import org.maachang.leveldb.JniBuffer;
+import org.maachang.leveldb.LeveldbException;
 
 /**
- * ２つのキーを保持する情報. Leveldbでは、１つのキーしか管理できないので、 この情報では、１つのキーで２つのキーを扱うような
- * 振舞をするような仕組みを取る.
+ * ２つのキーを保持する情報. Leveldbでは、１つのキーしか管理できないので、
+ * この情報では、１つのキーで２つのキーを扱うような振舞をするような仕組みを取る.
  */
-public abstract class TwoKey implements Comparable<Object> {
+public abstract class TwoKey implements LevelKey<Object> {
 
 	/** NONE-BINARY. **/
 	public static final byte[] NONE = new byte[0];
@@ -163,12 +164,28 @@ public abstract class TwoKey implements Comparable<Object> {
 	 * @return Object ２番目のキーが返却されます.
 	 */
 	public abstract Object two();
-
-	/**
-	 * キータイプを取得.
-	 * 
-	 * @return int キータイプが返却されます.
-	 */
-	public abstract int getType();
+	
+	@Override
+	public void out(JniBuffer buf) {
+		try {
+			toBuffer(buf);
+		} catch(Exception e) {
+			throw new LeveldbException(e);
+		}
+	}
+	
+	@Override
+	public int size() {
+		return 2;
+	}
+	
+	@Override
+	public Object get(int no) {
+		switch(no) {
+		case 0: return one();
+		case 1: return two();
+		}
+		return null;
+	}
 
 }

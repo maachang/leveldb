@@ -283,17 +283,4 @@ public final class BinBin extends TwoKey {
 		return new StringBuilder("[bin-bin]").append(Utils.binaryToHexString(one)).append(Utils.binaryToHexString(two))
 				.toString();
 	}
-
-	/**
-	 * JniBuffer出力.
-	 * 
-	 * @param buf
-	 *            対象のJniBufferを設定します.
-	 * @exception Exception
-	 *                例外.
-	 */
-	public final void out(JniBuffer buf) throws Exception {
-		toBuffer(buf);
-	}
-
 }

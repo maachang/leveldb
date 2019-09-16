@@ -274,16 +274,4 @@ public final class IntInt extends TwoKey {
 	public final String toString() {
 		return new StringBuilder("[num32-num32]").append(one).append(",").append(two).toString();
 	}
-
-	/**
-	 * JniBuffer出力.
-	 * 
-	 * @param buf
-	 *            対象のJniBufferを設定します.
-	 * @exception Exception
-	 *                例外.
-	 */
-	public final void out(JniBuffer buf) throws Exception {
-		toBuffer(buf);
-	}
 }

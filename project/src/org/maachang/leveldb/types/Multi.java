@@ -2,13 +2,14 @@ package org.maachang.leveldb.types;
 
 import org.maachang.leveldb.JniBuffer;
 import org.maachang.leveldb.JniIO;
+import org.maachang.leveldb.LevelOption;
 import org.maachang.leveldb.LeveldbException;
 import org.maachang.leveldb.util.OList;
 
 /**
  * マルチID. バイナリキー系の複数ID管理.
  */
-public class Multi implements Comparable<Object> {
+public class Multi implements LevelKey<Object> {
 	private static final int TYPE_STRING = 0;
 	private static final int TYPE_INT = 1;
 	private static final int TYPE_LONG = 2;
@@ -224,6 +225,7 @@ public class Multi implements Comparable<Object> {
 	 *            対象の項番を設定します.
 	 * @return Object 情報が返却されます.
 	 */
+	@Override
 	public Object get(int no) {
 		return list.get(no);
 	}
@@ -233,6 +235,7 @@ public class Multi implements Comparable<Object> {
 	 * 
 	 * @return int 登録情報数が返却されます.
 	 */
+	@Override
 	public int size() {
 		return list.size();
 	}
@@ -663,4 +666,58 @@ public class Multi implements Comparable<Object> {
 		}
 		return 0;
 	}
+	
+	/**
+	 * 一致チェック.
+	 * 
+	 * @param o
+	 *            対象のオブジェクトを設定します.
+	 * @return boolean [true]の場合、完全一致しています.
+	 */
+	public boolean equals(Object o) {
+		return compareTo(o) == 0;
+	}
+
+	/**
+	 * hash生成.
+	 * 
+	 * @return int ハッシュ情報が返却されます.
+	 */
+	public int hashCode() {
+		int ret = 0;
+		int len = list.size();
+		for(int i = 0; i < len; i ++) {
+			ret += list.get(i).hashCode();
+		}
+		return ret;
+	}
+	
+	/**
+	 * 文字列として出力.
+	 * 
+	 * @return String 文字列が返却されます.
+	 */
+	public final String toString() {
+		StringBuilder buf = new StringBuilder("[multi]");
+		int len = list.size();
+		for(int i = 0; i < len; i ++) {
+			if(i != 0) {
+				buf.append(",");
+			}
+			buf.append(list.get(i));
+		}
+		return buf.toString();
+	}
+	
+	@Override
+	public final void out(JniBuffer buf) {
+		toBinary(buf);
+	}
+
+	
+	@Override
+	public int getType() {
+		return LevelOption.TYPE_MULTI;
+	}
 }
+	
