@@ -273,7 +273,7 @@ public class LevelMap extends CommitRollback implements ConvertMap {
 				if (snapshot.valid()) {
 					valBuf = LevelBuffer.value();
 					snapshot.key(valBuf);
-					return JniIO.equals(keyBuf.address, keyBuf.position, valBuf.address, valBuf.position);
+					return JniIO.equals(keyBuf.address(), keyBuf.position(), valBuf.address(), valBuf.position());
 				}
 				return false;
 			} else {
@@ -343,7 +343,7 @@ public class LevelMap extends CommitRollback implements ConvertMap {
 				if (snapshot.valid()) {
 					snapshot.key(buf);
 					// 対象キーが正しい場合.
-					if (JniIO.equals(keyBuf.address, keyBuf.position, buf.address, buf.position)) {
+					if (JniIO.equals(keyBuf.address(), keyBuf.position(), buf.address(), buf.position())) {
 						snapshot.value(buf);
 						ret = true;
 					}

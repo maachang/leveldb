@@ -22,7 +22,7 @@ public abstract class TwoKey implements Comparable<Object> {
 	 * @exception Exception.
 	 */
 	public final void create(JniBuffer buf) throws Exception {
-		create(buf, 0, buf.position);
+		create(buf, 0, buf.position());
 	}
 
 	/**

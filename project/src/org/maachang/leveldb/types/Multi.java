@@ -320,7 +320,7 @@ public class Multi implements Comparable<Object> {
 		}
 		// 今回データ長をセット.
 		out.position(binaryLength + 1);
-		long addr = out.address;
+		long addr = out.address();
 
 		// データ数をセット.
 		JniIO.put(addr, binaryLength, (byte) (len & 255));
@@ -476,7 +476,7 @@ public class Multi implements Comparable<Object> {
 	 * @return MultiId オブジェクトが返却されます.
 	 */
 	public Multi toObject(JniBuffer buf) {
-		if (buf.position == 0) {
+		if (buf.position() == 0) {
 			if (list == null) {
 				list = new OList<Object>();
 				binaryLength = 0;
@@ -485,14 +485,14 @@ public class Multi implements Comparable<Object> {
 			}
 			return this;
 		}
-		long addr = buf.address;
-		int len = JniIO.get(addr, buf.position - 1) & 255;
+		long addr = buf.address();
+		int len = JniIO.get(addr, buf.position() - 1) & 255;
 		if (list == null) {
 			list = new OList<Object>(len);
 		} else {
 			list.clear(len);
 		}
-		binaryLength = buf.position - 1;
+		binaryLength = buf.position() - 1;
 
 		char[] c;
 		int j, oneLen, off, endOff, n;

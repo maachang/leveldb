@@ -162,8 +162,8 @@ public class WriteBatchCursor {
 
 		// Key内容をコピー.
 		keyBuf.clear(len);
-		JniIO.memcpy(keyBuf.address, addr + p, len);
-		keyBuf.position = len;
+		JniIO.memcpy(keyBuf.address(), addr + p, len);
+		keyBuf.position(len);
 		p += len;
 
 		// 処理モードがPUTの場合は、要素を取得.
@@ -179,8 +179,8 @@ public class WriteBatchCursor {
 
 			// 要素の内容をコピー.
 			valueBuf.clear(len);
-			JniIO.memcpy(valueBuf.address, addr + p, len);
-			valueBuf.position = len;
+			JniIO.memcpy(valueBuf.address(), addr + p, len);
+			valueBuf.position(len);
 			p += len;
 		}
 

@@ -84,7 +84,7 @@ public final class LongLong extends TwoKey {
 	 * @exception Exception.
 	 */
 	public final void create(JniBuffer buf, int off, int len) throws Exception {
-		long addr = buf.address + off;
+		long addr = buf.address() + off;
 
 		// one.
 		one = JniIO.getLongE(addr, 0);
@@ -124,7 +124,7 @@ public final class LongLong extends TwoKey {
 	 * @exception Exception.
 	 */
 	public static final void convertBuffer(Object one, Object two, JniBuffer buf) throws Exception {
-		int pos = buf.position;
+		int pos = buf.position();
 
 		// それぞれの長さを取得.
 		long addr = buf.recreate(true, pos + 16);
@@ -134,7 +134,7 @@ public final class LongLong extends TwoKey {
 
 		// two.
 		JniIO.putLong(addr, pos + 8, (Long) two);
-		buf.position += 16;
+		buf.addPosition(16);
 	}
 
 	/**

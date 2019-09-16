@@ -279,6 +279,16 @@ public class JniBuffer extends OutputStream {
 		recreate(true, p + 1);
 		position = p;
 	}
+	
+	/**
+	 * 現在のポジションに追加.
+	 * 
+	 * @param p
+	 *            追加するポジションを設定します.
+	 */
+	public void addPosition(int p) {
+		position(position + p);
+	}
 
 	/** 書き込み処理. **/
 	private void _write(boolean copy, int b) {

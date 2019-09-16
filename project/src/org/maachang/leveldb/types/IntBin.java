@@ -87,7 +87,7 @@ public final class IntBin extends TwoKey {
 	 * @exception Exception.
 	 */
 	public final void create(JniBuffer buf, int off, int len) throws Exception {
-		long addr = buf.address + off;
+		long addr = buf.address() + off;
 
 		// one.
 		one = JniIO.getIntE(addr, 0);
@@ -133,7 +133,7 @@ public final class IntBin extends TwoKey {
 	 * @exception Exception.
 	 */
 	public static final void convertBuffer(Object one, Object two, JniBuffer buf) throws Exception {
-		int pos = buf.position;
+		int pos = buf.position();
 
 		// それぞれの長さを取得.
 		int len2 = ((byte[]) two).length;
@@ -146,7 +146,7 @@ public final class IntBin extends TwoKey {
 		if (len2 != 0) {
 			JniIO.putBinary(addr, pos + 4, (byte[]) two, 0, ((byte[]) two).length);
 		}
-		buf.position += 4 + len2;
+		buf.addPosition(4 + len2);
 	}
 
 	/**

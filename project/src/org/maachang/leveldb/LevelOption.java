@@ -138,7 +138,7 @@ public final class LevelOption {
 	 *            対象のJniBufferを設定します.
 	 */
 	public LevelOption(int[] o, JniBuffer buf) {
-		long p = buf.address;
+		long p = buf.address();
 		type = LevelValues.byte4Int(p, o);
 		write_buffer_size = LevelValues.byte4Int(p, o);
 		max_open_files = LevelValues.byte4Int(p, o);

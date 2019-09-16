@@ -85,7 +85,7 @@ public final class BinStr extends TwoKey {
 	 * @exception Exception.
 	 */
 	public final void create(JniBuffer buf, int off, int len) throws Exception {
-		long addr = buf.address + off;
+		long addr = buf.address() + off;
 
 		// one.
 		int oneLen = (int) (JniIO.getShortE(addr, 0) & 0x0000ffff);
@@ -135,7 +135,7 @@ public final class BinStr extends TwoKey {
 	 * @exception Exception.
 	 */
 	public static final void convertBuffer(Object one, Object two, JniBuffer buf) throws Exception {
-		int pos = buf.position;
+		int pos = buf.position();
 
 		// それぞれの長さを取得.
 		int len = ((byte[]) one).length;
@@ -152,7 +152,7 @@ public final class BinStr extends TwoKey {
 		if (len2 != 0) {
 			JniIO.putUtf16(addr, pos + len + 2, (String) two);
 		}
-		buf.position += len + len2 + 2;
+		buf.addPosition(len + len2 + 2);
 	}
 
 	/**

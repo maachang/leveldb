@@ -84,7 +84,7 @@ public final class IntStr extends TwoKey {
 	 * @exception Exception.
 	 */
 	public final void create(JniBuffer buf, int off, int len) throws Exception {
-		long addr = buf.address + off;
+		long addr = buf.address() + off;
 
 		// one.
 		one = JniIO.getIntE(addr, 0);
@@ -128,7 +128,7 @@ public final class IntStr extends TwoKey {
 	 * @exception Exception.
 	 */
 	public static final void convertBuffer(Object one, Object two, JniBuffer buf) throws Exception {
-		int pos = buf.position;
+		int pos = buf.position();
 
 		// それぞれの長さを取得.
 		int len2 = JniIO.utf16Length((String) two);
@@ -141,7 +141,7 @@ public final class IntStr extends TwoKey {
 		if (len2 != 0) {
 			JniIO.putUtf16(addr, pos + 4, (String) two);
 		}
-		buf.position += 4 + len2;
+		buf.addPosition(4 + len2);
 	}
 
 	/**

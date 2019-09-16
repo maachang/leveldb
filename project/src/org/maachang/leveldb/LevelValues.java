@@ -268,10 +268,10 @@ public final class LevelValues {
 	 */
 	public static final void stringBinary(JniBuffer buf, String s) throws Exception {
 		int len = JniIO.utf16Length(s);
-		buf.recreate(true, buf.position + len + 7);
+		buf.recreate(true, buf.position() + len + 7);
 		byte4(buf, len);
 		if (len != 0) {
-			buf.position += JniIO.putUtf16(buf.address, buf.position, s);
+			buf.addPosition(JniIO.putUtf16(buf.address(), buf.position(), s));
 		}
 	}
 
@@ -789,7 +789,7 @@ public final class LevelValues {
 	 */
 	public static final LevelArray byteLevelArray(int[] pos, JniBuffer b, int length) throws Exception {
 		LevelArray ret = new LevelArray();
-		int len = byte4Int(b.address, pos);
+		int len = byte4Int(b.address(), pos);
 		if (len == 0) {
 			return ret;
 		}
@@ -821,7 +821,7 @@ public final class LevelValues {
 	 *                例外.
 	 */
 	public static final TwoKey byteTwoKey(int code, int[] pos, JniBuffer b) throws Exception {
-		int len = byte4Int(b.address, pos);
+		int len = byte4Int(b.address(), pos);
 		TwoKey ret = null;
 		switch (code) {
 		case LevelOption.TYPE_STR_STR:
@@ -941,7 +941,7 @@ public final class LevelValues {
 			throw new IOException("Processing exceeds the specified length [" + length + " byte]:" + pos[0]);
 		}
 
-		long addr = b.address;
+		long addr = b.address();
 		int i, len;
 		Object ret;
 		int code = byte1Int(addr, pos);

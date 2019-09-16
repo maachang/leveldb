@@ -179,7 +179,7 @@ public final class LevelId {
 
 			public final void get(Object[] out, JniBuffer buf) throws Exception {
 				int len = buf.position();
-				long addr = buf.address;
+				long addr = buf.address();
 
 				// one.
 				int oneLen = (int) (JniIO.getShortE(addr, 0) & 0x0000ffff);
@@ -221,7 +221,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf) throws Exception {
-				long addr = buf.address;
+				long addr = buf.address();
 
 				// one.
 				int oneLen = (int) (JniIO.getShortE(addr, 0) & 0x0000ffff);
@@ -259,7 +259,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf) throws Exception {
-				long addr = buf.address;
+				long addr = buf.address();
 
 				// one.
 				int oneLen = (int) (JniIO.getShortE(addr, 0) & 0x0000ffff);
@@ -298,7 +298,7 @@ public final class LevelId {
 
 			public final void get(Object[] out, JniBuffer buf) throws Exception {
 				int len = buf.position();
-				long addr = buf.address;
+				long addr = buf.address();
 
 				// one.
 				out[0] = JniIO.getIntE(addr, 0);
@@ -335,7 +335,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf) throws Exception {
-				long addr = buf.address;
+				long addr = buf.address();
 
 				// one.
 				out[0] = JniIO.getIntE(addr, 0);
@@ -368,7 +368,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf) throws Exception {
-				long addr = buf.address;
+				long addr = buf.address();
 
 				// one.
 				out[0] = JniIO.getIntE(addr, 0);
@@ -402,7 +402,7 @@ public final class LevelId {
 
 			public final void get(Object[] out, JniBuffer buf) throws Exception {
 				int len = buf.position();
-				long addr = buf.address;
+				long addr = buf.address();
 
 				// one.
 				out[0] = JniIO.getLongE(addr, 0);
@@ -439,7 +439,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf) throws Exception {
-				long addr = buf.address;
+				long addr = buf.address();
 
 				// one.
 				out[0] = JniIO.getLongE(addr, 0);
@@ -472,7 +472,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf) throws Exception {
-				long addr = buf.address;
+				long addr = buf.address();
 
 				// one.
 				out[0] = JniIO.getLongE(addr, 0);
@@ -506,7 +506,7 @@ public final class LevelId {
 
 			public final void get(Object[] out, JniBuffer buf) throws Exception {
 				int len = buf.position();
-				long addr = buf.address;
+				long addr = buf.address();
 
 				// one.
 				int oneLen = (int) (JniIO.getShortE(addr, 0) & 0x0000ffff);
@@ -551,7 +551,7 @@ public final class LevelId {
 
 			public final void get(Object[] out, JniBuffer buf) throws Exception {
 				int len = buf.position();
-				long addr = buf.address;
+				long addr = buf.address();
 
 				// one.
 				out[0] = JniIO.getIntE(addr, 0);
@@ -591,7 +591,7 @@ public final class LevelId {
 
 			public final void get(Object[] out, JniBuffer buf) throws Exception {
 				int len = buf.position();
-				long addr = buf.address;
+				long addr = buf.address();
 
 				// one.
 				out[0] = JniIO.getLongE(addr, 0);
@@ -631,7 +631,7 @@ public final class LevelId {
 
 			public final void get(Object[] out, JniBuffer buf) throws Exception {
 				int len = buf.position();
-				long addr = buf.address;
+				long addr = buf.address();
 
 				// one.
 				int oneLen = (int) (JniIO.getShortE(addr, 0) & 0x0000ffff);
@@ -674,7 +674,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf) throws Exception {
-				long addr = buf.address;
+				long addr = buf.address();
 
 				// one.
 				int oneLen = (int) (JniIO.getShortE(addr, 0) & 0x0000ffff);
@@ -713,7 +713,7 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf) throws Exception {
-				long addr = buf.address;
+				long addr = buf.address();
 
 				// one.
 				int oneLen = (int) (JniIO.getShortE(addr, 0) & 0x0000ffff);
@@ -753,7 +753,7 @@ public final class LevelId {
 
 			public final void get(Object[] out, JniBuffer buf) throws Exception {
 				int len = buf.position();
-				long addr = buf.address;
+				long addr = buf.address();
 
 				// one.
 				int oneLen = (int) (JniIO.getShortE(addr, 0) & 0x0000ffff);
