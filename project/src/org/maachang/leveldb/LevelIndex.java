@@ -488,7 +488,11 @@ public class LevelIndex extends CommitRollback {
 		boolean reverse = ret.reverse;
 		JniBuffer keyBuf = null;
 		try {
-			keyBuf = LevelBuffer.key(columnType, columnValue, ZERO_BIN);
+			if(reverse) {
+				keyBuf = LevelBuffer.key(columnType, columnValue, MAX_BIN);
+			} else {
+				keyBuf = LevelBuffer.key(columnType, columnValue, ZERO_BIN);
+			}
 			lv.seek(keyBuf);
 			LevelBuffer.clearBuffer(keyBuf, null);
 			if(lv.valid() && reverse) {

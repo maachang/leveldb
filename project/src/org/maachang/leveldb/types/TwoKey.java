@@ -1,6 +1,7 @@
 package org.maachang.leveldb.types;
 
 import java.lang.reflect.Array;
+import java.util.AbstractList;
 import java.util.List;
 
 import org.maachang.leveldb.JniBuffer;
@@ -10,7 +11,7 @@ import org.maachang.leveldb.LeveldbException;
  * ２つのキーを保持する情報. Leveldbでは、１つのキーしか管理できないので、
  * この情報では、１つのキーで２つのキーを扱うような振舞をするような仕組みを取る.
  */
-public abstract class TwoKey implements LevelKey<Object> {
+public abstract class TwoKey extends AbstractList<Object> implements LevelKey<Object> {
 
 	/** NONE-BINARY. **/
 	public static final byte[] NONE = new byte[0];

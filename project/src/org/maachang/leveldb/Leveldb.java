@@ -370,6 +370,7 @@ public final class Leveldb {
 					cc = (Comparable)LevelId.get(type, keyBuf);
 					LevelBuffer.clearBuffer(keyBuf, null);
 					if(c.compareTo(cc) < 0) {
+						lv.before();
 						break;
 					}
 					lv.next();

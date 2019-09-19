@@ -9,9 +9,7 @@ import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -33,6 +31,8 @@ import org.maachang.leveldb.types.StrInt;
 import org.maachang.leveldb.types.StrLong;
 import org.maachang.leveldb.types.StrStr;
 import org.maachang.leveldb.types.TwoKey;
+import org.maachang.leveldb.util.ArrayMap;
+import org.maachang.leveldb.util.ObjectList;
 
 /**
  * Leveldb Valueデータ変換処理.
@@ -1125,7 +1125,7 @@ public final class LevelValues {
 		case 51: {
 			// List.
 			len = byte4Int(addr, pos);
-			List lst = new ArrayList(len);
+			List lst = new ObjectList(len);
 			for (i = 0; i < len; i++) {
 				lst.add(decodeObject(pos, b, length));
 			}
@@ -1134,7 +1134,7 @@ public final class LevelValues {
 		case 52: {
 			// Map.
 			len = byte4Int(addr, pos);
-			Map map = new HashMap();
+			Map map = new ArrayMap();
 			for (i = 0; i < len; i++) {
 				map.put(decodeObject(pos, b, length), decodeObject(pos, b, length));
 			}

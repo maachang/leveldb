@@ -5,13 +5,10 @@ import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Json変換処理.
@@ -65,12 +62,6 @@ public final class Json {
 
 	/**
 	 * JSON形式から、オブジェクト変換2.
-	 * <p>
-	 * 自前変換処理
-	 * </p>
-	 * <p>
-	 * 処理は、通常よりも１００倍程度速いが、機能が限定的
-	 * </p>
 	 * 
 	 * @param context
 	 *            対象のコンテキストを設定します.
@@ -81,29 +72,6 @@ public final class Json {
 	 *                例外.
 	 */
 	public static final Object decodeJSON(String json) throws Exception {
-		return decodeJSON(false, json);
-	}
-
-	/**
-	 * JSON形式から、オブジェクト変換2.
-	 * <p>
-	 * 自前変換処理
-	 * </p>
-	 * <p>
-	 * 処理は、通常よりも１００倍程度速いが、機能が限定的
-	 * </p>
-	 * 
-	 * @param mode
-	 *            [true]を設定した場合、MapオブジェクトをConcurrentHashMapで生成します.
-	 * @param context
-	 *            対象のコンテキストを設定します.
-	 * @param json
-	 *            対象のJSON情報を設定します.
-	 * @return Object 変換されたJSON情報が返されます.
-	 * @exception Exception
-	 *                例外.
-	 */
-	public static final Object decodeJSON(boolean mode, String json) throws Exception {
 		//
 		// Javaで解析.
 		// 速度は速いが、一定条件のみ.
@@ -128,10 +96,10 @@ public final class Json {
 				// Token解析処理.
 				if ("[".equals(list.get(0))) {
 					// List解析.
-					return createJsonInfo(mode, n, list, TYPE_ARRAY, 0, list.size());
+					return createJsonInfo(n, list, TYPE_ARRAY, 0, list.size());
 				} else {
 					// Map解析.
-					return createJsonInfo(mode, n, list, TYPE_MAP, 0, list.size());
+					return createJsonInfo(n, list, TYPE_MAP, 0, list.size());
 				}
 			} else if (json.startsWith("(") && json.endsWith(")")) {
 				json = json.substring(1, json.length() - 1).trim();
@@ -357,7 +325,7 @@ public final class Json {
 		int cote = -1;
 		int bef = -1;
 		int len = json.length();
-		List<Object> ret = new ArrayList<Object>();
+		List<Object> ret = new ObjectList<Object>();
 		// Token解析.
 		for (int i = 0; i < len; i++) {
 			c = json.charAt(i);
@@ -405,13 +373,13 @@ public final class Json {
 	}
 
 	/** Json-Token解析. **/
-	private static final Object createJsonInfo(boolean mode, int[] n, List<Object> token, int type, int no, int len)
+	private static final Object createJsonInfo(int[] n, List<Object> token, int type, int no, int len)
 			throws Exception {
 		String value;
 		StringBuilder before = null;
 		// List.
 		if (type == TYPE_ARRAY) {
-			List<Object> ret = new ArrayList<Object>();
+			List<Object> ret = new ObjectList<Object>();
 			int flg = 0;
 			for (int i = no + 1; i < len; i++) {
 				value = (String) token.get(i);
@@ -436,12 +404,12 @@ public final class Json {
 					before = null;
 					flg = 0;
 				} else if ("[".equals(value)) {
-					ret.add(createJsonInfo(mode, n, token, 0, i, len));
+					ret.add(createJsonInfo(n, token, 0, i, len));
 					i = n[0];
 					before = null;
 					flg = 0;
 				} else if ("{".equals(value)) {
-					ret.add(createJsonInfo(mode, n, token, 1, i, len));
+					ret.add(createJsonInfo(n, token, 1, i, len));
 					i = n[0];
 					before = null;
 					flg = 0;
@@ -460,12 +428,7 @@ public final class Json {
 		}
 		// map.
 		else if (type == TYPE_MAP) {
-			Map<String, Object> ret;
-			if (mode) {
-				ret = new ConcurrentHashMap<String, Object>();
-			} else {
-				ret = new HashMap<String, Object>();
-			}
+			Map<String, Object> ret = new ArrayMap();
 			String key = null;
 			for (int i = no + 1; i < len; i++) {
 				value = (String) token.get(i);
@@ -503,7 +466,7 @@ public final class Json {
 					if (key == null) {
 						throw new IOException("Map形式が不正です(No:" + i + ")");
 					}
-					ret.put(key, createJsonInfo(mode, n, token, 0, i, len));
+					ret.put(key, createJsonInfo(n, token, 0, i, len));
 					i = n[0];
 					key = null;
 					before = null;
@@ -511,7 +474,7 @@ public final class Json {
 					if (key == null) {
 						throw new IOException("Map形式が不正です(No:" + i + ")");
 					}
-					ret.put(key, createJsonInfo(mode, n, token, 1, i, len));
+					ret.put(key, createJsonInfo(n, token, 1, i, len));
 					i = n[0];
 					key = null;
 					before = null;

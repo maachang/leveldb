@@ -1,14 +1,13 @@
 package org.maachang.leveldb.util;
 
 import java.util.Arrays;
-import java.util.Comparator;
 
 /**
  * オブジェクトリスト.
  */
-@SuppressWarnings({ "rawtypes", "unchecked" })
-public class OList<T> {
-	private static final int DEF_LENGTH = 8;
+@SuppressWarnings({ "unchecked", "rawtypes" })
+public final class OList<T> {
+	private static final int DEF = 8;
 	private Object[] list;
 	private int length;
 	private int max;
@@ -27,7 +26,7 @@ public class OList<T> {
 	 * コンストラクタ.
 	 */
 	public OList() {
-		this(DEF_LENGTH);
+		this(DEF);
 	}
 
 	/**
@@ -37,8 +36,8 @@ public class OList<T> {
 	 *            初期配列サイズを設定します.
 	 */
 	public OList(int buf) {
-		if (buf < DEF_LENGTH) {
-			buf = DEF_LENGTH;
+		if (buf < DEF) {
+			buf = DEF;
 		}
 		max = buf;
 		list = new Object[buf];
@@ -48,22 +47,21 @@ public class OList<T> {
 	/**
 	 * コンストラクタ.
 	 * 
-	 * @param 初期設定情報を設定します
-	 *            .
+	 * @param 初期設定情報を設定します.
 	 */
-	public OList(Object[] o) {
+	public OList(Object... o) {
 		if (o != null && o.length > 0) {
 			int oLen = o.length;
 			int len = oLen + (oLen >> 1);
-			if (len < DEF_LENGTH) {
-				len = DEF_LENGTH;
+			if (len < DEF) {
+				len = DEF;
 			}
 			max = len;
 			list = new Object[len];
 			length = oLen;
 			System.arraycopy(o, 0, list, 0, oLen);
 		} else {
-			max = DEF_LENGTH;
+			max = DEF;
 			list = new Object[max];
 			length = 0;
 		}
@@ -73,22 +71,18 @@ public class OList<T> {
 	 * 情報クリア.
 	 */
 	public void clear() {
-		if (list.length != max) {
-			list = new Object[max];
-		}
+		list = new Object[max];
 		length = 0;
 	}
 
 	/**
 	 * 情報クリア.
 	 * 
-	 * @param len
-	 *            クリア時に対象の長さ未満の場合は、格納オブジェクトを再作成します.
+	 * @param buf
+	 *            クリアーする場合の再生成サイズ指定をします.
 	 */
-	public void clear(int len) {
-		if (list.length < len) {
-			list = new Object[len];
-		}
+	public void clear(int buf) {
+		list = new Object[buf];
 		length = 0;
 	}
 
@@ -100,7 +94,8 @@ public class OList<T> {
 	 */
 	public void add(T n) {
 		if (length + 1 >= list.length) {
-			Object[] tmp = new Object[length << 1];
+			Object[] tmp = new Object[(length + (length >> 1)) + 4] ;
+			//Object[] tmp = new Object[length << 1];
 			System.arraycopy(list, 0, tmp, 0, length);
 			list = tmp;
 		}
@@ -114,9 +109,15 @@ public class OList<T> {
 	 *            対象の項番を設定します.
 	 * @param o
 	 *            対象の要素を設定します.
+	 * @return T 前の情報が返却されます.
 	 */
-	public void set(int no, T o) {
+	public T set(int no, T o) {
+		if (no < 0 || no >= length) {
+			return null;
+		}
+		T ret = (T)list[no];
 		list[no] = o;
+		return ret;
 	}
 
 	/**
@@ -127,6 +128,9 @@ public class OList<T> {
 	 * @return T 対象の要素が返却されます.
 	 */
 	public T get(int no) {
+		if (no < 0 || no >= length) {
+			return null;
+		}
 		return (T) list[no];
 	}
 
@@ -135,12 +139,16 @@ public class OList<T> {
 	 * 
 	 * @param no
 	 *            対象の項番を設定します.
+	 * @return T 削除された情報が返却されます.
 	 */
-	public void remove(int no) {
+	public T remove(int no) {
 		if (no < 0 || no >= length) {
-			return;
+			return null;
 		}
+		T ret = null;
 		if (length == 1) {
+			length = 0;
+			ret = (T)list[0];
 			list[0] = null;
 		} else {
 			// 厳密な削除.
@@ -151,9 +159,11 @@ public class OList<T> {
 
 			// 速度重視の削除.
 			length--;
+			ret = (T)list[no];
 			list[no] = list[length];
 			list[length] = null;
 		}
+		return ret;
 	}
 
 	/**
@@ -163,6 +173,54 @@ public class OList<T> {
 	 */
 	public int size() {
 		return length;
+	}
+
+	/**
+	 * ソートを行います.
+	 * 
+	 * @return OList このオブジェクトが返却されます.
+	 */
+	public OList sort() {
+		if (length > 0) {
+			Arrays.sort(list, 0, length);
+		}
+		return this;
+	}
+
+	/**
+	 * オブジェクト配列情報を取得.
+	 * 
+	 * @return Object[] 配列情報として取得します.
+	 */
+	public Object[] getArray() {
+		Object[] ret = new Object[length];
+		System.arraycopy(list, 0, ret, 0, length);
+		return ret;
+	}
+
+	/**
+	 * オブジェクト配列情報を取得.
+	 * 
+	 * @return Object[] 配列情報として取得します.
+	 */
+	public Object[] toArray() {
+		return list;
+	}
+
+	/**
+	 * 内容を文字列で取得.
+	 * 
+	 * @return String 文字列が返却されます.
+	 */
+	public String toString() {
+		StringBuilder buf = new StringBuilder();
+		for (int i = 0; i < length; i++) {
+			if (i != 0) {
+				buf.append(",");
+			}
+			buf.append(list[i]);
+		}
+		return buf.toString();
 	}
 
 	/**
@@ -213,76 +271,5 @@ public class OList<T> {
 			}
 		}
 		return -1;
-	}
-
-	/**
-	 * ソートを行います.
-	 * 
-	 * @return OList このオブジェクトが返却されます.
-	 */
-	public OList sort() {
-		if (length > 0) {
-			Arrays.sort(list, 0, length);
-		}
-		return this;
-	}
-
-	/**
-	 * ソートを行います.
-	 * 
-	 * @param c
-	 *            対象のコンパレータを設定します.
-	 * @return OList このオブジェクトが返却されます.
-	 */
-	public OList sort(Comparator<Object> c) {
-		if (length > 0) {
-			Arrays.sort(list, 0, length, c);
-		}
-		return this;
-	}
-
-	/**
-	 * オブジェクト配列情報を取得.
-	 * 
-	 * @return Object[] 配列情報として取得します.
-	 */
-	public Object[] getArray() {
-		Object[] ret = new Object[length];
-		System.arraycopy(list, 0, ret, 0, length);
-		return ret;
-	}
-
-	/**
-	 * オブジェクト配列情報を取得.
-	 * 
-	 * @return Object[] 配列情報として取得します.
-	 */
-	public Object[] toArray() {
-		return getArray();
-	}
-
-	/**
-	 * 内部の配列をそのまま取得.
-	 * 
-	 * @return Object[] 内部の配列が返却されます.
-	 */
-	public Object[] array() {
-		return list;
-	}
-
-	/**
-	 * 内容を文字列で取得.
-	 * 
-	 * @return String 文字列が返却されます.
-	 */
-	public String toString() {
-		StringBuilder buf = new StringBuilder();
-		for (int i = 0; i < length; i++) {
-			if (i != 0) {
-				buf.append(",");
-			}
-			buf.append(list[i]);
-		}
-		return buf.toString();
 	}
 }

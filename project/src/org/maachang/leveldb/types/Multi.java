@@ -1,5 +1,7 @@
 package org.maachang.leveldb.types;
 
+import java.util.AbstractList;
+
 import org.maachang.leveldb.JniBuffer;
 import org.maachang.leveldb.JniIO;
 import org.maachang.leveldb.LevelOption;
@@ -9,7 +11,7 @@ import org.maachang.leveldb.util.OList;
 /**
  * マルチID. バイナリキー系の複数ID管理.
  */
-public class Multi implements LevelKey<Object> {
+public class Multi extends AbstractList<Object> implements LevelKey<Object> {
 	private static final int TYPE_STRING = 0;
 	private static final int TYPE_INT = 1;
 	private static final int TYPE_LONG = 2;
@@ -89,12 +91,10 @@ public class Multi implements LevelKey<Object> {
 	 * 
 	 * @param len
 	 *            指定以下の値の場合は、この値で配列を作成します.
-	 * @return MultiId オブジェクトが返却されます.
 	 */
-	public Multi clear(int len) {
+	public void clear(int len) {
 		list.clear(len);
 		binaryLength = 0;
-		return this;
 	}
 
 	/**
@@ -102,10 +102,9 @@ public class Multi implements LevelKey<Object> {
 	 * 
 	 * @return MultiId オブジェクトが返却されます.
 	 */
-	public Multi clear() {
+	public void clear() {
 		list.clear();
 		binaryLength = 0;
-		return this;
 	}
 
 	/**
