@@ -4,7 +4,8 @@ import org.maachang.leveldb.JniBuffer;
 import org.maachang.leveldb.JniIO;
 import org.maachang.leveldb.LevelOption;
 import org.maachang.leveldb.LeveldbException;
-import org.maachang.leveldb.util.Utils;
+import org.maachang.leveldb.util.BinaryUtil;
+import org.maachang.leveldb.util.Converter;
 
 /**
  * バイナリ、文字列の２キー情報.
@@ -184,7 +185,7 @@ public final class BinStr extends TwoKey {
 		if (o == null) {
 			this.two = "";
 		} else {
-			this.two = Utils.convertString(o);
+			this.two = Converter.convertString(o);
 		}
 		return this;
 	}
@@ -233,9 +234,9 @@ public final class BinStr extends TwoKey {
 			TwoKey t = (TwoKey) o;
 			Object v = t.one();
 			if (v instanceof byte[]) {
-				int ret = Utils.binaryCompareTo(one, (byte[]) v);
+				int ret = BinaryUtil.binaryCompareTo(one, (byte[]) v);
 				if (ret == 0) {
-					return two.compareTo(Utils.convertString(t.two()));
+					return two.compareTo(Converter.convertString(t.two()));
 				}
 				return ret;
 			}
@@ -243,7 +244,7 @@ public final class BinStr extends TwoKey {
 		} else if (o instanceof byte[]) {
 
 			// １つの文字オブジェクトとone文字との比較.
-			int ret = Utils.binaryCompareTo(one, (byte[]) o);
+			int ret = BinaryUtil.binaryCompareTo(one, (byte[]) o);
 			if (ret == 0) {
 				return (two.length() > 0) ? 1 : 0;
 			}
@@ -278,6 +279,6 @@ public final class BinStr extends TwoKey {
 	 * @return String 文字列が返却されます.
 	 */
 	public final String toString() {
-		return new StringBuilder("[bin-str]").append(Utils.binaryToHexString(one)).append(two).toString();
+		return new StringBuilder("[bin-str]").append(BinaryUtil.binaryToHexString(one)).append(two).toString();
 	}
 }

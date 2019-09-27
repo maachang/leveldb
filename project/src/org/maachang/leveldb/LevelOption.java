@@ -2,7 +2,7 @@ package org.maachang.leveldb;
 
 import java.util.Map;
 
-import org.maachang.leveldb.util.Utils;
+import org.maachang.leveldb.util.Converter;
 
 /**
  * LevelOptionオプション.
@@ -161,26 +161,26 @@ public final class LevelOption {
 		}
 		int len = args.length;
 		if (len >= 1) {
-			if (Utils.isNumeric(args[0])) {
-				setType(Utils.convertInt(args[0]));
+			if (Converter.isNumeric(args[0])) {
+				setType(Converter.convertInt(args[0]));
 			} else {
-				setType(Utils.convertString(args[0]));
+				setType(Converter.convertString(args[0]));
 			}
 		}
-		if (len >= 2 && Utils.isNumeric(args[1])) {
-			setWriteBufferSize(Utils.convertInt(args[1]));
+		if (len >= 2 && Converter.isNumeric(args[1])) {
+			setWriteBufferSize(Converter.convertInt(args[1]));
 		}
-		if (len >= 3 && Utils.isNumeric(args[2])) {
-			setMaxOpenFiles(Utils.convertInt(args[2]));
+		if (len >= 3 && Converter.isNumeric(args[2])) {
+			setMaxOpenFiles(Converter.convertInt(args[2]));
 		}
-		if (len >= 4 && Utils.isNumeric(args[3])) {
-			setBlockSize(Utils.convertInt(args[3]));
+		if (len >= 4 && Converter.isNumeric(args[3])) {
+			setBlockSize(Converter.convertInt(args[3]));
 		}
-		if (len >= 5 && Utils.isNumeric(args[4])) {
-			setBlockCache(Utils.convertInt(args[4]));
+		if (len >= 5 && Converter.isNumeric(args[4])) {
+			setBlockCache(Converter.convertInt(args[4]));
 		}
-		if (len >= 6 && Utils.isNumeric(args[5])) {
-			setBlockRestartInterval(Utils.convertInt(args[5]));
+		if (len >= 6 && Converter.isNumeric(args[5])) {
+			setBlockRestartInterval(Converter.convertInt(args[5]));
 		}
 
 	}

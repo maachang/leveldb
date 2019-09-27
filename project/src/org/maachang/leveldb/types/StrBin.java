@@ -6,7 +6,8 @@ import org.maachang.leveldb.JniBuffer;
 import org.maachang.leveldb.JniIO;
 import org.maachang.leveldb.LevelOption;
 import org.maachang.leveldb.LeveldbException;
-import org.maachang.leveldb.util.Utils;
+import org.maachang.leveldb.util.BinaryUtil;
+import org.maachang.leveldb.util.Converter;
 
 /**
  * 文字列、バイナリの２キー情報.
@@ -169,7 +170,7 @@ public final class StrBin extends TwoKey {
 		if (o == null) {
 			this.one = "";
 		} else {
-			this.one = Utils.convertString(o);
+			this.one = Converter.convertString(o);
 		}
 		return this;
 	}
@@ -235,16 +236,16 @@ public final class StrBin extends TwoKey {
 		// データがTwoKeyの場合は、２つの条件を文字文字でチェック.
 		if (o instanceof TwoKey) {
 			TwoKey t = (TwoKey) o;
-			int ret = one.compareTo(Utils.convertString(t.one()));
+			int ret = one.compareTo(Converter.convertString(t.one()));
 			if (ret == 0) {
 				if (t.two() instanceof byte[]) {
-					return Utils.binaryCompareTo(two, (byte[]) t.two());
+					return BinaryUtil.binaryCompareTo(two, (byte[]) t.two());
 				}
 			}
 			return ret;
 		}
 		// それ以外の場合は、文字オブジェクトとして変換.
-		if ((Utils.convertString(o)) == null) {
+		if ((Converter.convertString(o)) == null) {
 			o = "";
 		}
 		// １つの文字オブジェクトとone文字との比較.
@@ -281,7 +282,7 @@ public final class StrBin extends TwoKey {
 	 * @return String 文字列が返却されます.
 	 */
 	public final String toString() {
-		return new StringBuilder("[str-bin]").append(one).append(Utils.binaryToHexString(two)).toString();
+		return new StringBuilder("[str-bin]").append(one).append(BinaryUtil.binaryToHexString(two)).toString();
 	}
 
 }

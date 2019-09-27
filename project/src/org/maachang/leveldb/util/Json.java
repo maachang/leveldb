@@ -1,7 +1,5 @@
 package org.maachang.leveldb.util;
 
-import java.io.IOException;
-import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -13,79 +11,40 @@ import java.util.Map;
 /**
  * Json変換処理.
  */
-@SuppressWarnings({ "rawtypes" })
+@SuppressWarnings("rawtypes")
 public final class Json {
-	private Json() {
+	protected Json() {
 	}
 
+	// json配列.
 	private static final int TYPE_ARRAY = 0;
+	// json連想配列.
 	private static final int TYPE_MAP = 1;
 
-	private static final String DECODE_BASE_64 = "atob";
-	private static final int DECODE_BASE_64_LEN = DECODE_BASE_64.length();
-
-	private static final String NEW_DATE = "Date";
-	private static final int NEW_DATE_LEN = NEW_DATE.length();
-
-	private static final String JAVA_SERIALIZABLE = "serial";
-	private static final int JAVA_SERIALIZABLE_LEN = JAVA_SERIALIZABLE.length();
-
 	/**
 	 * JSON変換.
 	 * 
 	 * @param target
 	 *            対象のターゲットオブジェクトを設定します.
 	 * @return String 変換されたJSON情報が返されます.
-	 * @exception Exception
-	 *                例外.
 	 */
-	public static final String encodeJSON(Object target) throws Exception {
-		return encodeJSON(false, target);
-	}
-
-	/**
-	 * JSON変換.
-	 * 
-	 * @param mode
-	 *            [true]の場合、byte配列条件に対して、Base64変換処理を行います.
-	 * @param target
-	 *            対象のターゲットオブジェクトを設定します.
-	 * @return String 変換されたJSON情報が返されます.
-	 * @exception Exception
-	 *                例外.
-	 */
-	public static final String encodeJSON(boolean mode, Object target) throws Exception {
+	public static final String encode(Object target) {
 		StringBuilder buf = new StringBuilder();
-		_encode(mode, buf, target, target);
+		_encode(buf, target, target);
 		return buf.toString();
 	}
 
 	/**
 	 * JSON形式から、オブジェクト変換2.
 	 * 
-	 * @param context
-	 *            対象のコンテキストを設定します.
 	 * @param json
 	 *            対象のJSON情報を設定します.
 	 * @return Object 変換されたJSON情報が返されます.
-	 * @exception Exception
-	 *                例外.
 	 */
-	public static final Object decodeJSON(String json) throws Exception {
-		//
-		// Javaで解析.
-		// 速度は速いが、一定条件のみ.
-		// 対応条件: byte変換:decodeBase64
-		// Date対応:new Date()
-		// それ以外は非対応.
+	public static final Object decode(String json) {
 		if (json == null) {
 			return null;
 		}
-		// コメントを除外.
-		if ((json = ParseUtil.cutComment(json.trim()).trim()).length() == 0) {
-			return json;
-		}
-
 		List<Object> list;
 		int[] n = new int[1];
 		while (true) {
@@ -111,71 +70,44 @@ public final class Json {
 	}
 
 	/** [encodeJSON]jsonコンバート. **/
-	private static final void _encode(boolean mode, StringBuilder buf, Object base, Object target) throws Exception {
+	private static final void _encode(StringBuilder buf, Object base, Object target) {
+		// null の場合.
+		if (target == null) {
+			// nullで表現.
+			buf.append("null");
+			return;
+		}
 		if (target instanceof Map) {
-			encodeJsonMap(mode, buf, base, (Map) target);
+			encodeJsonMap(buf, base, (Map) target);
 		} else if (target instanceof List) {
-			encodeJsonList(mode, buf, base, (List) target);
-		} else if (target instanceof Long) {
-			// longの場合、javascriptでは、倍角浮動小数点のため、
-			// 大きな64ビット整数を扱うと、丸められるため、
-			// 一定以上の大きさの場合(１５桁(マイナスの場合は１６桁）を超える場合)
-			// は、文字列で渡す.
-			long n = (Long) target;
-			if (n >= 0L) {
-				if ((n & 0x7ff0000000000000L) != 0L) {
-					buf.append("\"").append(target).append("\"");
-				} else {
-					buf.append(target);
-				}
-			} else if (((~n) & 0x7ff0000000000000L) != 0) {
-				buf.append("\"").append(target).append("\"");
-			} else {
-				buf.append(target);
-			}
-		} else if (target instanceof Short || target instanceof Integer || target instanceof Float
-				|| target instanceof Double || target instanceof BigInteger || target instanceof BigDecimal) {
+			encodeJsonList(buf, base, (List) target);
+		} else if (target instanceof Long || target instanceof Short || target instanceof Integer
+				|| target instanceof Float || target instanceof Double || target instanceof BigInteger
+				|| target instanceof BigDecimal) {
 			buf.append(target);
 		} else if (target instanceof Character || target instanceof String) {
 			buf.append("\"").append(target).append("\"");
 		} else if (target instanceof byte[]) {
-			if (mode) {
-				buf.append(DECODE_BASE_64).append("(").append("\"").append(Base64.encode((byte[]) target)).append("\"")
-						.append(")");
-			} else {
-				buf.append("null");
-			}
+			buf.append("null");
 		} else if (target instanceof char[]) {
-			buf.append("\"").append(new String((char[]) target, 0, ((char[]) target).length)).append("\"");
+			buf.append("\"").append(new String((char[]) target)).append("\"");
 		} else if (target instanceof java.util.Date) {
-			buf.append("new Date(").append(((java.util.Date) target).getTime()).append(")");
+			buf.append("\"").append(dateToString((java.util.Date) target)).append("\"");
 		} else if (target instanceof Boolean) {
 			buf.append(target);
-		} else if (target == null) {
-			buf.append("null");
 		} else if (target.getClass().isArray()) {
 			if (Array.getLength(target) == 0) {
 				buf.append("[]");
 			} else {
-				encodeJsonArray(mode, buf, base, target);
-			}
-		}
-		// シリアライズオブジェクトの変換.
-		else if (target instanceof Serializable) {
-			if (mode) {
-				buf.append(JAVA_SERIALIZABLE).append("(").append("\"")
-						.append(Base64.encode(SerializableUtil.toBinary((Serializable) target))).append("\"")
-						.append(")");
-			} else {
-				buf.append("null");
+				encodeJsonArray(buf, base, target);
 			}
 		} else {
-			buf.append("null");
+			buf.append("\"").append(target.toString()).append("\"");
 		}
 	}
 
 	/** [encodeJSON]jsonMapコンバート. **/
-	private static final void encodeJsonMap(boolean mode, StringBuilder buf, Object base, Map map) throws Exception {
+	private static final void encodeJsonMap(StringBuilder buf, Object base, Map map) {
 		boolean flg = false;
 		Map mp = (Map) map;
 		Iterator it = mp.keySet().iterator();
@@ -191,13 +123,13 @@ public final class Json {
 			}
 			flg = true;
 			buf.append("\"").append(key).append("\":");
-			_encode(mode, buf, base, value);
+			_encode(buf, base, value);
 		}
 		buf.append("}");
 	}
 
 	/** [encodeJSON]jsonListコンバート. **/
-	private static final void encodeJsonList(boolean mode, StringBuilder buf, Object base, List list) throws Exception {
+	private static final void encodeJsonList(StringBuilder buf, Object base, List list) {
 		boolean flg = false;
 		List lst = (List) list;
 		buf.append("[");
@@ -211,14 +143,13 @@ public final class Json {
 				buf.append(",");
 			}
 			flg = true;
-			_encode(mode, buf, base, value);
+			_encode(buf, base, value);
 		}
 		buf.append("]");
 	}
 
 	/** [encodeJSON]json配列コンバート. **/
-	private static final void encodeJsonArray(boolean mode, StringBuilder buf, Object base, Object list)
-			throws Exception {
+	private static final void encodeJsonArray(StringBuilder buf, Object base, Object list) {
 		boolean flg = false;
 		int len = Array.getLength(list);
 		buf.append("[");
@@ -231,21 +162,26 @@ public final class Json {
 				buf.append(",");
 			}
 			flg = true;
-			_encode(mode, buf, base, value);
+			_encode(buf, base, value);
 		}
 		buf.append("]");
 	}
 
 	/** [decodeJSON]１つの要素を変換. **/
-	private static final Object decJsonValue(int[] n, int no, String json) throws Exception {
-		// json = json.trim() ;
+	private static final Object decJsonValue(int[] n, int no, String json) {
 		int len;
 		if ((len = json.length()) <= 0) {
 			return json;
 		}
 		// 文字列コーテーション区切り.
 		if ((json.startsWith("\"") && json.endsWith("\"")) || (json.startsWith("\'") && json.endsWith("\'"))) {
-			return json.substring(1, len - 1);
+			json = json.substring(1, len - 1);
+
+			// ISO8601の日付フォーマットかチェック.
+			if (DateConvert.isISO8601(json)) {
+				return stringToDate(json);
+			}
+			return json;
 		}
 		// NULL文字.
 		else if ("null".equals(json)) {
@@ -260,66 +196,18 @@ public final class Json {
 			return Boolean.FALSE;
 		}
 		// 数値.
-		if (Utils.isNumeric(json)) {
+		if (isNumeric(json)) {
 			if (json.indexOf(".") != -1) {
-				return Utils.parseDouble(json);
+				return Double.parseDouble(json);
 			}
-			return Utils.parseLong(json);
-		}
-		// new Date.
-		else if (json.startsWith("new")) {
-			int x = ParseUtil.indexByEquals(json, NEW_DATE, 0);
-			if (x != -1) {
-				int b = x + NEW_DATE_LEN;
-				x = ParseUtil.indexParAndCote(json, '(', ')', b);
-				b = ParseUtil.indexByEquals(json, "(", b);
-				if (x == -1) {
-					throw new IOException("JSON解析に失敗(" + json + "):No:" + no);
-				}
-				String s = json.substring(b + 1, x).trim();
-				if (s.length() <= 0) {
-					return new Date();
-				}
-				if ((s.startsWith("'") && s.endsWith("'")) || (s.startsWith("\"") && s.endsWith("\""))) {
-					s = s.substring(1, s.length() - 1).trim();
-				}
-				return new Date(Utils.parseLong(s));
-			}
-		}
-		// decodeBase64.
-		else if (json.startsWith(DECODE_BASE_64)) {
-			int b = DECODE_BASE_64_LEN;
-			int x = ParseUtil.indexParAndCote(json, '(', ')', b);
-			b = ParseUtil.indexByEquals(json, "(", b);
-			if (x == -1) {
-				throw new IOException("JSON解析に失敗(" + json + "):No:" + no);
-			}
-			String s = json.substring(b + 1, x).trim();
-			if ((s.startsWith("'") && s.endsWith("'")) || (s.startsWith("\"") && s.endsWith("\""))) {
-				s = s.substring(1, s.length() - 1).trim();
-			}
-			return Base64.decode(s);
-		}
-		// serializable.
-		else if (json.startsWith(JAVA_SERIALIZABLE)) {
-			int b = JAVA_SERIALIZABLE_LEN;
-			int x = ParseUtil.indexParAndCote(json, '(', ')', b);
-			b = ParseUtil.indexByEquals(json, "(", b);
-			if (x == -1) {
-				throw new IOException("JSON解析に失敗(" + json + "):No:" + no);
-			}
-			String s = json.substring(b + 1, x).trim();
-			if ((s.startsWith("'") && s.endsWith("'")) || (s.startsWith("\"") && s.endsWith("\""))) {
-				s = s.substring(1, s.length() - 1).trim();
-			}
-			return SerializableUtil.toObject(Base64.decode(s));
+			return Long.parseLong(json);
 		}
 		// その他.
-		throw new IOException("JSON解析に失敗(" + json + "):No:" + no);
+		throw new ConvertException("Failed to parse JSON(" + json + "):No:" + no);
 	}
 
 	/** JSON_Token_解析処理 **/
-	private static final List<Object> analysisJsonToken(String json) throws Exception {
+	private static final List<Object> analysisJsonToken(String json) {
 		int s = -1;
 		char c;
 		int cote = -1;
@@ -353,7 +241,7 @@ public final class Json {
 				if (s != -1 && s != i && bef != ' ' && bef != '　' && bef != '\t' && bef != '\n' && bef != '\r') {
 					ret.add(json.substring(s, i));
 				}
-				ret.add(new String(new char[] { c }, 0, 1));
+				ret.add(new String(new char[] { c }));
 				s = i + 1;
 			}
 			// 連続空間区切り.
@@ -373,8 +261,7 @@ public final class Json {
 	}
 
 	/** Json-Token解析. **/
-	private static final Object createJsonInfo(int[] n, List<Object> token, int type, int no, int len)
-			throws Exception {
+	private static final Object createJsonInfo(int[] n, List<Object> token, int type, int no, int len) {
 		String value;
 		StringBuilder before = null;
 		// List.
@@ -428,13 +315,15 @@ public final class Json {
 		}
 		// map.
 		else if (type == TYPE_MAP) {
-			Map<String, Object> ret = new ArrayMap();
+			Map<String, Object> ret;
+			// ret = new HashMap<String, Object>();
+			ret = new ArrayMap();
 			String key = null;
 			for (int i = no + 1; i < len; i++) {
 				value = (String) token.get(i);
 				if (":".equals(value)) {
 					if (key == null) {
-						throw new IOException("Map形式が不正です(No:" + i + ")");
+						throw new ConvertException("Map format is invalid(No:" + i + ")");
 					}
 				} else if (",".equals(value) || "}".equals(value)) {
 					if ("}".equals(value)) {
@@ -452,7 +341,7 @@ public final class Json {
 							if (before == null) {
 								continue;
 							}
-							throw new IOException("Map形式が不正です(No:" + i + ")");
+							throw new ConvertException("Map format is invalid(No:" + i + ")");
 						}
 						if (before == null) {
 							ret.put(key, null);
@@ -464,7 +353,7 @@ public final class Json {
 					}
 				} else if ("[".equals(value)) {
 					if (key == null) {
-						throw new IOException("Map形式が不正です(No:" + i + ")");
+						throw new ConvertException("Map format is invalid(No:" + i + ")");
 					}
 					ret.put(key, createJsonInfo(n, token, 0, i, len));
 					i = n[0];
@@ -472,7 +361,7 @@ public final class Json {
 					before = null;
 				} else if ("{".equals(value)) {
 					if (key == null) {
-						throw new IOException("Map形式が不正です(No:" + i + ")");
+						throw new ConvertException("Map format is invalid(No:" + i + ")");
 					}
 					ret.put(key, createJsonInfo(n, token, 1, i, len));
 					i = n[0];
@@ -496,6 +385,26 @@ public final class Json {
 			return ret;
 		}
 		// その他.
-		throw new IOException("JSON解析に失敗");
+		throw new ConvertException("Failed to parse JSON");
+	}
+
+	/** 日付情報チェック. **/
+	private static final boolean isNumeric(String o) {
+		try {
+			Double.parseDouble(o);
+		} catch (Exception e) {
+			return false;
+		}
+		return true;
+	}
+
+	/** 日付を文字変換. **/
+	private static final String dateToString(Date d) {
+		return DateConvert.getISO8601(d);
+	}
+
+	/** 文字を日付変換. **/
+	private static final Date stringToDate(String s) {
+		return DateConvert.stringToDate(s);
 	}
 }

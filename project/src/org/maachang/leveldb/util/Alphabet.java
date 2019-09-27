@@ -3,10 +3,10 @@ package org.maachang.leveldb.util;
 /**
  * アルファベット半角全角チェック処理.
  */
-class AZ_az {
+public class Alphabet {
 
 	/** アルファベットの半角全角変換値. **/
-	private static final char[] _mM = new char[65536];
+	protected static final char[] _mM = new char[65536];
 	static {
 		int len = _mM.length;
 		for (int i = 0; i < len; i++) {
@@ -113,29 +113,27 @@ class AZ_az {
 	 * @return int マッチする位置が返却されます. [-1]の場合は情報は存在しません.
 	 */
 	public static final int indexOf(final String buf, final String chk, final int off) {
-		int len = chk.length();
-
+		final int len = chk.length();
 		// 単数文字検索.
 		if (len == 1) {
-			int vLen = buf.length();
-			char first = chk.charAt(0);
-			for (int i = off; i < vLen; i++) {
-				if (!oneEq(first, buf.charAt(i))) {
-					while (++i < vLen && !oneEq(first, buf.charAt(i)))
-						;
-					if (vLen != i) {
-						return i;
-					}
-				} else {
+			int i = off;
+			final char first = chk.charAt(0);
+			if (!oneEq(first, buf.charAt(i))) {
+				final int vLen = buf.length();
+				while (++i < vLen && !oneEq(first, buf.charAt(i)))
+					;
+				if (vLen != i) {
 					return i;
 				}
+			} else {
+				return i;
 			}
 		}
 		// 複数文字検索.
 		else {
-			char first = chk.charAt(0);
-			int vLen = buf.length() - (len - 1);
 			int j, k, next;
+			final char first = chk.charAt(0);
+			final int vLen = buf.length() - (len - 1);
 			for (int i = off; i < vLen; i++) {
 				if (!oneEq(first, buf.charAt(i))) {
 					while (++i < vLen && !oneEq(first, buf.charAt(i)))
@@ -162,7 +160,7 @@ class AZ_az {
 	 */
 	public static final int hash(String n) {
 		int ret = 0;
-		int len = n.length();
+		final int len = n.length();
 		for (int i = 0; i < len; i++) {
 			ret = 31 * ret + (int) (_mM[n.charAt(i)]);
 		}
@@ -182,7 +180,7 @@ class AZ_az {
 		for (int i = 0; i < len; i++) {
 			c[i] = _mM[c[i]];
 		}
-		return new String(c, 0, len);
+		return new String(c);
 	}
 
 	/**

@@ -6,7 +6,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.maachang.leveldb.util.Utils;
+import org.maachang.leveldb.util.Converter;
 
 /**
  * Leveldb配列オブジェクト. 読み込みに特化した、MapライクなLevedb専用の配列オブジェクト.
@@ -662,10 +662,10 @@ public class LevelArray {
 
 	/** キー変換. **/
 	private static final Object convertKey(Object key) {
-		if (Utils.isNumeric(key)) {
-			return Utils.convertLong(key);
+		if (Converter.isNumeric(key)) {
+			return Converter.convertLong(key);
 		}
-		return Utils.convertString(key);
+		return Converter.convertString(key);
 	}
 
 	/** 判別処理. **/
@@ -673,7 +673,7 @@ public class LevelArray {
 		if (a instanceof Long && b instanceof Long) {
 			return ((Comparable) a).compareTo(b);
 		}
-		return Utils.convertString(a).compareTo(Utils.convertString(b));
+		return Converter.convertString(a).compareTo(Converter.convertString(b));
 	}
 
 	/** ソート用オブジェクト. **/

@@ -206,7 +206,7 @@ public class Config {
 	 */
 	public Boolean getBoolean(String section, String key, int no) {
 		try {
-			return Utils.convertBool(get(section, key, no));
+			return Converter.convertBool(get(section, key, no));
 		} catch (Exception e) {
 			return null;
 		}
@@ -225,7 +225,7 @@ public class Config {
 	 */
 	public Integer getInt(String section, String key, int no) {
 		try {
-			return Utils.convertInt(get(section, key, no));
+			return Converter.convertInt(get(section, key, no));
 		} catch (Exception e) {
 			return null;
 		}
@@ -244,7 +244,7 @@ public class Config {
 	 */
 	public Long getLong(String section, String key, int no) {
 		try {
-			return Utils.convertLong(get(section, key, no));
+			return Converter.convertLong(get(section, key, no));
 		} catch (Exception e) {
 			return null;
 		}
@@ -263,7 +263,7 @@ public class Config {
 	 */
 	public Double getDouble(String section, String key, int no) {
 		try {
-			return Utils.convertDouble(get(section, key, no));
+			return Converter.convertDouble(get(section, key, no));
 		} catch (Exception e) {
 			return null;
 		}
@@ -282,7 +282,7 @@ public class Config {
 	 */
 	public String getString(String section, String key, int no) {
 		try {
-			return Utils.convertString(get(section, key, no));
+			return Converter.convertString(get(section, key, no));
 		} catch (Exception e) {
 			return null;
 		}
@@ -301,7 +301,7 @@ public class Config {
 	 */
 	public java.sql.Date getSqlDate(String section, String key, int no) {
 		try {
-			return Utils.convertSqlDate(get(section, key, no));
+			return Converter.convertSqlDate(get(section, key, no));
 		} catch (Exception e) {
 			return null;
 		}
@@ -320,7 +320,7 @@ public class Config {
 	 */
 	public java.sql.Time getSqlTime(String section, String key, int no) {
 		try {
-			return Utils.convertSqlTime(get(section, key, no));
+			return Converter.convertSqlTime(get(section, key, no));
 		} catch (Exception e) {
 			return null;
 		}
@@ -339,7 +339,7 @@ public class Config {
 	 */
 	public java.sql.Timestamp getSqlTimestamp(String section, String key, int no) {
 		try {
-			return Utils.convertSqlTimestamp(get(section, key, no));
+			return Converter.convertSqlTimestamp(get(section, key, no));
 		} catch (Exception e) {
 			return null;
 		}
@@ -358,7 +358,7 @@ public class Config {
 	 */
 	public java.util.Date getDate(String section, String key, int no) {
 		try {
-			return Utils.convertSqlTimestamp(get(section, key, no));
+			return Converter.convertSqlTimestamp(get(section, key, no));
 		} catch (Exception e) {
 			return null;
 		}

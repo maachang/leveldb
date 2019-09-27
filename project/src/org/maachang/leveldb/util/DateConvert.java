@@ -1,5 +1,7 @@
 package org.maachang.leveldb.util;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -7,20 +9,19 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.TimeZone;
 
-import org.maachang.leveldb.LeveldbException;
-
 /**
- * 日付時間ユーティリティ. 3種類の日付フォーマット変換に対応. 1)20130301 -> java.sql.Date( 2013-1900,3-1,1
- * ) 連続した数値文字列のフォーマットを解析.
+ * 日付フォーマット変換. 3種類の日付フォーマット変換に対応.
  * 
- * 2)2013/03/01 -> java.sql.Date( 2013-1900,3-1,1 ) 13/03/01 -> java.sql.Date(
- * 2013-1900,3-1,1 ) 数値以外の区切り文字条件を解析.
+ * 1)20130301 -> java.sql.Date(2013-1900,3-1,1 ) 連続した数値文字列のフォーマットを解析.
+ * 
+ * 2)2013/03/01 -> java.sql.Date( 2013-1900,3-1,1 ) 13/03/01 ->
+ * java.sql.Date(2013-1900,3-1,1 ) 数値以外の区切り文字条件を解析.
  * 
  * 3)Wed, 19-Mar-2014 03:55:33 GMT Web日付フォーマットの内容をjava.sql.Timestampに変換します.
  */
 @SuppressWarnings("deprecation")
-public final class DateTimeUtil {
-	private DateTimeUtil() {
+public final class DateConvert {
+	private DateConvert() {
 	}
 
 	/** グリニッジ標準時タイムゾーン. **/
@@ -31,17 +32,17 @@ public final class DateTimeUtil {
 		String h = String.valueOf((new java.util.Date().getYear() + 1900));
 		switch (v.length()) {
 		case 0:
-			return Utils.parseInt(h) - 1900;
+			return Converter.parseInt(h) - 1900;
 		case 1:
-			return Utils.parseInt(h.substring(0, h.length() - 1) + v) - 1900;
+			return Converter.parseInt(h.substring(0, h.length() - 1) + v) - 1900;
 		case 2:
-			return Utils.parseInt(h.substring(0, h.length() - 2) + v) - 1900;
+			return Converter.parseInt(h.substring(0, h.length() - 2) + v) - 1900;
 		case 3:
-			return Utils.parseInt(h.substring(0, h.length() - 3) + v) - 1900;
+			return Converter.parseInt(h.substring(0, h.length() - 3) + v) - 1900;
 		case 4:
-			return Utils.parseInt(v) - 1900;
+			return Converter.parseInt(v) - 1900;
 		}
-		throw new LeveldbException("日付の桁数が[" + v.length() + "]と不正です");
+		throw new ConvertException("The number of digits in the date is incorrect as [" + v.length() + "]");
 	}
 
 	/** ミリ秒に対するナノ秒変換. **/
@@ -49,7 +50,7 @@ public final class DateTimeUtil {
 		if (v.length() > 3) {
 			v = v.substring(0, 3);
 		}
-		return Utils.parseInt(v) * 1000000;
+		return Converter.parseInt(v) * 1000000;
 	}
 
 	/** 区切り文字による日付フォーマット変換. **/
@@ -85,10 +86,10 @@ public final class DateTimeUtil {
 			case 1:
 				return new java.sql.Date(getYear(list.get(0)), 0, 1);
 			case 2:
-				return new java.sql.Date(getYear(list.get(0)), Utils.parseInt(list.get(1)) - 1, 1);
+				return new java.sql.Date(getYear(list.get(0)), Converter.parseInt(list.get(1)) - 1, 1);
 			default:
-				return new java.sql.Date(getYear(list.get(0)), Utils.parseInt(list.get(1)) - 1,
-						Utils.parseInt(list.get(2)));
+				return new java.sql.Date(getYear(list.get(0)), Converter.parseInt(list.get(1)) - 1,
+						Converter.parseInt(list.get(2)));
 			}
 		}
 		// java.sql.Time.
@@ -98,12 +99,12 @@ public final class DateTimeUtil {
 				Date d = new java.util.Date();
 				return new java.sql.Time(d.getHours(), d.getMinutes(), d.getSeconds());
 			case 1:
-				return new java.sql.Time(Utils.parseInt(list.get(0)), 0, 0);
+				return new java.sql.Time(Converter.parseInt(list.get(0)), 0, 0);
 			case 2:
-				return new java.sql.Time(Utils.parseInt(list.get(0)), Utils.parseInt(list.get(1)), 0);
+				return new java.sql.Time(Converter.parseInt(list.get(0)), Converter.parseInt(list.get(1)), 0);
 			default:
-				return new java.sql.Time(Utils.parseInt(list.get(0)), Utils.parseInt(list.get(1)),
-						Utils.parseInt(list.get(2)));
+				return new java.sql.Time(Converter.parseInt(list.get(0)), Converter.parseInt(list.get(1)),
+						Converter.parseInt(list.get(2)));
 			}
 		}
 		// java.sql.Timestamp.
@@ -114,24 +115,25 @@ public final class DateTimeUtil {
 			case 1:
 				return new java.sql.Timestamp(getYear(list.get(0)), 0, 1, 0, 0, 0, 0);
 			case 2:
-				return new java.sql.Timestamp(getYear(list.get(0)), Utils.parseInt(list.get(1)) - 1, 1, 0, 0, 0, 0);
+				return new java.sql.Timestamp(getYear(list.get(0)), Converter.parseInt(list.get(1)) - 1, 1, 0, 0, 0, 0);
 			case 3:
-				return new java.sql.Timestamp(getYear(list.get(0)), Utils.parseInt(list.get(1)) - 1,
-						Utils.parseInt(list.get(2)), 0, 0, 0, 0);
+				return new java.sql.Timestamp(getYear(list.get(0)), Converter.parseInt(list.get(1)) - 1,
+						Converter.parseInt(list.get(2)), 0, 0, 0, 0);
 			case 4:
-				return new java.sql.Timestamp(getYear(list.get(0)), Utils.parseInt(list.get(1)) - 1,
-						Utils.parseInt(list.get(2)), Utils.parseInt(list.get(3)), 0, 0, 0);
+				return new java.sql.Timestamp(getYear(list.get(0)), Converter.parseInt(list.get(1)) - 1,
+						Converter.parseInt(list.get(2)), Converter.parseInt(list.get(3)), 0, 0, 0);
 			case 5:
-				return new java.sql.Timestamp(getYear(list.get(0)), Utils.parseInt(list.get(1)) - 1,
-						Utils.parseInt(list.get(2)), Utils.parseInt(list.get(3)), Utils.parseInt(list.get(4)), 0, 0);
+				return new java.sql.Timestamp(getYear(list.get(0)), Converter.parseInt(list.get(1)) - 1,
+						Converter.parseInt(list.get(2)), Converter.parseInt(list.get(3)),
+						Converter.parseInt(list.get(4)), 0, 0);
 			case 6:
-				return new java.sql.Timestamp(getYear(list.get(0)), Utils.parseInt(list.get(1)) - 1,
-						Utils.parseInt(list.get(2)), Utils.parseInt(list.get(3)), Utils.parseInt(list.get(4)),
-						Utils.parseInt(list.get(5)), 0);
+				return new java.sql.Timestamp(getYear(list.get(0)), Converter.parseInt(list.get(1)) - 1,
+						Converter.parseInt(list.get(2)), Converter.parseInt(list.get(3)),
+						Converter.parseInt(list.get(4)), Converter.parseInt(list.get(5)), 0);
 			default:
-				return new java.sql.Timestamp(getYear(list.get(0)), Utils.parseInt(list.get(1)) - 1,
-						Utils.parseInt(list.get(2)), Utils.parseInt(list.get(3)), Utils.parseInt(list.get(4)),
-						Utils.parseInt(list.get(5)), getMilliByNano(list.get(6)));
+				return new java.sql.Timestamp(getYear(list.get(0)), Converter.parseInt(list.get(1)) - 1,
+						Converter.parseInt(list.get(2)), Converter.parseInt(list.get(3)),
+						Converter.parseInt(list.get(4)), Converter.parseInt(list.get(5)), getMilliByNano(list.get(6)));
 			}
 		}
 	}
@@ -161,10 +163,11 @@ public final class DateTimeUtil {
 			if (len < 6) {
 				return new java.sql.Date(getYear(value), 0, 1);
 			} else if (len < 8) {
-				return new java.sql.Date(getYear(value.substring(0, 4)), Utils.parseInt(value.substring(4, 6)) - 1, 1);
+				return new java.sql.Date(getYear(value.substring(0, 4)), Converter.parseInt(value.substring(4, 6)) - 1,
+						1);
 			} else {
-				return new java.sql.Date(getYear(value.substring(0, 4)), Utils.parseInt(value.substring(4, 6)) - 1,
-						Utils.parseInt(value.substring(6, 8)));
+				return new java.sql.Date(getYear(value.substring(0, 4)), Converter.parseInt(value.substring(4, 6)) - 1,
+						Converter.parseInt(value.substring(6, 8)));
 			}
 		}
 		// java.sql.Time.
@@ -174,17 +177,17 @@ public final class DateTimeUtil {
 					Date d = new java.util.Date();
 					return new java.sql.Time(d.getHours(), d.getMinutes(), d.getSeconds());
 				} else {
-					return new java.sql.Time(Utils.parseInt(value), 0, 0);
+					return new java.sql.Time(Converter.parseInt(value), 0, 0);
 				}
 			}
 			if (len < 4) {
-				return new java.sql.Time(Utils.parseInt(value.substring(0, 2)), 0, 0);
+				return new java.sql.Time(Converter.parseInt(value.substring(0, 2)), 0, 0);
 			} else if (len < 6) {
-				return new java.sql.Time(Utils.parseInt(value.substring(0, 2)), Utils.parseInt(value.substring(2, 4)),
-						0);
+				return new java.sql.Time(Converter.parseInt(value.substring(0, 2)),
+						Converter.parseInt(value.substring(2, 4)), 0);
 			} else {
-				return new java.sql.Time(Utils.parseInt(value.substring(0, 2)), Utils.parseInt(value.substring(2, 4)),
-						Utils.parseInt(value.substring(4, 6)));
+				return new java.sql.Time(Converter.parseInt(value.substring(0, 2)),
+						Converter.parseInt(value.substring(2, 4)), Converter.parseInt(value.substring(4, 6)));
 			}
 		}
 		// java.sql.Timestamp.
@@ -199,35 +202,37 @@ public final class DateTimeUtil {
 			if (len < 6) {
 				return new java.sql.Timestamp(getYear(value), 0, 1, 0, 0, 0, 0);
 			} else if (len < 8) {
-				return new java.sql.Timestamp(getYear(value.substring(0, 4)), Utils.parseInt(value.substring(4, 6)) - 1,
-						1, 0, 0, 0, 0);
+				return new java.sql.Timestamp(getYear(value.substring(0, 4)),
+						Converter.parseInt(value.substring(4, 6)) - 1, 1, 0, 0, 0, 0);
 			} else if (len < 10) {
-				return new java.sql.Timestamp(getYear(value.substring(0, 4)), Utils.parseInt(value.substring(4, 6)) - 1,
-						Utils.parseInt(value.substring(6, 8)), 0, 0, 0, 0);
+				return new java.sql.Timestamp(getYear(value.substring(0, 4)),
+						Converter.parseInt(value.substring(4, 6)) - 1, Converter.parseInt(value.substring(6, 8)), 0, 0,
+						0, 0);
 			} else if (len < 12) {
-				return new java.sql.Timestamp(getYear(value.substring(0, 4)), Utils.parseInt(value.substring(4, 6)) - 1,
-						Utils.parseInt(value.substring(6, 8)), Utils.parseInt(value.substring(8, 10)), 0, 0, 0);
+				return new java.sql.Timestamp(getYear(value.substring(0, 4)),
+						Converter.parseInt(value.substring(4, 6)) - 1, Converter.parseInt(value.substring(6, 8)),
+						Converter.parseInt(value.substring(8, 10)), 0, 0, 0);
 			} else if (len < 14) {
-				return new java.sql.Timestamp(getYear(value.substring(0, 4)), Utils.parseInt(value.substring(4, 6)) - 1,
-						Utils.parseInt(value.substring(6, 8)), Utils.parseInt(value.substring(8, 10)),
-						Utils.parseInt(value.substring(10, 12)), 0, 0);
+				return new java.sql.Timestamp(getYear(value.substring(0, 4)),
+						Converter.parseInt(value.substring(4, 6)) - 1, Converter.parseInt(value.substring(6, 8)),
+						Converter.parseInt(value.substring(8, 10)), Converter.parseInt(value.substring(10, 12)), 0, 0);
 			} else if (len < 17) {
 				if (len == 14) {
 					return new java.sql.Timestamp(getYear(value.substring(0, 4)),
-							Utils.parseInt(value.substring(4, 6)) - 1, Utils.parseInt(value.substring(6, 8)),
-							Utils.parseInt(value.substring(8, 10)), Utils.parseInt(value.substring(10, 12)),
-							Utils.parseInt(value.substring(12, 14)), 0);
+							Converter.parseInt(value.substring(4, 6)) - 1, Converter.parseInt(value.substring(6, 8)),
+							Converter.parseInt(value.substring(8, 10)), Converter.parseInt(value.substring(10, 12)),
+							Converter.parseInt(value.substring(12, 14)), 0);
 				} else {
 					return new java.sql.Timestamp(getYear(value.substring(0, 4)),
-							Utils.parseInt(value.substring(4, 6)) - 1, Utils.parseInt(value.substring(6, 8)),
-							Utils.parseInt(value.substring(8, 10)), Utils.parseInt(value.substring(10, 12)),
-							Utils.parseInt(value.substring(12, 14)), getMilliByNano(value.substring(14)));
+							Converter.parseInt(value.substring(4, 6)) - 1, Converter.parseInt(value.substring(6, 8)),
+							Converter.parseInt(value.substring(8, 10)), Converter.parseInt(value.substring(10, 12)),
+							Converter.parseInt(value.substring(12, 14)), getMilliByNano(value.substring(14)));
 				}
 			} else {
-				return new java.sql.Timestamp(getYear(value.substring(0, 4)), Utils.parseInt(value.substring(4, 6)) - 1,
-						Utils.parseInt(value.substring(6, 8)), Utils.parseInt(value.substring(8, 10)),
-						Utils.parseInt(value.substring(10, 12)), Utils.parseInt(value.substring(12, 14)),
-						getMilliByNano(value.substring(14)));
+				return new java.sql.Timestamp(getYear(value.substring(0, 4)),
+						Converter.parseInt(value.substring(4, 6)) - 1, Converter.parseInt(value.substring(6, 8)),
+						Converter.parseInt(value.substring(8, 10)), Converter.parseInt(value.substring(10, 12)),
+						Converter.parseInt(value.substring(12, 14)), getMilliByNano(value.substring(14)));
 			}
 		}
 	}
@@ -322,8 +327,8 @@ public final class DateTimeUtil {
 		if (len == 8) {
 			Calendar cal = new GregorianCalendar(GMT_TIMEZONE);
 			cal.clear();
-			cal.set(Calendar.DAY_OF_MONTH, Utils.parseInt(list.get(1)));
-			String month = Utils.toLowerCase(list.get(2));
+			cal.set(Calendar.DAY_OF_MONTH, Converter.parseInt(list.get(1)));
+			String month = Converter.toLowerCase(list.get(2));
 			if ("jan".equals(month)) {
 				cal.set(Calendar.MONTH, 0);
 			} else if ("feb".equals(month)) {
@@ -349,12 +354,109 @@ public final class DateTimeUtil {
 			} else if ("dec".equals(month)) {
 				cal.set(Calendar.MONTH, 11);
 			}
-			cal.set(Calendar.YEAR, Utils.parseInt(list.get(3)));
-			cal.set(Calendar.HOUR_OF_DAY, Utils.parseInt(list.get(4)));
-			cal.set(Calendar.MINUTE, Utils.parseInt(list.get(5)));
-			cal.set(Calendar.SECOND, Utils.parseInt(list.get(6)));
+			cal.set(Calendar.YEAR, Converter.parseInt(list.get(3)));
+			cal.set(Calendar.HOUR_OF_DAY, Converter.parseInt(list.get(4)));
+			cal.set(Calendar.MINUTE, Converter.parseInt(list.get(5)));
+			cal.set(Calendar.SECOND, Converter.parseInt(list.get(6)));
 			return new java.sql.Timestamp(cal.getTime().getTime());
 		}
-		throw new LeveldbException("不正なwebTimeフォーマット:" + value);
+		throw new ConvertException("Incorrect webTime format:" + value);
+	}
+	
+	// 日付フォーマットを管理.
+	private static final ThreadLocal<SimpleDateFormat> iso8601 = new ThreadLocal<SimpleDateFormat>();
+	private static final SimpleDateFormat _getISO8601() {
+		SimpleDateFormat ret = iso8601.get();
+		if (ret == null) {
+			ret = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
+			iso8601.set(ret);
+		}
+		return ret;
+	}
+	
+	/**
+	 * ISO8601形式で文字列をパース.
+	 * @param value
+	 * @return
+	 * @throws ParseException
+	 */
+	public static final java.util.Date getISO8601(String value) throws ParseException {
+		return _getISO8601().parse(value);
+	}
+	
+	/**
+	 * ISO8601形式でDateオブジェクトを文字列変換.
+	 * @param date
+	 * @return
+	 */
+	public static final String getISO8601(java.util.Date date) {
+		return _getISO8601().format(date);
+	}
+	
+	/**
+	 * 指定文字が日付フォーマットの可能性かチェック.
+	 * @param s
+	 * @return
+	 */
+	public static final boolean isISO8601(String s) {
+		int code = 0;
+		int len = s.length();
+		char c;
+		for (int i = 0; i < len; i++) {
+			c = s.charAt(i);
+			switch (code) {
+			case 0:
+			case 1:
+				if (c == '-') {
+					code++;
+				} else if (!(c >= '0' && c <= '9')) {
+					return false;
+				}
+				break;
+			case 2:
+				if (c == 'T') {
+					code++;
+				} else if (!(c >= '0' && c <= '9')) {
+					return false;
+				}
+				break;
+			case 3:
+			case 4:
+				if (c == ':') {
+					code++;
+				} else if (!(c >= '0' && c <= '9')) {
+					return false;
+				}
+				break;
+			case 5:
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * 文字を日付変換.
+	 * @param s
+	 * @return Date
+	 */
+	public static final Date stringToDate(String s) {
+		try {
+			if(isISO8601(s)) {
+				return DateConvert.getISO8601(s);
+			}
+		} catch (Exception e) {
+		}
+		try {
+			return DateConvert.getTimestamp(s);
+		} catch (Exception e) {
+			try {
+				return DateConvert.getWebTimestamp(s);
+			} catch (ConvertException ce) {
+				throw ce;
+			} catch (Exception ee) {
+				throw new ConvertException(ee);
+			}
+		}
 	}
 }

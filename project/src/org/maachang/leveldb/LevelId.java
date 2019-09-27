@@ -20,7 +20,7 @@ import org.maachang.leveldb.types.StrInt;
 import org.maachang.leveldb.types.StrLong;
 import org.maachang.leveldb.types.StrStr;
 import org.maachang.leveldb.types.TwoKey;
-import org.maachang.leveldb.util.Utils;
+import org.maachang.leveldb.util.Converter;
 
 /**
  * LevedbID変換処理.
@@ -88,12 +88,12 @@ public final class LevelId {
 				if (value == null) {
 					return "";
 				}
-				return Utils.convertString(value);
+				return Converter.convertString(value);
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2) throws Exception {
 
-				buf.setString(value == null ? "" : Utils.convertString(value));
+				buf.setString(value == null ? "" : Converter.convertString(value));
 			}
 
 			public final Object get(JniBuffer buf) throws Exception {
@@ -107,15 +107,15 @@ public final class LevelId {
 		// [1]int
 		new ConvertCall() {
 			public final Object id(Object value, Object value2) {
-				if (Utils.isNumeric(value)) {
-					return Utils.convertInt(value);
+				if (Converter.isNumeric(value)) {
+					return Converter.convertInt(value);
 				}
 				return 0;
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2) throws Exception {
-				if (Utils.isNumeric(value)) {
-					buf.setInt(Utils.convertInt(value));
+				if (Converter.isNumeric(value)) {
+					buf.setInt(Converter.convertInt(value));
 				} else {
 					buf.setInt(0);
 				}
@@ -132,15 +132,15 @@ public final class LevelId {
 		// [2]long
 		new ConvertCall() {
 			public final Object id(Object value, Object value2) {
-				if (Utils.isNumeric(value)) {
-					return Utils.convertLong(value);
+				if (Converter.isNumeric(value)) {
+					return Converter.convertLong(value);
 				}
 				return 0L;
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2) throws Exception {
-				if (Utils.isNumeric(value)) {
-					buf.setLong(Utils.convertLong(value));
+				if (Converter.isNumeric(value)) {
+					buf.setLong(Converter.convertLong(value));
 				} else {
 					buf.setLong(0L);
 				}
@@ -168,8 +168,8 @@ public final class LevelId {
 					((TwoKey)value).toBuffer(buf);
 					return;
 				}
-				value = (value != null) ? Utils.convertString(value) : "";
-				value2 = (value2 != null) ? Utils.convertString(value2) : "";
+				value = (value != null) ? Converter.convertString(value) : "";
+				value2 = (value2 != null) ? Converter.convertString(value2) : "";
 				StrStr.convertBuffer(value, value2, buf);
 			}
 
@@ -211,8 +211,8 @@ public final class LevelId {
 					((TwoKey)value).toBuffer(buf);
 					return;
 				}
-				value = (value != null) ? Utils.convertString(value) : "";
-				value2 = Utils.isNumeric(value2) ? Utils.convertInt(value2) : 0;
+				value = (value != null) ? Converter.convertString(value) : "";
+				value2 = Converter.isNumeric(value2) ? Converter.convertInt(value2) : 0;
 				StrInt.convertBuffer(value, value2, buf);
 			}
 
@@ -249,8 +249,8 @@ public final class LevelId {
 					((TwoKey)value).toBuffer(buf);
 					return;
 				}
-				value = (value != null) ? Utils.convertString(value) : "";
-				value2 = Utils.isNumeric(value2) ? Utils.convertLong(value2) : 0L;
+				value = (value != null) ? Converter.convertString(value) : "";
+				value2 = Converter.isNumeric(value2) ? Converter.convertLong(value2) : 0L;
 				StrLong.convertBuffer(value, value2, buf);
 			}
 
@@ -287,8 +287,8 @@ public final class LevelId {
 					((TwoKey)value).toBuffer(buf);
 					return;
 				}
-				value = Utils.isNumeric(value) ? Utils.convertInt(value) : 0;
-				value2 = (value2 != null) ? Utils.convertString(value2) : "";
+				value = Converter.isNumeric(value) ? Converter.convertInt(value) : 0;
+				value2 = (value2 != null) ? Converter.convertString(value2) : "";
 				IntStr.convertBuffer(value, value2, buf);
 			}
 
@@ -325,8 +325,8 @@ public final class LevelId {
 					((TwoKey)value).toBuffer(buf);
 					return;
 				}
-				value = Utils.isNumeric(value) ? Utils.convertInt(value) : 0;
-				value2 = Utils.isNumeric(value2) ? Utils.convertInt(value2) : 0;
+				value = Converter.isNumeric(value) ? Converter.convertInt(value) : 0;
+				value2 = Converter.isNumeric(value2) ? Converter.convertInt(value2) : 0;
 				IntInt.convertBuffer(value, value2, buf);
 			}
 
@@ -358,8 +358,8 @@ public final class LevelId {
 					((TwoKey)value).toBuffer(buf);
 					return;
 				}
-				value = Utils.isNumeric(value) ? Utils.convertInt(value) : 0;
-				value2 = Utils.isNumeric(value2) ? Utils.convertLong(value2) : 0L;
+				value = Converter.isNumeric(value) ? Converter.convertInt(value) : 0;
+				value2 = Converter.isNumeric(value2) ? Converter.convertLong(value2) : 0L;
 				IntLong.convertBuffer(value, value2, buf);
 			}
 
@@ -391,8 +391,8 @@ public final class LevelId {
 					((TwoKey)value).toBuffer(buf);
 					return;
 				}
-				value = Utils.isNumeric(value) ? Utils.convertLong(value) : 0L;
-				value2 = (value2 != null) ? Utils.convertString(value2) : "";
+				value = Converter.isNumeric(value) ? Converter.convertLong(value) : 0L;
+				value2 = (value2 != null) ? Converter.convertString(value2) : "";
 				LongStr.convertBuffer(value, value2, buf);
 			}
 
@@ -429,8 +429,8 @@ public final class LevelId {
 					((TwoKey)value).toBuffer(buf);
 					return;
 				}
-				value = Utils.isNumeric(value) ? Utils.convertLong(value) : 0L;
-				value2 = Utils.isNumeric(value2) ? Utils.convertInt(value2) : 0;
+				value = Converter.isNumeric(value) ? Converter.convertLong(value) : 0L;
+				value2 = Converter.isNumeric(value2) ? Converter.convertInt(value2) : 0;
 				LongInt.convertBuffer(value, value2, buf);
 			}
 
@@ -462,8 +462,8 @@ public final class LevelId {
 					((TwoKey)value).toBuffer(buf);
 					return;
 				}
-				value = Utils.isNumeric(value) ? Utils.convertLong(value) : 0L;
-				value2 = Utils.isNumeric(value2) ? Utils.convertLong(value2) : 0L;
+				value = Converter.isNumeric(value) ? Converter.convertLong(value) : 0L;
+				value2 = Converter.isNumeric(value2) ? Converter.convertLong(value2) : 0L;
 				LongLong.convertBuffer(value, value2, buf);
 			}
 
@@ -495,7 +495,7 @@ public final class LevelId {
 					((TwoKey)value).toBuffer(buf);
 					return;
 				}
-				value = value != null ? Utils.convertString(value) : "";
+				value = value != null ? Converter.convertString(value) : "";
 				value2 = value2 == null || !(value2 instanceof byte[]) ? TwoKey.NONE : value2;
 				StrBin.convertBuffer(value, (byte[]) value2, buf);
 			}
@@ -540,7 +540,7 @@ public final class LevelId {
 					((TwoKey)value).toBuffer(buf);
 					return;
 				}
-				value = Utils.isNumeric(value) ? Utils.convertInt(value) : 0;
+				value = Converter.isNumeric(value) ? Converter.convertInt(value) : 0;
 				value2 = value2 == null || !(value2 instanceof byte[]) ? TwoKey.NONE : value2;
 				StrBin.convertBuffer(value, (byte[]) value2, buf);
 			}
@@ -580,7 +580,7 @@ public final class LevelId {
 					((TwoKey)value).toBuffer(buf);
 					return;
 				}
-				value = Utils.isNumeric(value) ? Utils.convertLong(value) : 0L;
+				value = Converter.isNumeric(value) ? Converter.convertLong(value) : 0L;
 				value2 = value2 == null || !(value2 instanceof byte[]) ? TwoKey.NONE : value2;
 				StrBin.convertBuffer(value, (byte[]) value2, buf);
 			}
@@ -621,7 +621,7 @@ public final class LevelId {
 					return;
 				}
 				value = value == null || !(value instanceof byte[]) ? TwoKey.NONE : value;
-				value2 = (value2 != null) ? Utils.convertString(value2) : "";
+				value2 = (value2 != null) ? Converter.convertString(value2) : "";
 				BinStr.convertBuffer(value, value2, buf);
 			}
 
@@ -665,7 +665,7 @@ public final class LevelId {
 					return;
 				}
 				value = value == null || !(value instanceof byte[]) ? TwoKey.NONE : value;
-				value2 = Utils.isNumeric(value2) ? Utils.convertInt(value2) : 0;
+				value2 = Converter.isNumeric(value2) ? Converter.convertInt(value2) : 0;
 				BinInt.convertBuffer(value, value2, buf);
 			}
 
@@ -704,7 +704,7 @@ public final class LevelId {
 					return;
 				}
 				value = value == null || !(value instanceof byte[]) ? TwoKey.NONE : value;
-				value2 = Utils.isNumeric(value2) ? Utils.convertLong(value2) : 0L;
+				value2 = Converter.isNumeric(value2) ? Converter.convertLong(value2) : 0L;
 				BinLong.convertBuffer(value, value2, buf);
 			}
 

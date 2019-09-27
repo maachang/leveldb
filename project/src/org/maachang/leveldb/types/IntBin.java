@@ -6,7 +6,8 @@ import org.maachang.leveldb.JniBuffer;
 import org.maachang.leveldb.JniIO;
 import org.maachang.leveldb.LevelOption;
 import org.maachang.leveldb.LeveldbException;
-import org.maachang.leveldb.util.Utils;
+import org.maachang.leveldb.util.BinaryUtil;
+import org.maachang.leveldb.util.Converter;
 
 /**
  * Number32(int)、バイナリの２キー情報.
@@ -160,7 +161,7 @@ public final class IntBin extends TwoKey {
 		if (o == null) {
 			this.one = 0;
 		} else {
-			this.one = Utils.convertInt(o);
+			this.one = Converter.convertInt(o);
 		}
 		return this;
 	}
@@ -227,11 +228,11 @@ public final class IntBin extends TwoKey {
 			TwoKey t = (TwoKey) o;
 
 			// oneが数字の場合.
-			if (Utils.isNumeric(t.one())) {
-				int ret = one.compareTo(Utils.convertInt(t.one()));
+			if (Converter.isNumeric(t.one())) {
+				int ret = one.compareTo(Converter.convertInt(t.one()));
 				if (ret == 0) {
 					if (t.two() instanceof byte[]) {
-						return Utils.binaryCompareTo(two, (byte[]) t.two());
+						return BinaryUtil.binaryCompareTo(two, (byte[]) t.two());
 					}
 				}
 				return ret;
@@ -240,10 +241,10 @@ public final class IntBin extends TwoKey {
 			return -1;
 		}
 		// オブジェクトがNULLか、数字の場合.
-		if (o == null || Utils.isNumeric(o)) {
+		if (o == null || Converter.isNumeric(o)) {
 
 			// 数字変換.
-			o = Utils.convertInt(o);
+			o = Converter.convertInt(o);
 			if (o == null) {
 				o = 0;
 			}
@@ -285,6 +286,6 @@ public final class IntBin extends TwoKey {
 	 * @return String 文字列が返却されます.
 	 */
 	public final String toString() {
-		return new StringBuilder("[num32-bin]").append(one).append(Utils.binaryToHexString(two)).toString();
+		return new StringBuilder("[num32-bin]").append(one).append(BinaryUtil.binaryToHexString(two)).toString();
 	}
 }

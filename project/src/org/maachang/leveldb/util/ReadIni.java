@@ -221,10 +221,10 @@ public class ReadIni {
 							}
 							if (value.startsWith("\"") && value.endsWith("\"")) {
 								value = value.substring(1, value.length() - 1);
-								value = Utils.downIndentDoubleCote(value);
+								value = Indent.downIndentDoubleCote(value);
 							} else if (value.startsWith("\'") && value.endsWith("\'")) {
 								value = value.substring(1, value.length() - 1);
-								value = Utils.downIndentSingleCote(value);
+								value = Indent.downIndentSingleCote(value);
 							}
 							// @cote条件が存在する場合、その条件内容をダブルコーテーション変換.
 							value = convertAtCote(value);
@@ -314,7 +314,7 @@ public class ReadIni {
 									if (parLen <= 0) {
 										i = j;
 										String cstr = value.substring(n + 1, j);
-										cstr = Utils.upIndentDoubleCote(cstr);
+										cstr = Indent.upIndentDoubleCote(cstr);
 										buf.append("\"").append(cstr).append("\"");
 										atCtFlag = true;
 										break;

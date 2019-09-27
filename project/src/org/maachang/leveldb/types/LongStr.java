@@ -3,7 +3,7 @@ package org.maachang.leveldb.types;
 import org.maachang.leveldb.JniBuffer;
 import org.maachang.leveldb.JniIO;
 import org.maachang.leveldb.LevelOption;
-import org.maachang.leveldb.util.Utils;
+import org.maachang.leveldb.util.Converter;
 
 /**
  * Number64(long)、文字列の２キー情報.
@@ -152,10 +152,10 @@ public final class LongStr extends TwoKey {
 	 * @return TwoKey オブジェクトが返却されます.
 	 */
 	public final TwoKey one(Object o) {
-		if (o == null || !Utils.isNumeric(o)) {
+		if (o == null || !Converter.isNumeric(o)) {
 			this.one = 0L;
 		} else {
-			this.one = Utils.convertLong(o);
+			this.one = Converter.convertLong(o);
 		}
 		return this;
 	}
@@ -171,7 +171,7 @@ public final class LongStr extends TwoKey {
 		if (o == null) {
 			this.two = "";
 		} else {
-			this.two = Utils.convertString(o);
+			this.two = Converter.convertString(o);
 		}
 		return this;
 	}
@@ -230,10 +230,10 @@ public final class LongStr extends TwoKey {
 			TwoKey t = (TwoKey) o;
 
 			// oneが数字の場合.
-			if (Utils.isNumeric(t.one())) {
-				int ret = one.compareTo(Utils.convertLong(t.one()));
+			if (Converter.isNumeric(t.one())) {
+				int ret = one.compareTo(Converter.convertLong(t.one()));
 				if (ret == 0) {
-					return two.compareTo(Utils.convertString(t.two()));
+					return two.compareTo(Converter.convertString(t.two()));
 				}
 				return ret;
 			}
@@ -241,10 +241,10 @@ public final class LongStr extends TwoKey {
 			return -1;
 		}
 		// オブジェクトがNULLか、数字の場合.
-		if (o == null || Utils.isNumeric(o)) {
+		if (o == null || Converter.isNumeric(o)) {
 
 			// 数字変換.
-			o = Utils.convertLong(o);
+			o = Converter.convertLong(o);
 			if (o == null) {
 				o = 0L;
 			}

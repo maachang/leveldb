@@ -3,7 +3,7 @@ package org.maachang.leveldb.types;
 import org.maachang.leveldb.JniBuffer;
 import org.maachang.leveldb.JniIO;
 import org.maachang.leveldb.LevelOption;
-import org.maachang.leveldb.util.Utils;
+import org.maachang.leveldb.util.Converter;
 
 /**
  * 文字列、Number32(int)の２キー情報.
@@ -157,7 +157,7 @@ public final class StrInt extends TwoKey {
 		if (o == null) {
 			this.one = "";
 		} else {
-			this.one = Utils.convertString(o);
+			this.one = Converter.convertString(o);
 		}
 		return this;
 	}
@@ -170,10 +170,10 @@ public final class StrInt extends TwoKey {
 	 * @return TwoKey オブジェクトが返却されます.
 	 */
 	public final TwoKey two(Object o) {
-		if (o == null || !Utils.isNumeric(o)) {
+		if (o == null || !Converter.isNumeric(o)) {
 			this.two = 0;
 		} else {
-			this.two = Utils.convertInt(o);
+			this.two = Converter.convertInt(o);
 		}
 		return this;
 	}
@@ -230,12 +230,12 @@ public final class StrInt extends TwoKey {
 		// データがTwoKeyの場合は、２つの条件を文字文字でチェック.
 		if (o instanceof TwoKey) {
 			TwoKey t = (TwoKey) o;
-			int ret = one.compareTo(Utils.convertString(t.one()));
+			int ret = one.compareTo(Converter.convertString(t.one()));
 			if (ret == 0) {
 
 				// 数値の場合は、数値同士で比較.
-				if (Utils.isNumeric(t.two())) {
-					return two.compareTo(Utils.convertInt(t.two()));
+				if (Converter.isNumeric(t.two())) {
+					return two.compareTo(Converter.convertInt(t.two()));
 				}
 				// 比較のTwoが数字でない場合は、大きいものとして扱う.
 				return -1;
@@ -243,7 +243,7 @@ public final class StrInt extends TwoKey {
 			return ret;
 		}
 		// それ以外の場合は、文字オブジェクトとして変換.
-		o = Utils.convertString(o);
+		o = Converter.convertString(o);
 		if (o == null) {
 			o = "";
 		}

@@ -6,7 +6,7 @@ import org.maachang.leveldb.JniBuffer;
 import org.maachang.leveldb.JniIO;
 import org.maachang.leveldb.LevelOption;
 import org.maachang.leveldb.LeveldbException;
-import org.maachang.leveldb.util.Utils;
+import org.maachang.leveldb.util.BinaryUtil;
 
 /**
  * バイナリ、バイナリの２キー情報.
@@ -237,15 +237,15 @@ public final class BinBin extends TwoKey {
 		// データがTwoKeyの場合は、２つの条件を文字文字でチェック.
 		if (o instanceof BinBin) {
 			TwoKey t = (TwoKey) o;
-			int ret = Utils.binaryCompareTo(one, (byte[]) t.one());
+			int ret = BinaryUtil.binaryCompareTo(one, (byte[]) t.one());
 			if (ret == 0) {
-				return Utils.binaryCompareTo(two, (byte[]) t.two());
+				return BinaryUtil.binaryCompareTo(two, (byte[]) t.two());
 			}
 			return ret;
 		} else if (o instanceof byte[]) {
 
 			// １つの文字オブジェクトとone文字との比較.
-			int ret = Utils.binaryCompareTo(one, (byte[]) o);
+			int ret = BinaryUtil.binaryCompareTo(one, (byte[]) o);
 			if (ret == 0) {
 				return (two.length > 0) ? 1 : 0;
 			}
@@ -280,7 +280,7 @@ public final class BinBin extends TwoKey {
 	 * @return String 文字列が返却されます.
 	 */
 	public final String toString() {
-		return new StringBuilder("[bin-bin]").append(Utils.binaryToHexString(one)).append(Utils.binaryToHexString(two))
+		return new StringBuilder("[bin-bin]").append(BinaryUtil.binaryToHexString(one)).append(BinaryUtil.binaryToHexString(two))
 				.toString();
 	}
 }

@@ -3,7 +3,7 @@ package org.maachang.leveldb.types;
 import org.maachang.leveldb.JniBuffer;
 import org.maachang.leveldb.JniIO;
 import org.maachang.leveldb.LevelOption;
-import org.maachang.leveldb.util.Utils;
+import org.maachang.leveldb.util.Converter;
 
 /**
  * 文字列、文字列の２キー情報.
@@ -164,7 +164,7 @@ public final class StrStr extends TwoKey {
 		if (o == null) {
 			this.one = "";
 		} else {
-			this.one = Utils.convertString(o);
+			this.one = Converter.convertString(o);
 		}
 		return this;
 	}
@@ -180,7 +180,7 @@ public final class StrStr extends TwoKey {
 		if (o == null) {
 			this.two = "";
 		} else {
-			this.two = Utils.convertString(o);
+			this.two = Converter.convertString(o);
 		}
 		return this;
 	}
@@ -237,14 +237,14 @@ public final class StrStr extends TwoKey {
 		// データがTwoKeyの場合は、２つの条件を文字文字でチェック.
 		if (o instanceof TwoKey) {
 			TwoKey t = (TwoKey) o;
-			int ret = one.compareTo(Utils.convertString(t.one()));
+			int ret = one.compareTo(Converter.convertString(t.one()));
 			if (ret == 0) {
-				return two.compareTo(Utils.convertString(t.two()));
+				return two.compareTo(Converter.convertString(t.two()));
 			}
 			return ret;
 		}
 		// それ以外の場合は、文字オブジェクトとして変換.
-		o = Utils.convertString(o);
+		o = Converter.convertString(o);
 		if (o == null) {
 			o = "";
 		}

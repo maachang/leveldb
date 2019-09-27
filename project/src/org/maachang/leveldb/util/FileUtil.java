@@ -70,7 +70,7 @@ public final class FileUtil {
 		File f = new File(name);
 		String s = f.getCanonicalPath();
 		if (s.indexOf("\\") != -1) {
-			s = Utils.changeString(s, "\\", "/");
+			s = Converter.changeString(s, "\\", "/");
 		}
 		if (!s.startsWith("/")) {
 			s = "/" + s;
@@ -176,10 +176,10 @@ public final class FileUtil {
 				String name = new StringBuilder().append(dir).append(FILE_SP).append(names[i]).toString();
 				if (FileUtil.isDir(name)) {
 					readDirToFileList(out, base, name, plus);
-				} else if (plus == null || Utils.toLowerCase(name).endsWith(plus)) {
+				} else if (plus == null || Converter.toLowerCase(name).endsWith(plus)) {
 					name = name.substring(base.length(), name.length());
 					if (name.indexOf("\\") != -1) {
-						name = Utils.changeString(name, "\\", "/");
+						name = Converter.changeString(name, "\\", "/");
 					}
 					if (name.startsWith("/") == true) {
 						name.substring(1, name.length());

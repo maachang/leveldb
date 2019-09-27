@@ -6,7 +6,8 @@ import org.maachang.leveldb.JniBuffer;
 import org.maachang.leveldb.JniIO;
 import org.maachang.leveldb.LevelOption;
 import org.maachang.leveldb.LeveldbException;
-import org.maachang.leveldb.util.Utils;
+import org.maachang.leveldb.util.BinaryUtil;
+import org.maachang.leveldb.util.Converter;
 
 /**
  * バイナリ、Number32(int)の２キー情報.
@@ -176,10 +177,10 @@ public final class BinInt extends TwoKey {
 	 * @return TwoKey オブジェクトが返却されます.
 	 */
 	public final TwoKey two(Object o) {
-		if (o == null || !Utils.isNumeric(o)) {
+		if (o == null || !Converter.isNumeric(o)) {
 			this.two = 0;
 		} else {
-			this.two = Utils.convertInt(o);
+			this.two = Converter.convertInt(o);
 		}
 		return this;
 	}
@@ -226,12 +227,12 @@ public final class BinInt extends TwoKey {
 		// データがTwoKeyの場合は、２つの条件を文字文字でチェック.
 		if (o instanceof BinInt) {
 			TwoKey t = (TwoKey) o;
-			int ret = Utils.binaryCompareTo(one, (byte[]) one());
+			int ret = BinaryUtil.binaryCompareTo(one, (byte[]) one());
 			if (ret == 0) {
 
 				// 数値の場合は、数値同士で比較.
-				if (Utils.isNumeric(t.two())) {
-					return two.compareTo(Utils.convertInt(t.two()));
+				if (Converter.isNumeric(t.two())) {
+					return two.compareTo(Converter.convertInt(t.two()));
 				}
 				// 比較のTwoが数字でない場合は、大きいものとして扱う.
 				return -1;
@@ -240,7 +241,7 @@ public final class BinInt extends TwoKey {
 		} else if (o instanceof byte[]) {
 
 			// １つの文字オブジェクトとone文字との比較.
-			int ret = Utils.binaryCompareTo(one, (byte[]) o);
+			int ret = BinaryUtil.binaryCompareTo(one, (byte[]) o);
 			if (ret == 0) {
 				return (two != 0) ? 1 : 0;
 			}
@@ -275,6 +276,6 @@ public final class BinInt extends TwoKey {
 	 * @return String 文字列が返却されます.
 	 */
 	public final String toString() {
-		return new StringBuilder("[bin-num32]").append(Utils.binaryToHexString(one)).append(two).toString();
+		return new StringBuilder("[bin-num32]").append(BinaryUtil.binaryToHexString(one)).append(two).toString();
 	}
 }

@@ -20,7 +20,7 @@ public interface ConvertGet<N> {
 	 * @return Boolean 情報が返却されます.
 	 */
 	default Boolean getBoolean(N n) {
-		return Utils.convertBool(getOriginal(n));
+		return Converter.convertBool(getOriginal(n));
 	}
 
 	/**
@@ -30,7 +30,7 @@ public interface ConvertGet<N> {
 	 * @return Integer 情報が返却されます.
 	 */
 	default Integer getInt(N n) {
-		return Utils.convertInt(getOriginal(n));
+		return Converter.convertInt(getOriginal(n));
 	}
 
 	/**
@@ -40,7 +40,7 @@ public interface ConvertGet<N> {
 	 * @return Long 情報が返却されます.
 	 */
 	default Long getLong(N n) {
-		return Utils.convertLong(getOriginal(n));
+		return Converter.convertLong(getOriginal(n));
 	}
 
 	/**
@@ -50,7 +50,7 @@ public interface ConvertGet<N> {
 	 * @return Float 情報が返却されます.
 	 */
 	default Float getFloat(N n) {
-		return Utils.convertFloat(getOriginal(n));
+		return Converter.convertFloat(getOriginal(n));
 	}
 
 	/**
@@ -60,7 +60,7 @@ public interface ConvertGet<N> {
 	 * @return Double 情報が返却されます.
 	 */
 	default Double getDouble(N n) {
-		return Utils.convertDouble(getOriginal(n));
+		return Converter.convertDouble(getOriginal(n));
 	}
 
 	/**
@@ -70,7 +70,7 @@ public interface ConvertGet<N> {
 	 * @return String 情報が返却されます.
 	 */
 	default String getString(N n) {
-		return Utils.convertString(getOriginal(n));
+		return Converter.convertString(getOriginal(n));
 	}
 
 	/**
@@ -80,7 +80,7 @@ public interface ConvertGet<N> {
 	 * @return Date 情報が返却されます.
 	 */
 	default java.sql.Date getDate(N n) {
-		return Utils.convertSqlDate(getOriginal(n));
+		return Converter.convertSqlDate(getOriginal(n));
 	}
 
 	/**
@@ -90,7 +90,7 @@ public interface ConvertGet<N> {
 	 * @return Time 情報が返却されます.
 	 */
 	default java.sql.Time getTime(N n) {
-		return Utils.convertSqlTime(getOriginal(n));
+		return Converter.convertSqlTime(getOriginal(n));
 	}
 
 	/**
@@ -100,6 +100,6 @@ public interface ConvertGet<N> {
 	 * @return Timestamp 情報が返却されます.
 	 */
 	default java.sql.Timestamp getTimestamp(N n) {
-		return Utils.convertSqlTimestamp(getOriginal(n));
+		return Converter.convertSqlTimestamp(getOriginal(n));
 	}
 }
