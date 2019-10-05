@@ -173,18 +173,8 @@ public final class Json {
 		if ((len = json.length()) <= 0) {
 			return json;
 		}
-		// 文字列コーテーション区切り.
-		if ((json.startsWith("\"") && json.endsWith("\"")) || (json.startsWith("\'") && json.endsWith("\'"))) {
-			json = json.substring(1, len - 1);
-
-			// ISO8601の日付フォーマットかチェック.
-			if (DateConvert.isISO8601(json)) {
-				return stringToDate(json);
-			}
-			return json;
-		}
 		// NULL文字.
-		else if ("null".equals(json)) {
+		if ("null".equals(json)) {
 			return null;
 		}
 		// BOOLEAN true.
@@ -202,8 +192,15 @@ public final class Json {
 			}
 			return Long.parseLong(json);
 		}
-		// その他.
-		throw new ConvertException("Failed to parse JSON(" + json + "):No:" + no);
+		// 文字列コーテーション区切り.
+		if ((json.startsWith("\"") && json.endsWith("\"")) || (json.startsWith("\'") && json.endsWith("\'"))) {
+			json = json.substring(1, len - 1);
+		}
+		// ISO8601の日付フォーマットかチェック.
+		if (DateConvert.isISO8601(json)) {
+			return stringToDate(json);
+		}
+		return json;
 	}
 
 	/** JSON_Token_解析処理 **/

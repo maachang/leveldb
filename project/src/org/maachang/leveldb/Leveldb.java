@@ -141,8 +141,10 @@ public final class Leveldb {
 	 */
 	public final void put(final JniBuffer key, final JniBuffer value) {
 		checkClose();
-		if (key == null || value == null || key.position() == 0 || value.position() == 0) {
-			throw new LeveldbException("Argument is invalid.");
+		if (key == null || key.position() == 0) {
+			throw new LeveldbException("Key information is not set.");
+		} else if (value == null || value.position() == 0) {
+			throw new LeveldbException("Value information is not set.");
 		} else if (jni.leveldb_put(addr, key.address(), key.position(), value.address(), value.position()) == -1) {
 			throw new LeveldbException("Put processing failed.");
 		}
