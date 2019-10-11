@@ -330,6 +330,8 @@ public final class LevelOption {
 			return "string-binary";
 		case LevelOption.TYPE_N32_BIN:
 			return "number32-binary";
+		case LevelOption.TYPE_N64_BIN:
+			return "number64-binary";
 		case LevelOption.TYPE_BIN_STR:
 			return "binary-string";
 		case LevelOption.TYPE_BIN_N32:
@@ -345,6 +347,174 @@ public final class LevelOption {
 		default:
 			return "string";
 		}
+	}
+	
+	/**
+	 * ファーストキータイプを取得.
+	 * 
+	 * @param type
+	 *            対象のキータイプを設定します.
+	 * @return int キータイプが返却されます.
+	 */
+	public static final int getFirstKeyType(int type) {
+		switch (type) {
+		case LevelOption.TYPE_STRING:
+			return -1;
+		case LevelOption.TYPE_NUMBER32:
+			return -1;
+		case LevelOption.TYPE_NUMBER64:
+			return -1;
+		case LevelOption.TYPE_STR_STR:
+			return LevelOption.TYPE_STRING;
+		case LevelOption.TYPE_STR_N32:
+			return LevelOption.TYPE_STRING;
+		case LevelOption.TYPE_STR_N64:
+			return LevelOption.TYPE_STRING;
+		case LevelOption.TYPE_N32_STR:
+			return LevelOption.TYPE_NUMBER32;
+		case LevelOption.TYPE_N32_N32:
+			return LevelOption.TYPE_NUMBER32;
+		case LevelOption.TYPE_N32_N64:
+			return LevelOption.TYPE_NUMBER32;
+		case LevelOption.TYPE_N64_STR:
+			return LevelOption.TYPE_NUMBER64;
+		case LevelOption.TYPE_N64_N32:
+			return LevelOption.TYPE_NUMBER64;
+		case LevelOption.TYPE_N64_N64:
+			return LevelOption.TYPE_NUMBER64;
+		case LevelOption.TYPE_STR_BIN:
+			return LevelOption.TYPE_STRING;
+		case LevelOption.TYPE_N32_BIN:
+			return LevelOption.TYPE_NUMBER32;
+		case LevelOption.TYPE_N64_BIN:
+			return LevelOption.TYPE_NUMBER64;
+		case LevelOption.TYPE_BIN_STR:
+			return LevelOption.TYPE_FREE;
+		case LevelOption.TYPE_BIN_N32:
+			return LevelOption.TYPE_FREE;
+		case LevelOption.TYPE_BIN_N64:
+			return LevelOption.TYPE_FREE;
+		case LevelOption.TYPE_BIN_BIN:
+			return LevelOption.TYPE_FREE;
+		case LevelOption.TYPE_MULTI:
+			return -1;
+		case LevelOption.TYPE_FREE:
+			return -1;
+		default:
+			return -1;
+		}
+	}
+	
+	/**
+	 * セカンドキータイプを取得.
+	 * 
+	 * @param type
+	 *            対象のキータイプを設定します.
+	 * @return int キータイプが返却されます.
+	 */
+	public static final int getSecondKeyType(int type) {
+		switch (type) {
+		case LevelOption.TYPE_STRING:
+			return -1;
+		case LevelOption.TYPE_NUMBER32:
+			return -1;
+		case LevelOption.TYPE_NUMBER64:
+			return -1;
+		case LevelOption.TYPE_STR_STR:
+			return LevelOption.TYPE_STRING;
+		case LevelOption.TYPE_STR_N32:
+			return LevelOption.TYPE_NUMBER32;
+		case LevelOption.TYPE_STR_N64:
+			return LevelOption.TYPE_NUMBER64;
+		case LevelOption.TYPE_N32_STR:
+			return LevelOption.TYPE_STRING;
+		case LevelOption.TYPE_N32_N32:
+			return LevelOption.TYPE_NUMBER32;
+		case LevelOption.TYPE_N32_N64:
+			return LevelOption.TYPE_NUMBER64;
+		case LevelOption.TYPE_N64_STR:
+			return LevelOption.TYPE_STRING;
+		case LevelOption.TYPE_N64_N32:
+			return LevelOption.TYPE_NUMBER32;
+		case LevelOption.TYPE_N64_N64:
+			return LevelOption.TYPE_NUMBER64;
+		case LevelOption.TYPE_STR_BIN:
+			return LevelOption.TYPE_FREE;
+		case LevelOption.TYPE_N32_BIN:
+			return LevelOption.TYPE_FREE;
+		case LevelOption.TYPE_N64_BIN:
+			return LevelOption.TYPE_FREE;
+		case LevelOption.TYPE_BIN_STR:
+			return LevelOption.TYPE_STRING;
+		case LevelOption.TYPE_BIN_N32:
+			return LevelOption.TYPE_NUMBER32;
+		case LevelOption.TYPE_BIN_N64:
+			return LevelOption.TYPE_NUMBER64;
+		case LevelOption.TYPE_BIN_BIN:
+			return LevelOption.TYPE_FREE;
+		case LevelOption.TYPE_MULTI:
+			return -1;
+		case LevelOption.TYPE_FREE:
+			return -1;
+		default:
+			return -1;
+		}
+	}
+	
+	/**
+	 * 有効なキータイプかチェック.
+	 * 
+	 * @param type
+	 *            キータイプを設定します.
+	 * @return int
+	 *            キータイプが当てはまらない場合は[-1]が返却されます.
+	 */
+	public static final int checkType(int type) {
+		switch (type) {
+		case LevelOption.TYPE_STRING:
+			return LevelOption.TYPE_STRING;
+		case LevelOption.TYPE_NUMBER32:
+			return LevelOption.TYPE_NUMBER32;
+		case LevelOption.TYPE_NUMBER64:
+			return LevelOption.TYPE_NUMBER64;
+		case LevelOption.TYPE_STR_STR:
+			return LevelOption.TYPE_STR_STR;
+		case LevelOption.TYPE_STR_N32:
+			return LevelOption.TYPE_STR_N32;
+		case LevelOption.TYPE_STR_N64:
+			return LevelOption.TYPE_STR_N64;
+		case LevelOption.TYPE_N32_STR:
+			return LevelOption.TYPE_N32_STR;
+		case LevelOption.TYPE_N32_N32:
+			return LevelOption.TYPE_N32_N32;
+		case LevelOption.TYPE_N32_N64:
+			return LevelOption.TYPE_N32_N64;
+		case LevelOption.TYPE_N64_STR:
+			return LevelOption.TYPE_N64_STR;
+		case LevelOption.TYPE_N64_N32:
+			return LevelOption.TYPE_N64_N32;
+		case LevelOption.TYPE_N64_N64:
+			return LevelOption.TYPE_N64_N64;
+		case LevelOption.TYPE_STR_BIN:
+			return LevelOption.TYPE_STR_BIN;
+		case LevelOption.TYPE_N32_BIN:
+			return LevelOption.TYPE_N32_BIN;
+		case LevelOption.TYPE_N64_BIN:
+			return LevelOption.TYPE_N64_BIN;
+		case LevelOption.TYPE_BIN_STR:
+			return LevelOption.TYPE_BIN_STR;
+		case LevelOption.TYPE_BIN_N32:
+			return LevelOption.TYPE_BIN_N32;
+		case LevelOption.TYPE_BIN_N64:
+			return LevelOption.TYPE_BIN_N64;
+		case LevelOption.TYPE_BIN_BIN:
+			return LevelOption.TYPE_BIN_BIN;
+		case LevelOption.TYPE_MULTI:
+			return LevelOption.TYPE_MULTI;
+		case LevelOption.TYPE_FREE:
+			return LevelOption.TYPE_FREE;
+		}
+		return -1;
 	}
 
 	/**
@@ -363,73 +533,9 @@ public final class LevelOption {
 	 *            キータイプを設定します.
 	 */
 	public final void setType(int type) {
-		switch (type) {
-		case LevelOption.TYPE_STRING:
+		type = checkType(type);
+		if(type == -1) {
 			type = LevelOption.TYPE_STRING;
-			break;
-		case LevelOption.TYPE_NUMBER32:
-			type = LevelOption.TYPE_NUMBER32;
-			break;
-		case LevelOption.TYPE_NUMBER64:
-			type = LevelOption.TYPE_NUMBER64;
-			break;
-		case LevelOption.TYPE_STR_STR:
-			type = LevelOption.TYPE_STR_STR;
-			break;
-		case LevelOption.TYPE_STR_N32:
-			type = LevelOption.TYPE_STR_N32;
-			break;
-		case LevelOption.TYPE_STR_N64:
-			type = LevelOption.TYPE_STR_N64;
-			break;
-		case LevelOption.TYPE_N32_STR:
-			type = LevelOption.TYPE_N32_STR;
-			break;
-		case LevelOption.TYPE_N32_N32:
-			type = LevelOption.TYPE_N32_N32;
-			break;
-		case LevelOption.TYPE_N32_N64:
-			type = LevelOption.TYPE_N32_N64;
-			break;
-		case LevelOption.TYPE_N64_STR:
-			type = LevelOption.TYPE_N64_STR;
-			break;
-		case LevelOption.TYPE_N64_N32:
-			type = LevelOption.TYPE_N64_N32;
-			break;
-		case LevelOption.TYPE_N64_N64:
-			type = LevelOption.TYPE_N64_N64;
-			break;
-		case LevelOption.TYPE_STR_BIN:
-			type = LevelOption.TYPE_STR_BIN;
-			break;
-		case LevelOption.TYPE_N32_BIN:
-			type = LevelOption.TYPE_N32_BIN;
-			break;
-		case LevelOption.TYPE_N64_BIN:
-			type = LevelOption.TYPE_N64_BIN;
-			break;
-		case LevelOption.TYPE_BIN_STR:
-			type = LevelOption.TYPE_BIN_STR;
-			break;
-		case LevelOption.TYPE_BIN_N32:
-			type = LevelOption.TYPE_BIN_N32;
-			break;
-		case LevelOption.TYPE_BIN_N64:
-			type = LevelOption.TYPE_BIN_N64;
-			break;
-		case LevelOption.TYPE_BIN_BIN:
-			type = LevelOption.TYPE_BIN_BIN;
-			break;
-		case LevelOption.TYPE_MULTI:
-			type = LevelOption.TYPE_MULTI;
-			break;
-		case LevelOption.TYPE_FREE:
-			type = LevelOption.TYPE_FREE;
-			break;
-		default:
-			type = LevelOption.TYPE_STRING;
-			break;
 		}
 		this.type = type;
 	}
@@ -487,6 +593,17 @@ public final class LevelOption {
 			return LevelOption.TYPE_STRING;
 		}
 		return LevelOption.TYPE_STRING;
+	}
+	
+	/**
+	 * タイプモードを取得.
+	 * @param type
+	 * @return 0: multiキー.
+	 *         1: シングルキー.
+	 *         2: ２キー.
+	 */
+	public static final int typeMode(int type) {
+		return TYPE_PARAM_LENGTH[type];
 	}
 
 	/**

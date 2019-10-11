@@ -60,6 +60,7 @@ public class LevelQueue extends CommitRollback {
 		// keyタイプは free(Time12SequenceId).
 		option.type = LevelOption.TYPE_FREE;
 		Leveldb db  = new Leveldb(name, option);
+		// leveldbをクローズしてwriteBatchで処理しない.
 		super.init(db, true, false);
 		this.sequenceId = new Time12SequenceId(machineId);
 	}
@@ -115,8 +116,10 @@ public class LevelQueue extends CommitRollback {
 			throw new LeveldbException("The key type of the opened Leveldb is not TYPE_FREE.");
 		}
 		if(writeBatch) {
+			// leveldbをクローズしてwriteBatchで処理しない.
 			super.init(db, false, true);
 		} else {
+			// leveldbをクローズしてwriteBatchで処理しない.
 			super.init(db, true, false);
 		}
 		this.sequenceId = new Time12SequenceId(machineId);
@@ -136,9 +139,9 @@ public class LevelQueue extends CommitRollback {
 	 * 最後に追加.
 	 * 
 	 * @param o
-	 * @return
+	 * @return シーケンスIDが返却されます.
 	 */
-	public byte[] add(Object o) {
+	public String add(Object o) {
 		checkClose();
 		JniBuffer keyBuf = null;
 		JniBuffer valBuf = null;
@@ -159,7 +162,7 @@ public class LevelQueue extends CommitRollback {
 					leveldb.put(keyBuf, valBuf);
 				}
 			}
-			return key;
+			return Time12SequenceId.toString(key);
 		} catch (LeveldbException le) {
 			throw le;
 		} catch (Exception e) {
@@ -203,7 +206,7 @@ public class LevelQueue extends CommitRollback {
 					itr.value(valBuf);
 					itr.next();
 					writeBatch().remove(keyBuf);
-					if (out != null) {
+					if (out != null && out.length >= 1) {
 						out[0] = Time12SequenceId.toString(keyBuf.getBinary());
 					}
 					ret = LevelValues.decode(valBuf);
@@ -217,7 +220,7 @@ public class LevelQueue extends CommitRollback {
 						valBuf = LevelBuffer.value();
 						itr.key(keyBuf);
 						itr.value(valBuf);
-						if (out != null) {
+						if (out != null && out.length >= 1) {
 							out[0] = Time12SequenceId.toString(keyBuf.getBinary());
 						}
 						ret = LevelValues.decode(valBuf);
@@ -275,11 +278,21 @@ public class LevelQueue extends CommitRollback {
 		private LeveldbIterator itr = null;
 		private LevelQueue queue = null;
 		
-		LevelQueueIterator(LevelQueue q, LeveldbIterator i, byte[] key) {
+		LevelQueueIterator(LevelQueue q, LeveldbIterator i, Object key) {
 			if (key != null) {
 				JniBuffer buf = null;
 				try {
-					buf = LevelBuffer.key(LevelOption.TYPE_FREE, key);
+					byte[] bkey = null;
+					if(key instanceof byte[]) {
+						bkey = (byte[])key;
+					} else if(key instanceof String) {
+						bkey = Time12SequenceId.toBinary((String)key);
+					}
+					if(bkey == null || bkey.length != Time12SequenceId.ID_LENGTH) {
+						throw new LeveldbException("指定されたシーケンスIDの解釈に失敗しました.");
+					}
+					buf = LevelBuffer.key(LevelOption.TYPE_FREE, bkey);
+					bkey = null;
 					i.seek(buf);
 				} catch (Exception e) {
 					if (i != null) {

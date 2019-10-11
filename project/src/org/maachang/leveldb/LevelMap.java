@@ -63,11 +63,12 @@ public class LevelMap extends CommitRollback implements ConvertMap {
 	 *            対象のLeveldbオブジェクトを設定します.
 	 */
 	public LevelMap(boolean writeBatch, Leveldb db) {
-		this.leveldb = db;
 		if(writeBatch) {
-			super.init(db, true, false);
-		} else {
+			// leveldbをクローズせずwriteBatchで処理する.
 			super.init(db, false, true);
+		} else {
+			// leveldbをクローズしてwriteBatchで処理しない.
+			super.init(db, true, false);
 		}
 		this.type = db.getOption().getType();
 		this.set = null;
@@ -80,6 +81,7 @@ public class LevelMap extends CommitRollback implements ConvertMap {
 	 * @param map
 	 */
 	public LevelMap(LevelMap map) {
+		// leveldbをクローズせずwriteBatchで処理する.
 		this(true, map.leveldb);
 	}
 	
@@ -175,6 +177,15 @@ public class LevelMap extends CommitRollback implements ConvertMap {
 	public Collection values() {
 		throw new LeveldbException("Not supported.");
 	}
+	
+	// キー用のJniBufferを取得.
+	private final JniBuffer getKey(Object key, Object twoKey)
+		throws Exception {
+		if (key instanceof JniBuffer) {
+			return (JniBuffer) key;
+		}
+		return LevelBuffer.key(type, key, twoKey);
+	}
 
 	/**
 	 * 指定キーの情報をセット.
@@ -196,7 +207,7 @@ public class LevelMap extends CommitRollback implements ConvertMap {
 		JniBuffer keyBuf = null;
 		JniBuffer valBuf = null;
 		try {
-			keyBuf = LevelBuffer.key(type, key, twoKey);
+			keyBuf = getKey(key, twoKey);
 			if (value instanceof JniBuffer) {
 				if(writeBatchFlag) {
 					writeBatch().put(keyBuf, (JniBuffer) value);
@@ -266,7 +277,7 @@ public class LevelMap extends CommitRollback implements ConvertMap {
 		JniBuffer keyBuf = null;
 		JniBuffer valBuf = null;
 		try {
-			keyBuf = LevelBuffer.key(type, key, twoKey);
+			keyBuf = getKey(key, twoKey);
 			if(writeBatchFlag) {
 				LeveldbIterator snapshot = getSnapshot();
 				snapshot.seek(keyBuf);
@@ -331,11 +342,7 @@ public class LevelMap extends CommitRollback implements ConvertMap {
 		boolean ret = false;
 		JniBuffer keyBuf = null;
 		try {
-			if (key instanceof JniBuffer) {
-				keyBuf = (JniBuffer) key;
-			} else {
-				keyBuf = LevelBuffer.key(type, key, twoKey);
-			}
+			keyBuf = getKey(key, twoKey);
 			if(writeBatchFlag) {
 				LeveldbIterator snapshot = getSnapshot();
 				snapshot.seek(keyBuf);
@@ -458,7 +465,7 @@ public class LevelMap extends CommitRollback implements ConvertMap {
 		checkClose();
 		JniBuffer keyBuf = null;
 		try {
-			keyBuf = LevelBuffer.key(type, key, twoKey);
+			keyBuf = getKey(key, twoKey);
 			if(writeBatchFlag) {
 				WriteBatch b = writeBatch();
 				b.remove(keyBuf);
@@ -537,7 +544,8 @@ public class LevelMap extends CommitRollback implements ConvertMap {
 	}
 
 	/**
-	 * 登録データ数を取得. ※Iteratorでカウントするので、件数が多い場合は、処理に時間がかかります. return int 登録データ数が返却されます.
+	 * 登録データ数を取得. ※Iteratorでカウントするので、件数が多い場合は、処理に時間がかかります.
+	 * @return int 登録データ数が返却されます.
 	 */
 	public int size() {
 		checkClose();

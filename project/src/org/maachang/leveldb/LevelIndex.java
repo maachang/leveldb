@@ -66,10 +66,11 @@ public class LevelIndex extends CommitRollback {
 	 * @param parnet
 	 */
 	public LevelIndex(boolean writeBatch, LevelIndex parent) {
-		// leveldbをクローズせずwriteBatchで処理する.
 		if(writeBatch) {
+			// leveldbをクローズせずwriteBatchで処理する.
 			super.init(parent.leveldb, false, true);
 		} else {
+			// leveldbをクローズしてwriteBatchで処理しない.
 			super.init(parent.leveldb, true, false);
 		}
 		this.parent = parent.leveldb;

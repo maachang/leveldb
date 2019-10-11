@@ -355,12 +355,16 @@ public final class Leveldb {
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static final void search(LeveldbIterator lv, boolean reverse, int type, Object key, Object key2) {
-		if(key == null && key2 == null) {
+		if(key == null) {
 			return;
 		}
 		JniBuffer keyBuf = null;
 		try {
-			keyBuf = LevelBuffer.key(type, key, key2);
+			if(key instanceof JniBuffer) {
+				keyBuf = (JniBuffer)key;
+			} else {
+				keyBuf = LevelBuffer.key(type, key, key2);
+			}
 			lv.seek(keyBuf);
 			LevelBuffer.clearBuffer(keyBuf, null);
 			if(lv.valid() && reverse) {
