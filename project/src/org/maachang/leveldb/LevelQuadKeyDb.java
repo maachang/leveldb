@@ -217,30 +217,11 @@ public class LevelQuadKeyDb extends CommitRollback {
 	 * データ削除.
 	 * @param lat
 	 * @param lon
-	 * @return
-	 */
-	public boolean remove(double lat, double lon) {
-		return remove(lat, lon, null);
-	}
-	
-	/**
-	 * データ削除.
-	 * @param lat
-	 * @param lon
 	 * @param secKey
 	 * @return
 	 */
 	public boolean remove(double lat, double lon, Object secKey) {
 		return remove(GeoQuadKey.create(lat, lon), secKey);
-	}
-	
-	/**
-	 * データ削除.
-	 * @param qk
-	 * @return
-	 */
-	public boolean remove(long qk) {
-		return remove(qk, null);
 	}
 	
 	/**
@@ -273,30 +254,11 @@ public class LevelQuadKeyDb extends CommitRollback {
 	 * 情報存在確認.
 	 * @param lat
 	 * @param lon
-	 * @return
-	 */
-	public boolean contains(double lat, double lon) {
-		return contains(lat, lon, null);
-	}
-	
-	/**
-	 * 情報存在確認.
-	 * @param lat
-	 * @param lon
 	 * @param secKey
 	 * @return
 	 */
 	public boolean contains(double lat, double lon, Object secKey) {
 		return contains(GeoQuadKey.create(lat, lon), secKey);
-	}
-	
-	/**
-	 * 情報存在確認.
-	 * @param qk
-	 * @return
-	 */
-	public boolean contains(long qk) {
-		return contains(qk, null);
 	}
 	
 	/**
@@ -340,32 +302,11 @@ public class LevelQuadKeyDb extends CommitRollback {
 	 * @param buf
 	 * @param lat
 	 * @param lon
-	 * @return
-	 */
-	public boolean getBuffer(JniBuffer buf, double lat, double lon) {
-		return getBuffer(buf, lat, lon, null);
-	}
-	
-	/**
-	 * 情報存在確認.
-	 * @param buf
-	 * @param lat
-	 * @param lon
 	 * @param secKey
 	 * @return
 	 */
 	public boolean getBuffer(JniBuffer buf, double lat, double lon, Object secKey) {
 		return getBuffer(buf, GeoQuadKey.create(lat, lon), secKey);
-	}
-	
-	/**
-	 * 情報存在確認.
-	 * @param buf
-	 * @param qk
-	 * @return
-	 */
-	public boolean getBuffer(JniBuffer buf, long qk) {
-		return getBuffer(buf, qk, null);
 	}
 	
 	/**
@@ -412,30 +353,11 @@ public class LevelQuadKeyDb extends CommitRollback {
 	 * 指定キー情報に対する要素を取得.
 	 * @param lat
 	 * @param lon
-	 * @return
-	 */
-	public Object get(double lat, double lon) {
-		return get(lat, lon, null);
-	}
-	
-	/**
-	 * 指定キー情報に対する要素を取得.
-	 * @param lat
-	 * @param lon
 	 * @param secKey
 	 * @return
 	 */
 	public Object get(double lat, double lon, Object secKey) {
 		return get(GeoQuadKey.create(lat, lon), secKey);
-	}
-	
-	/**
-	 * 指定キー情報に対する要素を取得.
-	 * @param qk
-	 * @return
-	 */
-	public Object get(long qk) {
-		return get(qk, null);
 	}
 	
 	/**
