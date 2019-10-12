@@ -8,6 +8,9 @@ import org.maachang.leveldb.util.Converter;
  * LevelOptionオプション.
  */
 public final class LevelOption {
+	
+	/** キー格納タイプ : なし. **/
+	public static final int TYPE_NONE = -1;
 
 	/** キー格納タイプ : 文字列. **/
 	public static final int TYPE_STRING = 0;
@@ -601,8 +604,12 @@ public final class LevelOption {
 	 * @return 0: multiキー.
 	 *         1: シングルキー.
 	 *         2: ２キー.
+	 *         -1: 不明.
 	 */
 	public static final int typeMode(int type) {
+		if(type == TYPE_NONE) {
+			return -1;
+		}
 		return TYPE_PARAM_LENGTH[type];
 	}
 
