@@ -498,13 +498,287 @@ public class LevelQuadKeyDb extends CommitRollback {
 	
 	/**
 	 * snapshotを取得.
+	 * @return
+	 */
+	public LevelQKListIterator snapshot() {
+		return snapshot(false, null, null);
+	}
+	
+	/**
+	 * snapshotを取得.
+	 * @param reverse
+	 * @return
+	 */
+	public LevelQKListIterator snapshot(boolean reverse) {
+		return snapshot(reverse, null, null);
+	}
+	
+	/**
+	 * snapshotを取得.
+	 * @param lat
+	 * @param lon
+	 * @param secKey
+	 * @return
+	 */
+	public LevelQKListIterator snapshot(double lat, double lon, Object secKey) {
+		return snapshot(false, lat, lon, secKey);
+	}
+	
+	/**
+	 * snapshotを取得.
+	 * @param qk
+	 * @param secKey
+	 * @return
+	 */
+	public LevelQKListIterator snapshot(Long qk, Object secKey) {
+		return snapshot(false, qk, secKey);
+	}
+	
+	/**
+	 * snapshotを取得.
+	 * @param reverse
+	 * @param lat
+	 * @param lon
+	 * @param secKey
+	 * @return
+	 */
+	public LevelQKListIterator snapshot(boolean reverse, double lat, double lon, Object secKey) {
+		return snapshot(reverse, GeoQuadKey.create(lat, lon), secKey);
+	}
+	
+	/**
+	 * snapshotを取得.
+	 * @param reverse
+	 * @param qk
+	 * @param secKey
+	 * @return
+	 */
+	public LevelQKListIterator snapshot(boolean reverse, Long qk, Object secKey) {
+		checkClose();
+		LevelQKListIterator ret = null;
+		try {
+			ret = new LevelQKListIterator(reverse, this, leveldb.snapshot());
+			return _search(ret, qk, secKey);
+		} catch(LeveldbException le) {
+			if(ret != null) {
+				ret.close();
+			}
+			throw le;
+		} catch(Exception e) {
+			if(ret != null) {
+				ret.close();
+			}
+			throw new LeveldbException(e);
+		}
+	}
+	
+	/**
+	 * iteratorを取得.
+	 * @return
+	 */
+	public LevelQKListIterator iterator() {
+		return iterator(false, null, null);
+	}
+	
+	/**
+	 * iteratorを取得.
+	 * @param reverse
+	 * @return
+	 */
+	public LevelQKListIterator iterator(boolean reverse) {
+		return iterator(reverse, null, null);
+	}
+	
+	/**
+	 * iteratorを取得.
+	 * @param reverse
+	 * @param lat
+	 * @param lon
+	 * @param secKey
+	 * @return
+	 */
+	public LevelQKListIterator iterator(double lat, double lon, Object secKey) {
+		return iterator(false, lat, lon, secKey);
+	}
+	
+	/**
+	 * iteratorを取得.
+	 * @param reverse
+	 * @param qk
+	 * @param secKey
+	 * @return
+	 */
+	public LevelQKListIterator iterator(Long qk, Object secKey) {
+		return iterator(false, qk, secKey);
+	}
+	
+	/**
+	 * iteratorを取得.
+	 * @param reverse
+	 * @param lat
+	 * @param lon
+	 * @param secKey
+	 * @return
+	 */
+	public LevelQKListIterator iterator(boolean reverse, double lat, double lon, Object secKey) {
+		return iterator(reverse, GeoQuadKey.create(lat, lon), secKey);
+	}
+	
+	/**
+	 * iteratorを取得.
+	 * @param reverse
+	 * @param qk
+	 * @param secKey
+	 * @return
+	 */
+	public LevelQKListIterator iterator(boolean reverse, Long qk, Object secKey) {
+		checkClose();
+		LevelQKListIterator ret = null;
+		try {
+			ret = new LevelQKListIterator(reverse, this, leveldb.iterator());
+			return _search(ret, qk, secKey);
+		} catch(LeveldbException le) {
+			if(ret != null) {
+				ret.close();
+			}
+			throw le;
+		} catch(Exception e) {
+			if(ret != null) {
+				ret.close();
+			}
+			throw new LeveldbException(e);
+		}
+	}
+	
+	// 指定キーで検索処理.
+	protected LevelQKListIterator _search(LevelQKListIterator ret, Long qk, Object secKey)
+		throws Exception {
+		if(qk != null) {
+			Leveldb.search(ret.itr, ret.reverse, type, getKey(qk, secKey), null);
+		} else if(ret.reverse) {
+			ret.itr.last();
+		}
+		return ret;
+	}
+	
+	/**
+	 * LevelQuadKeyDb用Iterator.
+	 */
+	public class LevelQKListIterator implements LevelIterator<KeyValue<Object[], Object>> {
+		LevelQuadKeyDb db;
+		LeveldbIterator itr;
+		boolean reverse;
+		KeyValue<Object[], Object> element;
+
+		/**
+		 * コンストラクタ.
+		 * 
+		 * @param reverse
+		 *            逆カーソル移動させる場合は[true]
+		 * @param db
+		 *            対象の親オブジェクトを設定します.
+		 * @param itr
+		 *            LeveldbIteratorオブジェクトを設定します.
+		 */
+		LevelQKListIterator(boolean reverse, LevelQuadKeyDb db, LeveldbIterator itr) {
+			this.db = db;
+			this.itr = itr;
+			this.reverse = reverse;
+			this.element = new KeyValue<Object[], Object>();
+		}
+
+		// ファイナライズ.
+		protected void finalize() throws Exception {
+			close();
+		}
+
+		/**
+		 * クローズ処理.
+		 */
+		public void close() {
+			if (itr != null) {
+				itr.close();
+				itr = null;
+			}
+		}
+		
+		/**
+		 * 逆カーソル移動かチェック.
+		 * @return
+		 */
+		public boolean isReverse() {
+			return reverse;
+		}
+
+		/**
+		 * 次の情報が存在するかチェック.
+		 * 
+		 * @return boolean [true]の場合、存在します.
+		 */
+		public boolean hasNext() {
+			if (db.isClose() || itr == null || !itr.valid()) {
+				close();
+				return false;
+			}
+			return true;
+		}
+
+		/**
+		 * 次の要素を取得.
+		 * 
+		 * @return String 次の要素が返却されます.
+		 */
+		public KeyValue<Object[], Object> next() {
+			if (db.isClose() || itr == null || !itr.valid()) {
+				close();
+				throw new NoSuchElementException();
+			}
+			JniBuffer keyBuf = null;
+			JniBuffer valBuf = null;
+			try {
+				keyBuf = LevelBuffer.key();
+				valBuf = LevelBuffer.value();
+				itr.key(keyBuf);
+				itr.value(valBuf);
+				Object key = LevelId.get(db.type, keyBuf);
+				Object val = LevelValues.decode(valBuf);
+				LevelBuffer.clearBuffer(keyBuf, valBuf);
+				keyBuf = null;
+				valBuf = null;
+				if(reverse) {
+					itr.before();
+				} else {
+					itr.next();
+				}
+				if(!itr.valid()) {
+					close();
+				}
+				TwoKey tk = (TwoKey)key;
+				if(db.sequenceId != null) {
+					element.set(new Object[] {tk.get(0), Time12SequenceId.toString((byte[])tk.get(1))}, val);
+				} else {
+					element.set(new Object[] {tk.get(0), tk.get(1)}, val);
+				}
+				return element;
+			} catch (LeveldbException le) {
+				throw le;
+			} catch (Exception e) {
+				throw new LeveldbException(e);
+			} finally {
+				LevelBuffer.clearBuffer(keyBuf, valBuf);
+			}
+		}
+	}
+	
+	/**
+	 * snapshotを取得.
 	 * @param lat
 	 * @param lon
 	 * @param distance 検索範囲（メートル）を設定します.
 	 * @return
 	 */
-	public LeveQuadKeyIterator snapshot(double lat, double lon, int distance) {
-		return snapshot(lat, lon, distance);
+	public LeveQKSearchIterator snapshot(double lat, double lon, int distance) {
+		return snapshot(GeoQuadKey.create(lat, lon), distance);
 	}
 	
 	/**
@@ -513,9 +787,9 @@ public class LevelQuadKeyDb extends CommitRollback {
 	 * @param distance 検索範囲（メートル）を設定します.
 	 * @return
 	 */
-	public LeveQuadKeyIterator snapshot(long qk, int distance) {
+	public LeveQKSearchIterator snapshot(long qk, int distance) {
 		checkClose();
-		return new LeveQuadKeyIterator(qk, minKey, distance, this, true);
+		return new LeveQKSearchIterator(qk, minKey, distance, this, true);
 	}
 	
 	/**
@@ -525,8 +799,8 @@ public class LevelQuadKeyDb extends CommitRollback {
 	 * @param distance 検索範囲（メートル）を設定します.
 	 * @return
 	 */
-	public LeveQuadKeyIterator iterator(double lat, double lon, int distance) {
-		return iterator(lat, lon, distance);
+	public LeveQKSearchIterator iterator(double lat, double lon, int distance) {
+		return iterator(GeoQuadKey.create(lat, lon), distance);
 	}
 	
 	/**
@@ -535,17 +809,18 @@ public class LevelQuadKeyDb extends CommitRollback {
 	 * @param distance 検索範囲（メートル）を設定します.
 	 * @return
 	 */
-	public LeveQuadKeyIterator iterator(long qk, int distance) {
+	public LeveQKSearchIterator iterator(long qk, int distance) {
 		checkClose();
-		return new LeveQuadKeyIterator(qk, minKey, distance, this, false);
+		return new LeveQKSearchIterator(qk, minKey, distance, this, false);
 	}
 	
 	/**
-	 * LevelQuadKeyDb用Iterator.
+	 * LevelQuadKeyDb用範囲検索Iterator.
 	 */
-	public class LeveQuadKeyIterator implements LevelIterator<Object[]> {
+	public class LeveQKSearchIterator implements LevelIterator<KeyValue<Object[], Object>> {
 		protected LevelQuadKeyDb db;
 		protected LeveldbIterator itr;
+		private KeyValue<Object[], Object> element;
 		protected int type;
 		protected int latM;
 		protected int lonM;
@@ -555,8 +830,9 @@ public class LevelQuadKeyDb extends CommitRollback {
 		protected int nowCount;
 		protected boolean endFlag;
 		protected Object nowKey;
+		protected Object nowValue;
 		
-		protected LeveQuadKeyIterator(long qk, Object secKey, int distance, LevelQuadKeyDb db, boolean snapshot) {
+		protected LeveQKSearchIterator(long qk, Object secKey, int distance, LevelQuadKeyDb db, boolean snapshot) {
 			double[] latLon = GeoQuadKey.latLon(qk);
 			long[] searchList = GeoQuadKey.searchCode(
 				GeoQuadKey.getDetail(distance), latLon[0], latLon[1]);
@@ -572,7 +848,8 @@ public class LevelQuadKeyDb extends CommitRollback {
 			this.list = searchList;
 			this.nowCount = -1;
 			this.endFlag = false;
-			this.nowKey = _next();
+			this.element = new KeyValue<Object[], Object>();
+			_next();
 		}
 		
 		@Override
@@ -595,17 +872,19 @@ public class LevelQuadKeyDb extends CommitRollback {
 			return false;
 		}
 		
-		private Object _next() {
+		private void _next() {
 			db.checkClose();
 			if(endFlag) {
 				close();
-				return null;
+				nowKey = null;
+				nowValue = null;
 			}
 			Object key;
 			long nowQk;
 			double[] latLon = new double[2];
-			boolean nextRead = true;
+			boolean nextRead = nowCount == -1;
 			JniBuffer keyBuf = null;
+			JniBuffer valBuf = null;
 			try {
 				keyBuf = LevelBuffer.key();
 				while(true) {
@@ -616,7 +895,9 @@ public class LevelQuadKeyDb extends CommitRollback {
 						// 検索結果の終了.
 						if(nowCount >= 9) {
 							close();
-							return null;
+							nowKey = null;
+							nowValue = null;
+							return;
 						}
 						LevelId.buf(type, keyBuf, list[nowCount << 1], secKey);
 						itr.seek(keyBuf);
@@ -636,24 +917,31 @@ public class LevelQuadKeyDb extends CommitRollback {
 						nextRead = true;
 						continue;
 					}
-					// 次の情報を読み込む.
-					itr.next();
 					// 取得した位置情報は、distanceの範囲内かチェック.
 					GeoQuadKey.latLon(latLon, nowQk);
 					if(GeoLine.getFast(latM, lonM, GeoLine.getLat(latLon[0]), GeoLine.getLon(latLon[1])) > distance) {
+						// 次の情報でリトライ.
+						itr.next();
 						continue;
 					}
-					// 今回取得したデータを返却.
-					LevelBuffer.clearBuffer(keyBuf, null);
+					valBuf = LevelBuffer.value();
+					itr.value(valBuf);
+					// 今回の情報をセット.
+					this.nowKey = key;
+					this.nowValue = LevelValues.decode(valBuf);
+					LevelBuffer.clearBuffer(keyBuf, valBuf);
 					keyBuf = null;
-					return key;
+					valBuf = null;
+					// 次の情報を読み込む.
+					itr.next();
+					return;
 				}
 			} catch (LeveldbException le) {
 				throw le;
 			} catch (Exception e) {
 				throw new LeveldbException(e);
 			} finally {
-				LevelBuffer.clearBuffer(keyBuf, null);
+				LevelBuffer.clearBuffer(keyBuf, valBuf);
 			}
 		}
 
@@ -666,19 +954,22 @@ public class LevelQuadKeyDb extends CommitRollback {
 		}
 
 		@Override
-		public Object[] next() {
+		public KeyValue<Object[], Object> next() {
 			if(db.isClose() || endFlag) {
 				close();
 				throw new NoSuchElementException();
 			}
-			Object ret = this.nowKey;
-			this.nowKey = _next();
-			if(ret != null) {
-				TwoKey tk = (TwoKey)ret;
+			Object key = this.nowKey;
+			Object value = this.nowValue;
+			_next();
+			if(key != null) {
+				TwoKey tk = (TwoKey)key;
 				if(db.sequenceId != null) {
-					return new Object[] {tk.get(0), Time12SequenceId.toString((byte[])tk.get(1))};
+					element.set(new Object[] {tk.get(0), Time12SequenceId.toString((byte[])tk.get(1))}, value);
+				} else {
+					element.set(new Object[] {tk.get(0), tk.get(1)}, value);
 				}
-				return new Object[] {tk.get(0), tk.get(1)};
+				return element;
 			}
 			return null;
 		}

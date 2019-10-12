@@ -937,7 +937,7 @@ public class LevelMap extends CommitRollback implements ConvertMap {
 		boolean reverse;
 
 		/**
-		 * LevelMapIteratorの作成.
+		 * コンストラクタ.
 		 * 
 		 * @param reverse
 		 *            逆カーソル移動させる場合は[true]

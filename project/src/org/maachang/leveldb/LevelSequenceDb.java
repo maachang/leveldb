@@ -355,6 +355,15 @@ public class LevelSequenceDb extends CommitRollback {
 	/**
 	 * iterator作成.
 	 * @param reverse
+	 * @return
+	 */
+	protected LevelSequenceIterator iterator(boolean reverse) {
+		return iterator(reverse, null);
+	}
+	
+	/**
+	 * iterator作成.
+	 * @param reverse
 	 * @param key
 	 * @return
 	 */
@@ -398,6 +407,15 @@ public class LevelSequenceDb extends CommitRollback {
 	/**
 	 * snapShort用のIteratorを作成.
 	 * @param reverse
+	 * @return
+	 */
+	protected LevelSequenceIterator snapshot(boolean reverse) {
+		return snapshot(reverse, null);
+	}
+	
+	/**
+	 * snapShort用のIteratorを作成.
+	 * @param reverse
 	 * @param key
 	 * @return
 	 */
@@ -433,20 +451,25 @@ public class LevelSequenceDb extends CommitRollback {
 	// 指定キーで検索処理.
 	protected LevelSequenceIterator _search(LevelSequenceIterator ret, Object key)
 		throws Exception {
-		Leveldb.search(ret.itr, ret.reverse, LevelOption.TYPE_FREE, getKey(key), null);
+		if(key != null) {
+			Leveldb.search(ret.itr, ret.reverse, LevelOption.TYPE_FREE, getKey(key), null);
+		} else if(ret.reverse) {
+			ret.itr.last();
+		}
 		return ret;
 	}
 	
 	/**
 	 * LevelSequence用Iterator.
 	 */
-	public class LevelSequenceIterator implements LevelIterator<String> {
+	public class LevelSequenceIterator implements LevelIterator<KeyValue<String, Object>> {
 		LevelSequenceDb seq;
 		LeveldbIterator itr;
 		boolean reverse;
+		KeyValue<String, Object> element;
 
 		/**
-		 * LevelMapIteratorの作成.
+		 * コンストラクタ.
 		 * 
 		 * @param reverse
 		 *            逆カーソル移動させる場合は[true]
@@ -459,6 +482,7 @@ public class LevelSequenceDb extends CommitRollback {
 			this.seq = seq;
 			this.itr = itr;
 			this.reverse = reverse;
+			this.element = new KeyValue<String, Object>();
 		}
 
 		// ファイナライズ.
@@ -502,18 +526,23 @@ public class LevelSequenceDb extends CommitRollback {
 		 * 
 		 * @return String 次の要素が返却されます.
 		 */
-		public String next() {
+		public KeyValue<String, Object> next() {
 			if (seq.isClose() || itr == null || !itr.valid()) {
 				close();
 				throw new NoSuchElementException();
 			}
 			JniBuffer keyBuf = null;
+			JniBuffer valBuf = null;
 			try {
 				keyBuf = LevelBuffer.key();
+				valBuf = LevelBuffer.value();
 				itr.key(keyBuf);
+				itr.value(valBuf);
 				Object ret = LevelId.get(LevelOption.TYPE_FREE, keyBuf);
-				LevelBuffer.clearBuffer(keyBuf, null);
+				Object val = LevelValues.decode(valBuf);
+				LevelBuffer.clearBuffer(keyBuf, valBuf);
 				keyBuf = null;
+				valBuf = null;
 				if(reverse) {
 					itr.before();
 				} else {
@@ -522,13 +551,14 @@ public class LevelSequenceDb extends CommitRollback {
 				if(!itr.valid()) {
 					close();
 				}
-				return Time12SequenceId.toString((byte[])ret);
+				element.set(Time12SequenceId.toString((byte[])ret), val);
+				return element;
 			} catch (LeveldbException le) {
 				throw le;
 			} catch (Exception e) {
 				throw new LeveldbException(e);
 			} finally {
-				LevelBuffer.clearBuffer(keyBuf, null);
+				LevelBuffer.clearBuffer(keyBuf, valBuf);
 			}
 		}
 	}
