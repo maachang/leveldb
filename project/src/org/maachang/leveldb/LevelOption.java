@@ -249,7 +249,9 @@ public final class LevelOption {
 	 */
 	public static final int convertType(String value) {
 		if (value == null || (value = value.trim().toLowerCase()).length() <= 0) {
-			return LevelOption.TYPE_STRING;
+			return LevelOption.TYPE_NONE;
+		} else if("none".equals(value)) {
+			return LevelOption.TYPE_NONE;
 		} else if (pattern(0, PATTERN_STR, value)) {
 			return LevelOption.TYPE_STRING;
 		} else if (pattern(0, PATTERN_INT, value)) {
@@ -293,7 +295,7 @@ public final class LevelOption {
 		} else if (pattern(1, PATTERN_BINARY, value) || pattern(0, PATTERN_FREE, value)) {
 			return LevelOption.TYPE_FREE;
 		}
-		return LevelOption.TYPE_STRING;
+		return LevelOption.TYPE_NONE;
 	}
 
 	/**
@@ -305,6 +307,8 @@ public final class LevelOption {
 	 */
 	public static final String stringType(int type) {
 		switch (type) {
+		case LevelOption.TYPE_NONE:
+			return "none";
 		case LevelOption.TYPE_STRING:
 			return "string";
 		case LevelOption.TYPE_NUMBER32:
@@ -348,7 +352,7 @@ public final class LevelOption {
 		case LevelOption.TYPE_FREE:
 			return "binary";
 		default:
-			return "string";
+			return "none";
 		}
 	}
 	
@@ -362,11 +366,11 @@ public final class LevelOption {
 	public static final int getFirstKeyType(int type) {
 		switch (type) {
 		case LevelOption.TYPE_STRING:
-			return -1;
+			return LevelOption.TYPE_NONE;
 		case LevelOption.TYPE_NUMBER32:
-			return -1;
+			return LevelOption.TYPE_NONE;
 		case LevelOption.TYPE_NUMBER64:
-			return -1;
+			return LevelOption.TYPE_NONE;
 		case LevelOption.TYPE_STR_STR:
 			return LevelOption.TYPE_STRING;
 		case LevelOption.TYPE_STR_N32:
@@ -400,11 +404,11 @@ public final class LevelOption {
 		case LevelOption.TYPE_BIN_BIN:
 			return LevelOption.TYPE_FREE;
 		case LevelOption.TYPE_MULTI:
-			return -1;
+			return LevelOption.TYPE_NONE;
 		case LevelOption.TYPE_FREE:
-			return -1;
+			return LevelOption.TYPE_NONE;
 		default:
-			return -1;
+			return LevelOption.TYPE_NONE;
 		}
 	}
 	
@@ -418,11 +422,11 @@ public final class LevelOption {
 	public static final int getSecondKeyType(int type) {
 		switch (type) {
 		case LevelOption.TYPE_STRING:
-			return -1;
+			return LevelOption.TYPE_NONE;
 		case LevelOption.TYPE_NUMBER32:
-			return -1;
+			return LevelOption.TYPE_NONE;
 		case LevelOption.TYPE_NUMBER64:
-			return -1;
+			return LevelOption.TYPE_NONE;
 		case LevelOption.TYPE_STR_STR:
 			return LevelOption.TYPE_STRING;
 		case LevelOption.TYPE_STR_N32:
@@ -456,11 +460,11 @@ public final class LevelOption {
 		case LevelOption.TYPE_BIN_BIN:
 			return LevelOption.TYPE_FREE;
 		case LevelOption.TYPE_MULTI:
-			return -1;
+			return LevelOption.TYPE_NONE;
 		case LevelOption.TYPE_FREE:
-			return -1;
+			return LevelOption.TYPE_NONE;
 		default:
-			return -1;
+			return LevelOption.TYPE_NONE;
 		}
 	}
 	
@@ -517,7 +521,7 @@ public final class LevelOption {
 		case LevelOption.TYPE_FREE:
 			return LevelOption.TYPE_FREE;
 		}
-		return -1;
+		return LevelOption.TYPE_NONE;
 	}
 
 	/**
@@ -537,9 +541,6 @@ public final class LevelOption {
 	 */
 	public final void setType(int type) {
 		type = checkType(type);
-		if(type == -1) {
-			type = LevelOption.TYPE_STRING;
-		}
 		this.type = type;
 	}
 
@@ -607,8 +608,8 @@ public final class LevelOption {
 	 *         -1: 不明.
 	 */
 	public static final int typeMode(int type) {
-		if(type == TYPE_NONE) {
-			return -1;
+		if(type <= LevelOption.TYPE_NONE) {
+			return LevelOption.TYPE_NONE;
 		}
 		return TYPE_PARAM_LENGTH[type];
 	}

@@ -147,8 +147,9 @@ public class LevelSequenceDb extends CommitRollback {
 	 * 
 	 * @param key 対象のシーケンスIDを設定します.
 	 * @param value 設定対象の要素を設定します.
+	 * @return String シーケンスIDが返却されます.
 	 */
-	public void put(Object key, Object value) {
+	public String put(Object key, Object value) {
 		checkClose();
 		JniBuffer keyBuf = null;
 		JniBuffer valBuf = null;
@@ -168,6 +169,12 @@ public class LevelSequenceDb extends CommitRollback {
 					leveldb.put(keyBuf, valBuf);
 				}
 			}
+			if(key instanceof String) {
+				return (String)key;
+			} else if(key instanceof byte[]) {
+				return Time12SequenceId.toString((byte[])key);
+			}
+			return Time12SequenceId.toString(keyBuf.getBinary());
 		} catch (LeveldbException le) {
 			throw le;
 		} catch (Exception e) {
@@ -288,9 +295,9 @@ public class LevelSequenceDb extends CommitRollback {
 	 * 
 	 * @param key
 	 *            対象のキーを設定します.
-	 * @return boolean 削除できた場合[true]が返却されます.
+	 * @return String シーケンスIDが返却されます.
 	 */
-	public boolean remove(Object key) {
+	public String remove(Object key) {
 		checkClose();
 		JniBuffer keyBuf = null;
 		try {
@@ -298,9 +305,15 @@ public class LevelSequenceDb extends CommitRollback {
 			if(writeBatchFlag) {
 				WriteBatch b = writeBatch();
 				b.remove(keyBuf);
-				return true;
+			} else {
+				leveldb.remove(keyBuf);
 			}
-			return leveldb.remove(keyBuf);
+			if(key instanceof String) {
+				return (String)key;
+			} else if(key instanceof byte[]) {
+				return Time12SequenceId.toString((byte[])key);
+			}
+			return Time12SequenceId.toString(keyBuf.getBinary());
 		} catch (LeveldbException le) {
 			throw le;
 		} catch (Exception e) {
@@ -348,7 +361,7 @@ public class LevelSequenceDb extends CommitRollback {
 	 * iterator作成.
 	 * @return
 	 */
-	protected LevelSequenceIterator iterator() {
+	public LevelSequenceIterator iterator() {
 		return iterator(false, null);
 	}
 	
@@ -357,7 +370,7 @@ public class LevelSequenceDb extends CommitRollback {
 	 * @param reverse
 	 * @return
 	 */
-	protected LevelSequenceIterator iterator(boolean reverse) {
+	public LevelSequenceIterator iterator(boolean reverse) {
 		return iterator(reverse, null);
 	}
 	
@@ -367,7 +380,7 @@ public class LevelSequenceDb extends CommitRollback {
 	 * @param key
 	 * @return
 	 */
-	protected LevelSequenceIterator iterator(Object key) {
+	public LevelSequenceIterator iterator(Object key) {
 		return iterator(false, key);
 	}
 	
@@ -377,7 +390,7 @@ public class LevelSequenceDb extends CommitRollback {
 	 * @param key
 	 * @return
 	 */
-	protected LevelSequenceIterator iterator(boolean reverse, Object key) {
+	public LevelSequenceIterator iterator(boolean reverse, Object key) {
 		checkClose();
 		LevelSequenceIterator ret = null;
 		try {
@@ -400,7 +413,7 @@ public class LevelSequenceDb extends CommitRollback {
 	 * snapShort用のIteratorを作成.
 	 * @return
 	 */
-	protected LevelSequenceIterator snapshot() {
+	public LevelSequenceIterator snapshot() {
 		return snapshot(false, null);
 	}
 	
@@ -409,7 +422,7 @@ public class LevelSequenceDb extends CommitRollback {
 	 * @param reverse
 	 * @return
 	 */
-	protected LevelSequenceIterator snapshot(boolean reverse) {
+	public LevelSequenceIterator snapshot(boolean reverse) {
 		return snapshot(reverse, null);
 	}
 	
@@ -419,7 +432,7 @@ public class LevelSequenceDb extends CommitRollback {
 	 * @param key
 	 * @return
 	 */
-	protected LevelSequenceIterator snapshot(Object key) {
+	public LevelSequenceIterator snapshot(Object key) {
 		return snapshot(false, key);
 	}
 
@@ -429,7 +442,7 @@ public class LevelSequenceDb extends CommitRollback {
 	 * @param key
 	 * @return
 	 */
-	protected LevelSequenceIterator snapshot(boolean reverse, Object key) {
+	public LevelSequenceIterator snapshot(boolean reverse, Object key) {
 		checkClose();
 		LevelSequenceIterator ret = null;
 		try {

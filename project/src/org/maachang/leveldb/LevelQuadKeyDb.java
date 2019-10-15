@@ -51,16 +51,14 @@ public class LevelQuadKeyDb extends CommitRollback {
 	 *            対象のデータベース名を設定します.
 	 * @param machineId
 	 *            マシンIDを設定します.
-	 * @param type
-	 *            オプションのタイプは１キーを設定することで、緯度経度のセカンドキーになります.
-	 *            -1を設定することで、シーケンスIDがセットされます.
 	 * @param option
 	 *            Leveldbオプションを設定します.
-	 *            オプションのタイプは無視されて、typeパラメータがセットされます.
+	 *            オプションのタイプは１キーを設定することで、緯度経度のセカンドキーになります.
+	 *            -1を設定することで、シーケンスIDがセットされます.
 	 */
-	public LevelQuadKeyDb(String name, int machineId, int type, LevelOption option) {
-		type = LevelOption.checkType(type);
-		if(type != -1) {
+	public LevelQuadKeyDb(String name, int machineId, LevelOption option) {
+		int type = LevelOption.checkType(option.getType());
+		if(type != LevelOption.TYPE_NONE) {
 			if(LevelOption.typeMode(type) != 1 || type == LevelOption.TYPE_MULTI) {
 				throw new LeveldbException("Only the \"one key\" condition can be set for the second key.");
 			}
@@ -419,7 +417,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	}
 	
 	/**
-	 * snapshotを取得.
+	 * リスト検索用snapshotを取得.
 	 * @return
 	 */
 	public LevelQKListIterator snapshot() {
@@ -427,7 +425,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	}
 	
 	/**
-	 * snapshotを取得.
+	 * リスト検索用snapshotを取得.
 	 * @param reverse
 	 * @return
 	 */
@@ -436,7 +434,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	}
 	
 	/**
-	 * snapshotを取得.
+	 * リスト検索用snapshotを取得.
 	 * @param lat
 	 * @param lon
 	 * @param secKey
@@ -447,7 +445,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	}
 	
 	/**
-	 * snapshotを取得.
+	 * リスト検索用snapshotを取得.
 	 * @param qk
 	 * @param secKey
 	 * @return
@@ -457,7 +455,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	}
 	
 	/**
-	 * snapshotを取得.
+	 * リスト検索用snapshotを取得.
 	 * @param reverse
 	 * @param lat
 	 * @param lon
@@ -469,7 +467,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	}
 	
 	/**
-	 * snapshotを取得.
+	 * リスト検索用snapshotを取得.
 	 * @param reverse
 	 * @param qk
 	 * @param secKey
@@ -495,7 +493,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	}
 	
 	/**
-	 * iteratorを取得.
+	 * リスト検索用iteratorを取得.
 	 * @return
 	 */
 	public LevelQKListIterator iterator() {
@@ -503,7 +501,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	}
 	
 	/**
-	 * iteratorを取得.
+	 * リスト検索用iteratorを取得.
 	 * @param reverse
 	 * @return
 	 */
@@ -512,7 +510,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	}
 	
 	/**
-	 * iteratorを取得.
+	 * リスト検索用iteratorを取得.
 	 * @param reverse
 	 * @param lat
 	 * @param lon
@@ -524,7 +522,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	}
 	
 	/**
-	 * iteratorを取得.
+	 * リスト検索用iteratorを取得.
 	 * @param reverse
 	 * @param qk
 	 * @param secKey
@@ -535,7 +533,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	}
 	
 	/**
-	 * iteratorを取得.
+	 * リスト検索用iteratorを取得.
 	 * @param reverse
 	 * @param lat
 	 * @param lon
@@ -547,7 +545,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	}
 	
 	/**
-	 * iteratorを取得.
+	 * リスト検索用iteratorを取得.
 	 * @param reverse
 	 * @param qk
 	 * @param secKey
@@ -584,7 +582,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	}
 	
 	/**
-	 * LevelQuadKeyDb用Iterator.
+	 * リスト検索用LevelQuadKeyDb用Iterator.
 	 */
 	public class LevelQKListIterator implements LevelIterator<KeyValue<Object[], Object>> {
 		LevelQuadKeyDb db;
@@ -693,7 +691,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	}
 	
 	/**
-	 * snapshotを取得.
+	 * 範囲検索用snapshotを取得.
 	 * @param lat
 	 * @param lon
 	 * @param distance 検索範囲（メートル）を設定します.
@@ -704,7 +702,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	}
 	
 	/**
-	 * snapshotを取得.
+	 * 範囲検索用snapshotを取得.
 	 * @param qk
 	 * @param distance 検索範囲（メートル）を設定します.
 	 * @return
@@ -715,7 +713,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	}
 	
 	/**
-	 * iteratorを取得.
+	 * 範囲検索用iteratorを取得.
 	 * @param lat
 	 * @param lon
 	 * @param distance 検索範囲（メートル）を設定します.
@@ -726,7 +724,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	}
 	
 	/**
-	 * iteratorを取得.
+	 * 範囲検索用iteratorを取得.
 	 * @param qk
 	 * @param distance 検索範囲（メートル）を設定します.
 	 * @return
@@ -737,7 +735,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	}
 	
 	/**
-	 * LevelQuadKeyDb用範囲検索Iterator.
+	 * 範囲検索用LevelQuadKeyDb用Iterator.
 	 */
 	public class LeveQKSearchIterator implements LevelIterator<KeyValue<Object[], Object>> {
 		protected LevelQuadKeyDb db;
