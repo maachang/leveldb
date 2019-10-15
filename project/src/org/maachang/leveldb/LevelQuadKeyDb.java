@@ -24,23 +24,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	 *            マシンIDを設定します.
 	 */
 	public LevelQuadKeyDb(String name, int machineId) {
-		this(name, machineId, -1, null);
-	}
-	
-	/**
-	 * コンストラクタ.
-	 * writeBatchを無効にして生成します.
-	 * 
-	 * @param name
-	 *            対象のデータベース名を設定します.
-	 * @param machineId
-	 *            マシンIDを設定します.
-	 * @param type
-	 *            オプションのタイプは１キーを設定することで、緯度経度のセカンドキーになります.
-	 *            -1を設定することで、シーケンスIDがセットされます.
-	 */
-	public LevelQuadKeyDb(String name, int machineId, int type) {
-		this(name, machineId, type, null);
+		this(name, machineId, null);
 	}
 
 	/**
