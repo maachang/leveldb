@@ -38,7 +38,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	 * @param option
 	 *            Leveldbオプションを設定します.
 	 *            オプションのタイプは１キーを設定することで、緯度経度のセカンドキーになります.
-	 *            -1を設定することで、シーケンスIDがセットされます.
+	 *            [LevelOption.TYPE_NONE]を設定することで、シーケンスIDがセットされます.
 	 */
 	public LevelQuadKeyDb(String name, int machineId, LevelOption option) {
 		int type = LevelOption.checkType(option.getType());
@@ -148,13 +148,13 @@ public class LevelQuadKeyDb extends CommitRollback {
 		try {
 			// シーケンスIDがセカンドキーである場合.
 			if(sequenceId != null) {
-				// シーケンスIDが空の場合は、新しいシーケンスIDを発行.
-				if(secKey == null) {
+				// シーケンスIDが文字列の場合は、バイナリ変換.
+				if(secKey != null && secKey instanceof String) {
+					secKey = Time12SequenceId.toBinary((String)secKey);
+				// シーケンスIDが空か、バイナリで無い場合は、新しいシーケンスIDを発行.
+				} else if(secKey == null || !(secKey instanceof byte[])) {
 					seqId = sequenceId.next();
 					secKey = seqId;
-				// シーケンスIDが文字列の場合は、バイナリ変換.
-				} else if(secKey instanceof String) {
-					secKey = Time12SequenceId.toBinary((String)secKey);
 				}
 			}
 			keyBuf = LevelBuffer.key(type, qk, secKey);
