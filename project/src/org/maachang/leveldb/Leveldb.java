@@ -71,9 +71,9 @@ public final class Leveldb {
 	/**
 	 * デストラクタ.
 	 */
-	protected final void finalize() throws Exception {
-		close();
-	}
+//	protected final void finalize() throws Exception {
+//		close();
+//	}
 
 	/**
 	 * クローズ.

@@ -10,7 +10,7 @@ import java.util.Set;
  * ArrayMap.
  */
 @SuppressWarnings("rawtypes")
-public class ArrayMap implements AbstractKeyIterator.Base<String>, Map<String, Object>, ConvertGet<String> {
+public class ArrayMap implements AbstractKeyIterator.Base<String>, AbstractEntryIterator.Base<String, Object>, Map<String, Object>, ConvertGet<String> {
 	private ListMap list;
 
 	/**
@@ -45,14 +45,20 @@ public class ArrayMap implements AbstractKeyIterator.Base<String>, Map<String, O
 		list = new ListMap();
 		list.set(args);
 	}
-
+	
 	/**
-	 * クリア.
+	 * ListMapをセット.
 	 */
+	public void setRaw(ListMap list) {
+		this.list = list;
+	}
+
+	@Override
 	public void clear() {
 		list.clear();
 	}
 
+	@Override
 	public Object put(String name, Object value) {
 		if (name == null || value == null) {
 			return null;
@@ -60,6 +66,7 @@ public class ArrayMap implements AbstractKeyIterator.Base<String>, Map<String, O
 		return list.put(name.toString(), value);
 	}
 
+	@Override
 	public boolean containsKey(Object key) {
 		if (key == null) {
 			return false;
@@ -67,6 +74,7 @@ public class ArrayMap implements AbstractKeyIterator.Base<String>, Map<String, O
 		return list.containsKey(key.toString());
 	}
 
+	@Override
 	public Object get(Object key) {
 		if (key == null) {
 			return null;
@@ -74,6 +82,7 @@ public class ArrayMap implements AbstractKeyIterator.Base<String>, Map<String, O
 		return list.get(key.toString());
 	}
 
+	@Override
 	public Object remove(Object key) {
 		if (key == null) {
 			return null;
@@ -81,10 +90,12 @@ public class ArrayMap implements AbstractKeyIterator.Base<String>, Map<String, O
 		return list.remove(key.toString());
 	}
 
+	@Override
 	public boolean isEmpty() {
 		return list.size() == 0;
 	}
 
+	@Override
 	public void putAll(Map toMerge) {
 		if (toMerge == null) {
 			return;
@@ -99,6 +110,7 @@ public class ArrayMap implements AbstractKeyIterator.Base<String>, Map<String, O
 		}
 	}
 
+	@Override
 	public boolean containsValue(Object value) {
 		OList<Object[]> n = list.rawData();
 		if (value == null) {
@@ -119,14 +131,12 @@ public class ArrayMap implements AbstractKeyIterator.Base<String>, Map<String, O
 		return false;
 	}
 
-	public Set<Entry<String,Object>> entrySet() {
-		return null;
-	}
-
+	@Override
 	public int size() {
 		return list.size();
 	}
 
+	@Override
 	public String toString() {
 		Object[] v;
 		OList<Object[]> n = list.rawData();
@@ -143,6 +153,7 @@ public class ArrayMap implements AbstractKeyIterator.Base<String>, Map<String, O
 		return buf.append("}").toString();
 	}
 
+	@Override
 	public Collection<Object> values() {
 		ArrayList<Object> ret = new ArrayList<Object>();
 		OList<Object[]> n = list.rawData();
@@ -157,8 +168,14 @@ public class ArrayMap implements AbstractKeyIterator.Base<String>, Map<String, O
 		return list;
 	}
 
+	@Override
 	public Set<String> keySet() {
-		return new AbstractKeyIterator.KeyIteratorSet<>(this);
+		return new AbstractKeyIterator.Set<String>(this);
+	}
+
+	@Override
+	public Set<Entry<String, Object>> entrySet() {
+		return new AbstractEntryIterator.Set<String, Object>(this);
 	}
 
 	// original 取得.
@@ -170,6 +187,11 @@ public class ArrayMap implements AbstractKeyIterator.Base<String>, Map<String, O
 	@Override
 	public String getKey(int no) {
 		return (String) list.rawData().get(no)[0];
+	}
+	
+	@Override
+	public Object getValue(int no) {
+		return list.rawData().get(no)[1];
 	}
 
 	public void set(final Map<String, Object> v) {

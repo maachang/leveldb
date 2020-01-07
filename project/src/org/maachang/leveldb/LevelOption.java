@@ -78,7 +78,7 @@ public final class LevelOption {
 	/**
 	 * パラメータ長リスト. 0の場合は、マルチキー. 1の場合は単一キー. 2の場合は２キー.
 	 */
-	protected static final int[] TYPE_PARAM_LENGTH = new int[] { 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	public static final int[] TYPE_PARAM_LENGTH = new int[] { 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
 			2, 0, 1 };
 
 	/** block_cache最小値. **/

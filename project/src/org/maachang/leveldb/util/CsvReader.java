@@ -1,403 +1,349 @@
 package org.maachang.leveldb.util;
 
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
- * CSV読み込み処理.
+ * CsvReader.
  */
-public class CsvReader {
-	/** CSV読み込みオブジェクト. **/
-	private BufferedReader reader = null;
-	/** CSV区切り文字. **/
-	private String cut;
-	/** 現在読み込み中の文字. **/
-	private String nowLine = null;
-	/** カウント **/
-	private int count = -1;
-	/** eof **/
-	private boolean eof = true;
+public class CsvReader implements Iterator<Map<String, Object>>, Closeable, AutoCloseable {
+	private FixedSearchArray<String> header;
+	private String[] headerList;
+	private List<String> now;
+	private CsvReaderRow rowMap;
 
-	/**
-	 * コンストラクタ.
-	 */
-	public CsvReader() {
-
-	}
+	private String cutCode;
+	private BufferedReader reader;
+	private boolean eof = false;
+	private int count = 0;
 
 	/**
 	 * コンストラクタ.
 	 * 
-	 * @param name
-	 *            対象のファイル名を設定します.
-	 * @param charset
-	 *            対象のキャラクタセットを設定します.
-	 * @param cut
-	 *            CSV区切り文字を設定します.
-	 * @exception Exception
-	 *                例外.
+	 * @param n    対象のファイル名を設定します.
+	 * @param c    Csvのカットコードを設定します.
+	 * @throws IOException
 	 */
-	public CsvReader(String name, String charset, String cut) throws Exception {
-		this.open(name, charset, cut);
+	public CsvReader(String n, String c) throws IOException {
+		this(n, "UTF8", c);
 	}
 
 	/**
 	 * コンストラクタ.
 	 * 
-	 * @param r
-	 *            Readerオブジェクトを設定します.
-	 * @param cut
-	 *            CSV区切り文字を設定します.
-	 * @exception Exception
-	 *                例外.
+	 * @param n    対象のファイル名を設定します.
+	 * @param cset 文字charsetを設定します.
+	 * @param c    Csvのカットコードを設定します.
+	 * @throws IOException
 	 */
-	public CsvReader(Reader r, String cut) throws Exception {
-		this.open(r, cut);
-	}
-
-	/** デストラクタ. **/
-	protected void finalize() throws Exception {
-		this.close();
+	public CsvReader(String n, String cset, String c) throws IOException {
+		this(new BufferedReader(new InputStreamReader(new FileInputStream(n), cset)), c);
 	}
 
 	/**
-	 * ファイルオープン.
+	 * コンストラクタ.
 	 * 
-	 * @param name
-	 *            対象のファイル名を設定します.
-	 * @param charset
-	 *            対象のキャラクタセットを設定します.
-	 * @param cut
-	 *            CSV区切り文字を設定します.
-	 * @exception Exception
-	 *                例外.
+	 * @param r Readerオブジェクトを設定します.
+	 * @throws IOException
 	 */
-	public void open(String name, String charset, String cut) throws Exception {
-		if (!FileUtil.isFile(name)) {
-			throw new IOException("指定ファイル名[" + name + "]の内容は存在しません");
-		}
-		if (charset == null || charset.length() <= 0) {
-			charset = "UTF8";
-		}
-		if (cut == null || cut.length() <= 0) {
-			cut = ",";
-		}
-		if (isOpen()) {
-			close();
-		}
-		this.reader = new BufferedReader(new InputStreamReader(new FileInputStream(name), charset));
-		this.cut = cut;
-		this.count = 0;
-		this.eof = false;
+	public CsvReader(Reader r) throws IOException {
+		this(r, ",");
 	}
 
 	/**
-	 * ファイルオープン.
+	 * コンストラクタ.
 	 * 
-	 * @param r
-	 *            Readerオブジェクトを設定します.
-	 * @param cut
-	 *            CSV区切り文字を設定します.
-	 * @exception Exception
-	 *                例外.
+	 * @param r Readerオブジェクトを設定します.
+	 * @param c Csvのカットコードを設定します.
+	 * @throws IOException
 	 */
-	public void open(Reader r, String cut) throws Exception {
-		if (cut == null || cut.length() <= 0) {
-			cut = ",";
+	public CsvReader(Reader r, String c) throws IOException {
+		if (!(r instanceof BufferedReader)) {
+			r = new BufferedReader(r);
 		}
-		if (isOpen()) {
-			close();
-		}
-		if (r instanceof BufferedReader) {
-			this.reader = (BufferedReader) r;
-		} else {
-			this.reader = new BufferedReader(r);
-		}
-		this.cut = cut;
-		this.count = 0;
-		this.eof = false;
+		this.reader = (BufferedReader) r;
+		this.cutCode = c;
+		init();
 	}
 
 	/**
-	 * ファイルクローズ.
+	 * クローズ処理.
+	 * 
+	 * @exception IOException I/O例外.
 	 */
-	public void close() {
-		if (this.reader != null) {
+	public void close() throws IOException {
+		eof = true;
+		header = null;
+		headerList = null;
+		now = null;
+		rowMap = null;
+
+		if (reader != null) {
 			try {
-				this.reader.close();
-			} catch (Exception e) {
+				reader.close();
+			} catch (IOException e) {
+				throw e;
 			}
+			reader = null;
 		}
-		this.reader = null;
-		this.nowLine = null;
-		this.eof = true;
 	}
 
-	/**
-	 * 次の行を取得.
-	 * 
-	 * @return boolean [false]の場合は、情報が存在しません.
-	 * @exception Exception
-	 *                例外.
-	 */
-	public boolean next() throws Exception {
-		if (!isOpen()) {
+	// １行のCSV情報をカット.
+	private static final boolean getCsv(List<String> out, String line, String cutCode) throws IOException {
+		if (line == null || line.length() <= 0) {
 			return false;
 		}
-		String s;
-		while (true) {
-			if ((s = this.reader.readLine()) == null) {
-				this.eof = true;
-				return false;
+		int cnt = 0;
+		boolean setMode = out.size() != 0;
+		char c;
+		int cote = -1;
+		int len = line.length();
+		int s = 0;
+		boolean yen = false;
+		char cut = cutCode.charAt(0);
+		String x;
+		for (int i = 0; i < len; i++) {
+			c = line.charAt(i);
+			if (cote != -1) {
+				if (!yen && c == cote) {
+					cote = -1;
+				}
+			} else if (c == cut) {
+				if (s == i) {
+					if (setMode) {
+						out.set(cnt++, "");
+					} else {
+						out.add("");
+					}
+				} else {
+					x = line.substring(s, i).trim();
+					if (x.indexOf("\"") == 0 || x.indexOf("\'") == 0) {
+						x = x.substring(1, x.length() - 1);
+					}
+					if (setMode) {
+						out.set(cnt++, x);
+					} else {
+						out.add(x);
+					}
+				}
+				s = i + 1;
+			} else if (!yen && (c == '\'' || c == '\"')) {
+				cote = c;
 			}
-			// if( ( s = s.trim() ).length() <= 0 ) {
-			// continue ;
-			// }
-			this.nowLine = s;
-			this.count++;
-			break;
+			if (c == '\\') {
+				yen = true;
+			} else {
+				yen = false;
+			}
+		}
+		if (s >= len) {
+			if (setMode) {
+				out.set(cnt++, "");
+			} else {
+				out.add("");
+			}
+		} else {
+			x = line.substring(s, len).trim();
+			if (x.indexOf("\"") == 0 || x.indexOf("\'") == 0) {
+				x = x.substring(1, x.length() - 1).trim();
+			}
+			if (setMode) {
+				out.set(cnt++, x);
+			} else {
+				out.add(x);
+			}
+
+		}
+		if (setMode && cnt != out.size()) {
+			throw new IOException("データ数が違います:" + out.size() + "/" + cnt);
 		}
 		return true;
 	}
 
-	/**
-	 * 文字配列で、CSV取得.
-	 * 
-	 * @return String[] CSV区切り情報が返されます.
-	 * @exception Exception
-	 *                例外.
-	 */
-	public String[] getArray() throws Exception {
-		if (!isOpen()) {
-			return null;
-		}
-		if (this.nowLine != null) {
-			return (String[]) getCsvArray(true, this.nowLine, this.cut);
-		}
-		return null;
-	}
+	// １行の情報.
+	private static final class CsvReaderRow implements ConvertMap {
+		private FixedSearchArray<String> header;
+		private String[] headerList;
+		private List<String> rowData;
 
-	/**
-	 * 文字配列で、CSV取得.
-	 * 
-	 * @return Object[] CSV区切り情報が返されます.
-	 * @exception Exception
-	 *                例外.
-	 */
-	public Object[] getObjects() throws Exception {
-		if (!isOpen()) {
-			return null;
+		public CsvReaderRow(FixedSearchArray<String> h, String[] lst) {
+			header = h;
+			headerList = lst;
 		}
-		if (this.nowLine != null) {
-			return (Object[]) getCsvArray(false, this.nowLine, this.cut);
+
+		public CsvReaderRow set(List<String> r) {
+			rowData = r;
+			return this;
 		}
-		return null;
-	}
 
-	/**
-	 * リストで、CSV取得.
-	 * 
-	 * @return List<String> CSV区切り情報が返されます.
-	 * @exception Exception
-	 *                例外.
-	 */
-	public List<String> get() throws Exception {
-		if (!isOpen()) {
-			return null;
-		}
-		if (this.nowLine != null) {
-			return getCsv(this.nowLine, this.cut);
-		}
-		return null;
-	}
-
-	/**
-	 * プレーンデータを取得.
-	 * 
-	 * @return String プレーンデータが返されます.
-	 */
-	public String getString() throws Exception {
-		if (!isOpen()) {
-			return null;
-		}
-		return this.nowLine;
-	}
-
-	/**
-	 * 現在読み込んだカウント値を取得.
-	 * 
-	 * @return int 現在までの読み込み情報数が返されます.
-	 */
-	public int count() {
-		return this.count;
-	}
-
-	/**
-	 * 現在オープンされているかチェック.
-	 * 
-	 * @return boolean [true]の場合、オープン中です.
-	 */
-	public boolean isOpen() {
-		return (reader != null);
-	}
-
-	/**
-	 * 最終ラインに到達しているかチェック.
-	 * 
-	 * @return boolean [true]の場合、最終ラインに到達しています.
-	 */
-	public boolean isEOF() {
-		return eof;
-	}
-
-	/**
-	 * CSVを区切ります. <BR>
-	 * 
-	 * @param line
-	 *            １行の内容を設定します.
-	 * @param cutCode
-	 *            区切り文字を設定します.
-	 * @return String[] 区切られた内容が返されます.
-	 * @exception Exception
-	 *                例外.
-	 */
-	public static final String[] getCsvArray(String line, String cutCode) throws Exception {
-		return (String[]) getCsvArray(true, line, cutCode);
-	}
-
-	/** CSVを区切ります. **/
-	private static final Object getCsvArray(boolean mode, String line, String cutCode) throws Exception {
-		if (line == null || line.length() <= 0) {
-			return (mode) ? new String[0] : new Object[0];
-		}
-		if (cutCode == null || cutCode.length() <= 0) {
-			cutCode = ",";
-		}
-		char c;
-		int cote = -1;
-		int len = line.length();
-		int s = 0;
-		boolean yen = false;
-		char cut = cutCode.charAt(0);
-		String x;
-		OList<String> tmp = new OList<String>();
-		for (int i = 0; i < len; i++) {
-			c = line.charAt(i);
-			if (cote != -1) {
-				if (!yen && c == cote) {
-					cote = -1;
+		private int _getParamNo(Object key) {
+			if (key == null) {
+				return -1;
+			}
+			// 数値だった場合は、番号で処理.
+			if (Converter.isNumeric(key)) {
+				int n = Converter.convertInt(key);
+				if (n >= 0 && n < rowData.size()) {
+					return n;
 				}
-			} else if (c == cut) {
-				if (s == i) {
-					tmp.add("");
-				} else {
-					x = line.substring(s, i).trim();
-					if (x.indexOf("\"") == 0 || x.indexOf("\'") == 0) {
-						x = x.substring(1, x.length() - 1).trim();
-					}
-					tmp.add(x);
-				}
-				s = i + 1;
-			} else if (!yen && (c == '\'' || c == '\"')) {
-				cote = c;
+				return -1;
 			}
-			if (c == '\\') {
-				yen = true;
-			} else {
-				yen = false;
+			int ret = header.search(key.toString());
+			if(ret == -1) {
+				return -1;
 			}
-		}
-		if (s >= len) {
-			tmp.add("");
-		} else {
-			x = line.substring(s, len).trim();
-			if (x.indexOf("\"") == 0 || x.indexOf("\'") == 0) {
-				x = x.substring(1, x.length() - 1).trim();
-			}
-			tmp.add(x);
-		}
-		len = tmp.size();
-		if (mode) {
-			String[] ret = new String[len];
-			Object[] strList = tmp.toArray();
-			for (int i = 0; i < len; i++) {
-				ret[i] = (String) strList[i];
-			}
-			strList = null;
-			tmp.clear();
-			tmp = null;
 			return ret;
-		} else {
-			return tmp.toArray();
+		}
+
+		@Override
+		public Object get(Object key) {
+			int n = _getParamNo(key);
+			if (n == -1) {
+				return null;
+			}
+			return rowData.get(n);
+		}
+
+		@Override
+		public boolean containsKey(Object key) {
+			return (_getParamNo(key) == -1) ? false : true;
+		}
+
+		@Override
+		public int size() {
+			return rowData.size();
+		}
+
+		@Override
+		public String toString() {
+			final int len = headerList.length;
+			StringBuilder buf = new StringBuilder("{");
+			for (int i = 0; i < len; i++) {
+				if (i != 0) {
+					buf.append(",");
+				}
+				String v = rowData.get(i);
+				buf.append("\"").append(headerList[i]).append("\":");
+				if (Converter.isNumeric(v)) {
+					buf.append(v);
+				} else if ("TRUE".equals(v)) {
+					buf.append("true");
+				} else if ("FALSE".equals(v)) {
+					buf.append("false");
+				} else if (v.length() == 0) {
+					buf.append("null");
+				} else {
+					buf.append("\"").append(v).append("\"");
+				}
+			}
+			buf.append("}");
+			return buf.toString();
+		}
+	}
+
+	// 初期処理.
+	private final void init() throws IOException {
+
+		// ヘッダ情報を取得.
+		String line = reader.readLine();
+		if (line == null) {
+			throw new IOException("CSV情報の読み込みに失敗しました");
+		}
+		List<String> list = new ArrayList<String>();
+		if (!getCsv(list, line, cutCode)) {
+			throw new IOException("CSV情報の読み込みに失敗しました");
+		}
+		final int len = list.size();
+		final String[] lst = new String[len];
+		final FixedSearchArray<String> m = new FixedSearchArray<String>(len);
+		for (int i = 0; i < len; i++) {
+			lst[i] = list.get(i);
+			m.add(list.get(i), i);
+		}
+		header = m;
+		headerList = lst;
+		now = list;
+		rowMap = new CsvReaderRow(header, headerList);
+	}
+
+	/**
+	 * 次のCSVデータが存在するかチェック.
+	 * 
+	 * @return boolean [true]の場合、存在します.
+	 */
+	@Override
+	public boolean hasNext() {
+		if (eof) {
+			return false;
+		}
+		try {
+			String line = reader.readLine();
+			if (line == null) {
+				eof = true;
+				return false;
+			}
+			if (!getCsv(now, line, cutCode)) {
+				eof = true;
+				return false;
+			}
+			count++;
+			return true;
+		} catch (Exception e) {
+			eof = true;
+			return false;
 		}
 	}
 
 	/**
-	 * CSVを区切ります. <BR>
+	 * 現在の１行データ情報を取得.
 	 * 
-	 * @param line
-	 *            １行の内容を設定します.
-	 * @param cutCode
-	 *            区切り文字を設定します.
-	 * @return List<String> 区切られた内容が返されます.
-	 * @exception Exception
-	 *                例外.
+	 * @return Map Csvデータが返却されます.
 	 */
-	public static final List<String> getCsv(String line, String cutCode) throws Exception {
-		if (line == null || line.length() <= 0) {
-			return new ArrayList<String>();
+	@SuppressWarnings("unchecked")
+	@Override
+	public Map<String, Object> next() {
+		if (eof) {
+			throw new NoSuchElementException();
 		}
-		if (cutCode == null || cutCode.length() <= 0) {
-			cutCode = ",";
-		}
-		char c;
-		int cote = -1;
-		int len = line.length();
-		int s = 0;
-		boolean yen = false;
-		char cut = cutCode.charAt(0);
-		String x;
-		List<String> ret = new ArrayList<String>();
-		for (int i = 0; i < len; i++) {
-			c = line.charAt(i);
-			if (cote != -1) {
-				if (!yen && c == cote) {
-					cote = -1;
-				}
-			} else if (c == cut) {
-				if (s == i) {
-					ret.add("");
-				} else {
-					x = line.substring(s, i).trim();
-					if (x.indexOf("\"") == 0 || x.indexOf("\'") == 0) {
-						x = x.substring(1, x.length() - 1).trim();
-					}
-					ret.add(x);
-				}
-				s = i + 1;
-			} else if (!yen && (c == '\'' || c == '\"')) {
-				cote = c;
-			}
-			if (c == '\\') {
-				yen = true;
-			} else {
-				yen = false;
-			}
-		}
-		if (s >= len) {
-			ret.add("");
-		} else {
-			x = line.substring(s, len).trim();
-			if (x.indexOf("\"") == 0 || x.indexOf("\'") == 0) {
-				x = x.substring(1, x.length() - 1).trim();
-			}
-			ret.add(x);
-		}
-		return ret;
+		return rowMap.set(now);
+	}
+
+	/**
+	 * 現在の行番号を取得.
+	 * 
+	 * @return int 現在の行番号が返却されます.
+	 */
+	public int getRowCount() {
+		return count;
+	}
+	
+	/**
+	 * ヘッダ数を取得.
+	 * @return
+	 */
+	public int getHeaderSize() {
+		return headerList.length;
+	}
+	
+	/**
+	 * ヘッダ情報を取得.
+	 * @param no
+	 * @return
+	 */
+	public String getHeader(int no) {
+		return headerList[no];
+	}
+
+	public String toString() {
+		return "csvReader";
 	}
 }

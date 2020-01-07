@@ -114,9 +114,9 @@ public class WriteBatchCursor {
 	}
 
 	/** デストラクタ. **/
-	protected final void finalize() throws Exception {
-		clear();
-	}
+//	protected final void finalize() throws Exception {
+//		clear();
+//	}
 
 	/**
 	 * 情報クリア.

@@ -74,9 +74,9 @@ public class JniBuffer extends OutputStream {
 	/**
 	 * デストラクタ.
 	 */
-	protected void finalize() throws Exception {
-		destroy();
-	}
+//	protected void finalize() throws Exception {
+//		destroy();
+//	}
 
 	/**
 	 * メモリ領域を直接セット.

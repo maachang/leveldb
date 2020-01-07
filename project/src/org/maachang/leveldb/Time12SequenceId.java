@@ -134,7 +134,7 @@ public class Time12SequenceId {
 			}
 		}
 	}
-	
+
 	/**
 	 * バイナリ変換.
 	 * 
@@ -215,7 +215,7 @@ public class Time12SequenceId {
 	public static final int getMachineId(final byte[] value) {
 		return (((int) value[10] & 0x000000ff) << 8) | (((int) value[11] & 0x000000ff) << 0);
 	}
-	
+
 	/**
 	 * マシンIDとシーケンスIDを０に設定.
 	 * 
@@ -232,7 +232,7 @@ public class Time12SequenceId {
 	 * バイナリを16進数文字列に変換.
 	 * 
 	 * @param b
-	 * @return
+	 * @return String 16文字のBase64変換された内容が返却されます.
 	 */
 	public static final String toString(byte[] b) {
 		// base64で処理する.

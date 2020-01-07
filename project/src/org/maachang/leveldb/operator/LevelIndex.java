@@ -1,13 +1,23 @@
-package org.maachang.leveldb;
+package org.maachang.leveldb.operator;
 
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import org.maachang.leveldb.JniBuffer;
+import org.maachang.leveldb.LevelBuffer;
+import org.maachang.leveldb.LevelId;
+import org.maachang.leveldb.LevelIterator;
+import org.maachang.leveldb.LevelOption;
+import org.maachang.leveldb.LevelValues;
+import org.maachang.leveldb.Leveldb;
+import org.maachang.leveldb.LeveldbException;
+import org.maachang.leveldb.LeveldbIterator;
+
 /**
  * Levelインデックス.
  */
-public class LevelIndex extends CommitRollback {
+public class LevelIndex extends LevelOperator {
 	protected static final int MAX_ERROR = 32;
 	
 	protected Leveldb parent;
@@ -31,7 +41,7 @@ public class LevelIndex extends CommitRollback {
 		}
 		String columnString = LevelOption.stringType(columnType);
 		int indexKeyType = LevelOption.convertType(columnString + "-" + "binary");
-		LevelOption pOpt = parent.option;
+		LevelOption pOpt = parent.getOption();
 		LevelOption opt = LevelOption.create(
 			indexKeyType,
 			pOpt.getWriteBufferSize(),
@@ -44,7 +54,7 @@ public class LevelIndex extends CommitRollback {
 		super.init(db, true, false);
 		
 		this.parent = parent;
-		this.parentType = pOpt.type;
+		this.parentType = pOpt.getType();
 		this.columnType = columnType;
 		this.columnNames = columnName.split("\\.");
 	}
@@ -336,9 +346,9 @@ public class LevelIndex extends CommitRollback {
 		}
 
 		// ファイナライズ.
-		protected void finalize() throws Exception {
-			close();
-		}
+//		protected void finalize() throws Exception {
+//			close();
+//		}
 
 		@Override
 		public void close() {

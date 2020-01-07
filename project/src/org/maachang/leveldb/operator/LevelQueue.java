@@ -1,11 +1,22 @@
-package org.maachang.leveldb;
+package org.maachang.leveldb.operator;
 
 import java.util.NoSuchElementException;
+
+import org.maachang.leveldb.JniBuffer;
+import org.maachang.leveldb.KeyValue;
+import org.maachang.leveldb.LevelBuffer;
+import org.maachang.leveldb.LevelIterator;
+import org.maachang.leveldb.LevelOption;
+import org.maachang.leveldb.LevelValues;
+import org.maachang.leveldb.Leveldb;
+import org.maachang.leveldb.LeveldbException;
+import org.maachang.leveldb.LeveldbIterator;
+import org.maachang.leveldb.Time12SequenceId;
 
 /**
  * Levelキュー情報.
  */
-public class LevelQueue extends CommitRollback {
+public class LevelQueue extends LevelOperator {
 	protected Time12SequenceId sequenceId;
 	
 	/**
@@ -58,7 +69,7 @@ public class LevelQueue extends CommitRollback {
 	 */
 	public LevelQueue(int machineId, String name, LevelOption option) {
 		// keyタイプは free(Time12SequenceId).
-		option.type = LevelOption.TYPE_FREE;
+		option.setType(LevelOption.TYPE_FREE);
 		Leveldb db  = new Leveldb(name, option);
 		// leveldbをクローズしてwriteBatchで処理しない.
 		super.init(db, true, false);
@@ -308,9 +319,9 @@ public class LevelQueue extends CommitRollback {
 		}
 
 		// ファイナライズ.
-		protected void finalize() throws Exception {
-			close();
-		}
+//		protected void finalize() throws Exception {
+//			close();
+//		}
 
 		/**
 		 * クローズ.

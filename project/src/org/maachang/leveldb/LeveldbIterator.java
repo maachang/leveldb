@@ -41,9 +41,9 @@ public class LeveldbIterator {
 	/**
 	 * デストラクタ.
 	 */
-	protected final void finalize() {
-		close();
-	}
+//	protected final void finalize() {
+//		close();
+//	}
 
 	/**
 	 * クローズ.

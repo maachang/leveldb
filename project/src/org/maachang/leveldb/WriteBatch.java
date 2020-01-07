@@ -33,9 +33,9 @@ public class WriteBatch {
 	/**
 	 * デストラクタ.
 	 */
-	public void finalize() throws Exception {
-		close();
-	}
+//	public void finalize() throws Exception {
+//		close();
+//	}
 
 	/**
 	 * バッチ書き込み情報のクローズ.

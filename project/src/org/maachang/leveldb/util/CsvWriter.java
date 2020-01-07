@@ -1,271 +1,188 @@
 package org.maachang.leveldb.util;
 
 import java.io.BufferedWriter;
+import java.io.Closeable;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-/**
- * CSV書き込み処理.
- */
-public class CsvWriter {
-
-	/** 書き込みオブジェクト. **/
-	private BufferedWriter writer = null;
-	/** 区切り文字. **/
-	private String cut = null;
-	/** 書き込みバッファ. **/
-	private StringBuilder buf = null;
-	/** カウント. **/
-	private int count = -1;
-
-	/**
-	 * コンストラクタ.
-	 */
-	public CsvWriter() {
-
-	}
+public class CsvWriter implements Closeable, AutoCloseable {
+	private Writer writer;
+	private String cutCode;
+	private String[] columns;
+	private int count;
 
 	/**
 	 * コンストラクタ.
 	 * 
-	 * @param name
-	 *            対象のファイル名を設定します.
-	 * @param charset
-	 *            対象のキャラクタセットを設定します.
-	 * @param cut
-	 *            CSV区切り文字を設定します.
-	 * @exception Exception
-	 *                例外.
+	 * @param n    対象のファイル名を設定します.
+	 * @param cset 文字charsetを設定します.
+	 * @param c    Csvのカットコードを設定します.
+	 * @throws IOException
 	 */
-	public CsvWriter(String name, String charset, String cut) throws Exception {
-		this.open(name, charset, cut);
+	public CsvWriter(String n, String c) throws IOException {
+		this(n, "UTF8", c);
 	}
 
 	/**
 	 * コンストラクタ.
 	 * 
-	 * @param newFile
-	 *            [true]の場合、新規ファイルで作成します.
-	 * @param name
-	 *            対象のファイル名を設定します.
-	 * @param charset
-	 *            対象のキャラクタセットを設定します.
-	 * @param cut
-	 *            CSV区切り文字を設定します.
-	 * @exception Exception
-	 *                例外.
+	 * @param n    対象のファイル名を設定します.
+	 * @param cset 文字charsetを設定します.
+	 * @param c    Csvのカットコードを設定します.
+	 * @throws IOException
 	 */
-	public CsvWriter(boolean newFile, String name, String charset, String cut) throws Exception {
-		this.open(newFile, name, charset, cut);
+	public CsvWriter(String n, String cset, String c) throws IOException {
+		this(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(n), cset)), c);
 	}
 
 	/**
 	 * コンストラクタ.
 	 * 
-	 * @param w
-	 *            Writerオブジェクトを設定します.
-	 * @param cut
-	 *            CSV区切り文字を設定します.
-	 * @exception Exception
-	 *                例外.
+	 * @param w writerオブジェクトを設定します.
 	 */
-	public CsvWriter(Writer w, String cut) throws Exception {
-		this.open(w, cut);
-	}
-
-	/** デストラクタ. **/
-	protected void finalize() throws Exception {
-		this.close();
+	public CsvWriter(Writer w) {
+		this(w, ",");
 	}
 
 	/**
-	 * ファイルオープン.
+	 * コンストラクタ.
 	 * 
-	 * @param name
-	 *            対象のファイル名を設定します.
-	 * @param charset
-	 *            対象のキャラクタセットを設定します.
-	 * @param cut
-	 *            CSV区切り文字を設定します.
-	 * @exception Exception
-	 *                例外.
+	 * @param w writerオブジェクトを設定します.
+	 * @param c 区切り文字を設定します.
 	 */
-	public void open(String name, String charset, String cut) throws Exception {
-		open(true, name, charset, cut);
+	public CsvWriter(Writer w, String c) {
+		this.writer = w;
+		this.cutCode = c;
 	}
 
 	/**
-	 * ファイルオープン.
+	 * オブジェクトクローズ.
 	 * 
-	 * @param newFile
-	 *            [true]の場合、新規ファイルで作成します.
-	 * @param name
-	 *            対象のファイル名を設定します.
-	 * @param charset
-	 *            対象のキャラクタセットを設定します.
-	 * @param cut
-	 *            CSV区切り文字を設定します.
-	 * @exception Exception
-	 *                例外.
+	 * @exception IOException
 	 */
-	public void open(boolean newFile, String name, String charset, String cut) throws Exception {
-		if (charset == null || charset.length() <= 0) {
-			charset = "UTF8";
+	@Override
+	public void close() throws IOException {
+		cutCode = null;
+		columns = null;
+		count = -1;
+		if (writer != null) {
+			writer.close();
+			writer = null;
 		}
-		if (cut == null || cut.length() <= 0) {
-			cut = ",";
-		}
-		if (isOpen()) {
-			close();
-		}
-		this.writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(name, !newFile), charset));
-		this.cut = cut;
-		this.count = 0;
 	}
 
 	/**
-	 * ファイルオープン.
+	 * 初期化.
 	 * 
-	 * @param w
-	 *            Writerオブジェクトを設定します.
-	 * @param cut
-	 *            CSV区切り文字を設定します.
-	 * @exception Exception
-	 *                例外.
+	 * @param c ヘッダカラム名リストを設定します.
+	 * @return CsvWriter
+	 * @throws IOException
 	 */
-	public void open(Writer w, String cut) throws Exception {
-		if (cut == null || cut.length() <= 0) {
-			cut = ",";
+	public CsvWriter init(List<String> c) throws IOException {
+		int len = c.size();
+		String[] params = new String[len];
+		for (int i = 0; i < len; i++) {
+			params[i] = c.get(i);
 		}
-		if (isOpen()) {
-			close();
-		}
-		if (w instanceof BufferedWriter) {
-			this.writer = (BufferedWriter) w;
-		} else {
-			this.writer = new BufferedWriter(w);
-		}
-		this.cut = cut;
-		this.count = 0;
+		return init(params);
 	}
 
 	/**
-	 * ファイルクローズ.
+	 * 初期化.
+	 * 
+	 * @param c ヘッダカラム名リストを設定します.
+	 * @return CsvWriter
+	 * @throws IOException
 	 */
-	public void close() {
-		if (this.writer != null) {
-			try {
-				this.writer.close();
-			} catch (Exception e) {
+	public CsvWriter init(String... c) throws IOException {
+		if (c == null || c.length == 0) {
+			throw new IOException("ヘッダ情報が不正です");
+		}
+		if (columns != null) {
+			throw new IOException("既にヘッダは設定されています");
+		}
+		int len = c.length;
+		columns = c;
+		StringBuilder buf = new StringBuilder();
+		for (int i = 0; i < len; i++) {
+			if (i != 0) {
+				buf.append(cutCode);
+			}
+			buf.append(c[i]);
+		}
+		writer.write(buf.toString());
+		return this;
+	}
+
+	/**
+	 * １行情報を書き込み.
+	 * 
+	 * @param line
+	 * @return CsvWriter
+	 * @exception IOException
+	 */
+	public CsvWriter writeLine(Map<String, Object> line) throws IOException {
+		if (columns == null) {
+			throw new IOException("初期化が行われていません");
+		}
+		int len = columns.length;
+		Object value;
+		String string;
+		StringBuilder buf = new StringBuilder("\n");
+		for (int i = 0; i < len; i++) {
+			if (i != 0) {
+				buf.append(cutCode);
+			}
+			value = line.get(columns[i]);
+			if (value != null) {
+				string = value.toString();
+				if (string.indexOf(cutCode) != -1) {
+					buf.append("\"").append(string).append("\"");
+				} else {
+					buf.append(string);
+				}
 			}
 		}
-		this.writer = null;
-		this.buf = null;
+		count++;
+		writer.write(buf.toString());
+		return this;
 	}
 
 	/**
-	 * 現在のバッファを一旦クリア.
-	 */
-	public void reset() {
-		buf = null;
-	}
-
-	/**
-	 * Boolean情報のバッファ追加.
+	 * １行情報を書き込み.
 	 * 
-	 * @param value
-	 *            対象の情報を設定します.
+	 * @param line [key],[value],[key],[value]....の順で設定します.
+	 * @return CsvWriter
+	 * @exception IOException
 	 */
-	public void add(Boolean value) {
-		if (buf == null) {
-			buf = new StringBuilder();
-		} else {
-			buf.append(cut);
+	public CsvWriter writeLine(Object... line) throws IOException {
+		Map<String, Object> map = new HashMap<String, Object>();
+		int len = line.length;
+		for (int i = 0; i < len; i += 2) {
+			if (line[i] == null) {
+				throw new IOException("カラム名がnullになっています");
+			}
+			map.put(line[i].toString(), line[i + 1]);
 		}
-		if (value != null) {
-			buf.append(value);
-		}
+		writeLine(map);
+		return this;
 	}
 
 	/**
-	 * 数値情報のバッファ追加.
+	 * 現在の書き込み行数を取得.
 	 * 
-	 * @param value
-	 *            対象の情報を設定します.
+	 * @return int 行数が返却されます.
 	 */
-	public void add(Number value) {
-		if (buf == null) {
-			buf = new StringBuilder();
-		} else {
-			buf.append(cut);
-		}
-		if (value != null) {
-			buf.append(value);
-		}
-	}
-
-	/**
-	 * 文字情報のバッファ追加.
-	 * 
-	 * @param value
-	 *            対象の情報を設定します.
-	 */
-	public void add(String value) {
-		if (buf == null) {
-			buf = new StringBuilder();
-		} else {
-			buf.append(cut);
-		}
-		if (value != null) {
-			buf.append("\"").append(value).append("\"");
-		}
-	}
-
-	/**
-	 * バッファに追加した情報をファイル出力.
-	 * 
-	 * @return int 書き込み行カウント数が返却されます.
-	 * @exception Exception
-	 *                例外.
-	 */
-	public int write() throws Exception {
-		if (buf == null) {
-			throw new IOException("書き込み対象のバッファは存在しません");
-		}
-		String s = buf.append("\n").toString();
-		buf = null;
-		writer.write(s, 0, s.length());
-		return ++count;
-	}
-
-	/**
-	 * 書き込み情報のFlush.
-	 * 
-	 * @exception Exception
-	 *                例外.
-	 */
-	public void flush() throws Exception {
-		writer.flush();
-	}
-
-	/**
-	 * 書き込み行カウント数を取得.
-	 * 
-	 * @return int 書き込み行カウント数が返却されます.
-	 */
-	public int count() {
+	public int getRowCount() {
 		return count;
 	}
 
-	/**
-	 * 現在オープンされているかチェック.
-	 * 
-	 * @return boolean [true]の場合、オープン中です.
-	 */
-	public boolean isOpen() {
-		return (writer != null);
+	public String toString() {
+		return "csvWriter";
 	}
-
 }

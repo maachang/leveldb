@@ -1,11 +1,25 @@
-package org.maachang.leveldb;
+package org.maachang.leveldb.operator;
 
 import java.util.NoSuchElementException;
+
+import org.maachang.leveldb.JniBuffer;
+import org.maachang.leveldb.JniIO;
+import org.maachang.leveldb.KeyValue;
+import org.maachang.leveldb.LevelBuffer;
+import org.maachang.leveldb.LevelId;
+import org.maachang.leveldb.LevelIterator;
+import org.maachang.leveldb.LevelOption;
+import org.maachang.leveldb.LevelValues;
+import org.maachang.leveldb.Leveldb;
+import org.maachang.leveldb.LeveldbException;
+import org.maachang.leveldb.LeveldbIterator;
+import org.maachang.leveldb.Time12SequenceId;
+import org.maachang.leveldb.WriteBatch;
 
 /**
  * キー情報をシーケンスIDで管理.
  */
-public class LevelSequenceDb extends CommitRollback {
+public class LevelSequence extends LevelOperator {
 	protected Time12SequenceId sequenceId = null;
 	
 	/**
@@ -17,7 +31,7 @@ public class LevelSequenceDb extends CommitRollback {
 	 * @param machineId
 	 *            マシンIDを設定します.
 	 */
-	public LevelSequenceDb(String name, int machineId) {
+	public LevelSequence(String name, int machineId) {
 		this(name, machineId, null);
 	}
 	
@@ -33,7 +47,7 @@ public class LevelSequenceDb extends CommitRollback {
 	 *            Leveldbオプションを設定します.
 	 *            オプションのタイプは無視されて、シーケンスID専用のタイプが設定されます.
 	 */
-	public LevelSequenceDb(String name, int machineId, LevelOption option) {
+	public LevelSequence(String name, int machineId, LevelOption option) {
 		if(option != null) {
 			option.setType(LevelOption.TYPE_FREE);
 		} else {
@@ -51,7 +65,7 @@ public class LevelSequenceDb extends CommitRollback {
 	 * 
 	 * @param db
 	 */
-	public LevelSequenceDb(LevelSequenceDb db) {
+	public LevelSequence(LevelSequence db) {
 		// leveldbをクローズせずwriteBatchで処理する.
 		super.init(db.leveldb, false, true);
 		this.sequenceId = db.sequenceId;
@@ -67,7 +81,7 @@ public class LevelSequenceDb extends CommitRollback {
 	 * @param db
 	 *            Leveldbを設定します.
 	 */
-	public LevelSequenceDb(boolean writeBatch, int machineId, Leveldb db) {
+	public LevelSequence(boolean writeBatch, int machineId, Leveldb db) {
 		if(db.getType() != LevelOption.TYPE_FREE) {
 			throw new LeveldbException("The key type of the opened Leveldb is not TYPE_FREE.");
 		}
@@ -476,7 +490,7 @@ public class LevelSequenceDb extends CommitRollback {
 	 * LevelSequence用Iterator.
 	 */
 	public class LevelSequenceIterator implements LevelIterator<KeyValue<String, Object>> {
-		LevelSequenceDb seq;
+		LevelSequence seq;
 		LeveldbIterator itr;
 		boolean reverse;
 		KeyValue<String, Object> element;
@@ -491,7 +505,7 @@ public class LevelSequenceDb extends CommitRollback {
 		 * @param itr
 		 *            LeveldbIteratorオブジェクトを設定します.
 		 */
-		LevelSequenceIterator(boolean reverse, LevelSequenceDb seq, LeveldbIterator itr) {
+		LevelSequenceIterator(boolean reverse, LevelSequence seq, LeveldbIterator itr) {
 			this.seq = seq;
 			this.itr = itr;
 			this.reverse = reverse;
@@ -499,9 +513,9 @@ public class LevelSequenceDb extends CommitRollback {
 		}
 
 		// ファイナライズ.
-		protected void finalize() throws Exception {
-			close();
-		}
+//		protected void finalize() throws Exception {
+//			close();
+//		}
 
 		/**
 		 * クローズ処理.

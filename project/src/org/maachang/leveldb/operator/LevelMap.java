@@ -1,4 +1,4 @@
-package org.maachang.leveldb;
+package org.maachang.leveldb.operator;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -6,13 +6,24 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
+import org.maachang.leveldb.JniBuffer;
+import org.maachang.leveldb.JniIO;
+import org.maachang.leveldb.LevelBuffer;
+import org.maachang.leveldb.LevelId;
+import org.maachang.leveldb.LevelIterator;
+import org.maachang.leveldb.LevelOption;
+import org.maachang.leveldb.LevelValues;
+import org.maachang.leveldb.Leveldb;
+import org.maachang.leveldb.LeveldbException;
+import org.maachang.leveldb.LeveldbIterator;
+import org.maachang.leveldb.WriteBatch;
 import org.maachang.leveldb.util.ConvertMap;
 
 /**
  * LeveldbのMap実装.
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
-public class LevelMap extends CommitRollback implements ConvertMap {
+public class LevelMap extends LevelOperator implements ConvertMap {
 	protected LevelMapSet set;
 	protected int type;
 
@@ -954,9 +965,9 @@ public class LevelMap extends CommitRollback implements ConvertMap {
 		}
 
 		// ファイナライズ.
-		protected void finalize() throws Exception {
-			close();
-		}
+//		protected void finalize() throws Exception {
+//			close();
+//		}
 
 		/**
 		 * クローズ処理.

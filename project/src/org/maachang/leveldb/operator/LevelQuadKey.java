@@ -1,7 +1,20 @@
-package org.maachang.leveldb;
+package org.maachang.leveldb.operator;
 
 import java.util.NoSuchElementException;
 
+import org.maachang.leveldb.JniBuffer;
+import org.maachang.leveldb.JniIO;
+import org.maachang.leveldb.KeyValue;
+import org.maachang.leveldb.LevelBuffer;
+import org.maachang.leveldb.LevelId;
+import org.maachang.leveldb.LevelIterator;
+import org.maachang.leveldb.LevelOption;
+import org.maachang.leveldb.LevelValues;
+import org.maachang.leveldb.Leveldb;
+import org.maachang.leveldb.LeveldbException;
+import org.maachang.leveldb.LeveldbIterator;
+import org.maachang.leveldb.Time12SequenceId;
+import org.maachang.leveldb.WriteBatch;
 import org.maachang.leveldb.types.TwoKey;
 import org.maachang.leveldb.util.GeoLine;
 import org.maachang.leveldb.util.GeoQuadKey;
@@ -9,7 +22,7 @@ import org.maachang.leveldb.util.GeoQuadKey;
 /**
  * 緯度経度での範囲検索を行うLeveldb.
  */
-public class LevelQuadKeyDb extends CommitRollback {
+public class LevelQuadKey extends LevelOperator {
 	protected int type;
 	protected Time12SequenceId sequenceId = null;
 	protected Object minKey = null;
@@ -23,7 +36,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	 * @param machineId
 	 *            マシンIDを設定します.
 	 */
-	public LevelQuadKeyDb(String name, int machineId) {
+	public LevelQuadKey(String name, int machineId) {
 		this(name, machineId, null);
 	}
 
@@ -40,7 +53,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	 *            オプションのタイプは１キーを設定することで、緯度経度のセカンドキーになります.
 	 *            [LevelOption.TYPE_NONE]を設定することで、シーケンスIDがセットされます.
 	 */
-	public LevelQuadKeyDb(String name, int machineId, LevelOption option) {
+	public LevelQuadKey(String name, int machineId, LevelOption option) {
 		int type = LevelOption.checkType(option.getType());
 		if(type != LevelOption.TYPE_NONE) {
 			if(LevelOption.typeMode(type) != 1 || type == LevelOption.TYPE_MULTI) {
@@ -65,7 +78,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	 * 
 	 * @param db
 	 */
-	public LevelQuadKeyDb(LevelQuadKeyDb db) {
+	public LevelQuadKey(LevelQuadKey db) {
 		// leveldbをクローズせずwriteBatchで処理する.
 		super.init(db.leveldb, false, true);
 		this.sequenceId = db.sequenceId;
@@ -569,7 +582,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	 * リスト検索用LevelQuadKeyDb用Iterator.
 	 */
 	public class LevelQKListIterator implements LevelIterator<KeyValue<Object[], Object>> {
-		LevelQuadKeyDb db;
+		LevelQuadKey db;
 		LeveldbIterator itr;
 		boolean reverse;
 		KeyValue<Object[], Object> element;
@@ -584,7 +597,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 		 * @param itr
 		 *            LeveldbIteratorオブジェクトを設定します.
 		 */
-		LevelQKListIterator(boolean reverse, LevelQuadKeyDb db, LeveldbIterator itr) {
+		LevelQKListIterator(boolean reverse, LevelQuadKey db, LeveldbIterator itr) {
 			this.db = db;
 			this.itr = itr;
 			this.reverse = reverse;
@@ -592,9 +605,9 @@ public class LevelQuadKeyDb extends CommitRollback {
 		}
 
 		// ファイナライズ.
-		protected void finalize() throws Exception {
-			close();
-		}
+//		protected void finalize() throws Exception {
+//			close();
+//		}
 
 		/**
 		 * クローズ処理.
@@ -722,7 +735,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 	 * 範囲検索用LevelQuadKeyDb用Iterator.
 	 */
 	public class LeveQKSearchIterator implements LevelIterator<KeyValue<Object[], Object>> {
-		protected LevelQuadKeyDb db;
+		protected LevelQuadKey db;
 		protected LeveldbIterator itr;
 		private KeyValue<Object[], Object> element;
 		protected int type;
@@ -736,7 +749,7 @@ public class LevelQuadKeyDb extends CommitRollback {
 		protected Object nowKey;
 		protected Object nowValue;
 		
-		protected LeveQKSearchIterator(long qk, Object secKey, int distance, LevelQuadKeyDb db, boolean snapshot) {
+		protected LeveQKSearchIterator(long qk, Object secKey, int distance, LevelQuadKey db, boolean snapshot) {
 			double[] latLon = GeoQuadKey.latLon(qk);
 			long[] searchList = GeoQuadKey.searchCode(
 				GeoQuadKey.getDetail(distance), latLon[0], latLon[1]);
@@ -756,10 +769,10 @@ public class LevelQuadKeyDb extends CommitRollback {
 			_next();
 		}
 		
-		@Override
-		protected void finalize() throws Exception {
-			close();
-		}
+//		@Override
+//		protected void finalize() throws Exception {
+//			close();
+//		}
 		
 		@Override
 		public void close() {

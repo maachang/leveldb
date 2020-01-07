@@ -1,11 +1,18 @@
-package org.maachang.leveldb;
+package org.maachang.leveldb.operator;
 
+import org.maachang.leveldb.JniBuffer;
+import org.maachang.leveldb.LevelBuffer;
+import org.maachang.leveldb.LevelOption;
+import org.maachang.leveldb.Leveldb;
+import org.maachang.leveldb.LeveldbException;
+import org.maachang.leveldb.LeveldbIterator;
+import org.maachang.leveldb.WriteBatch;
 import org.maachang.leveldb.util.Flag;
 
 /**
- * コミットロールバック支援.
+ * LeveldbOperator.
  */
-abstract class CommitRollback {
+abstract class LevelOperator {
 	protected boolean sub = false;
 	protected boolean writeBatchFlag = true;
 	protected Leveldb leveldb;
@@ -16,9 +23,9 @@ abstract class CommitRollback {
 	/**
 	 * デストラクタ.
 	 */
-	protected void finalize() throws Exception {
-		close();
-	}
+//	protected void finalize() throws Exception {
+//		close();
+//	}
 	
 	/**
 	 * 初期化処理.
