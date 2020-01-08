@@ -1,6 +1,7 @@
 package org.maachang.leveldb;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 
@@ -13,9 +14,9 @@ public final class Unsafe {
 	public static final boolean UNSAFE_MODE;
 	public static final boolean BIG_ENDIAN;
 
-	private static final Method directByteBufferAddress;
+	protected static final Method directByteBufferAddress;
 
-	// unsafeが使えなくなっても [ UNSAFE_MODE ] 判別して処理するので、
+	// unsafeが使えなくなっても [UNSAFE_MODE] 判別して処理するので、
 	// 内部所有のAPIが使えなくなっても無問題(だと思う).
 	static {
 
@@ -24,7 +25,8 @@ public final class Unsafe {
 		// //////////////
 		Object u = null;
 		try {
-			Field f = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
+			Field f = Class.forName("sun.misc.Unsafe")
+				.getDeclaredField("theUnsafe");
 			f.setAccessible(true);
 			u = f.get(null);
 		} catch (Throwable e) {
@@ -32,7 +34,6 @@ public final class Unsafe {
 		}
 		unsafe = u;
 		UNSAFE_MODE = (u != null);
-		// UNSAFE_MODE = false ;
 		u = null;
 
 		// ///////////////////
@@ -85,8 +86,8 @@ public final class Unsafe {
 		// ///////////////////////////////////////////////
 		Method dbAddrMethod = null;
 		try {
-			Class<?> directByteBuffer = Class.forName("java.nio.DirectByteBuffer");
-			dbAddrMethod = directByteBuffer.getDeclaredMethod("address");
+			dbAddrMethod = Class.forName("java.nio.DirectByteBuffer")
+				.getDeclaredMethod("address");
 			dbAddrMethod.setAccessible(true);
 		} catch (Exception e) {
 			dbAddrMethod = null;
@@ -94,7 +95,23 @@ public final class Unsafe {
 		}
 		directByteBufferAddress = dbAddrMethod;
 	}
-
+	
+	/**
+	 * Unsafe例外.
+	 */
+	public static final class UnsafeException extends RuntimeException {
+		private static final long serialVersionUID = -3978791872899460686L;
+		UnsafeException() {
+			super();
+		}
+		UnsafeException(String message) {
+			super(message);
+		}
+		UnsafeException(Throwable e) {
+			super((e instanceof InvocationTargetException) ? ((InvocationTargetException)e).getCause() : e);
+		}
+	}
+	
 	/**
 	 * sun.misc.Unsafeオブジェクトを取得.
 	 * 
@@ -106,26 +123,28 @@ public final class Unsafe {
 		}
 		return null;
 	}
-
+	
 	/**
 	 * DirectByteBufferのNativeアドレスを取得.
 	 * 
 	 * @param buf
 	 *            対象のByteBufferオブジェクトを設定します.
 	 * @return long Nativeアドレスが返されます.
-	 * @exception Exception
-	 *                例外.
 	 */
-	public static final long getDirectByteBufferAddress(final ByteBuffer buf) throws Exception {
+	public static final long getDirectByteBufferAddress(final ByteBuffer buf) {
 		if (directByteBufferAddress == null || buf == null || !buf.isDirect()) {
 			if (directByteBufferAddress == null) {
-				throw new IllegalStateException("このメソッドはサポートされていません");
+				throw new IllegalStateException("This method is not supported.");
 			} else if (buf == null) {
-				throw new IllegalArgumentException("引数は不正です");
+				throw new IllegalArgumentException("Argument is invalid.");
 			}
-			throw new IllegalArgumentException("指定ByteBufferはDirectByteBufferではありません");
+			throw new IllegalArgumentException("The specified ByteBuffer is not a DirectByteBuffer.");
 		}
-		return (Long) directByteBufferAddress.invoke(buf);
+		try {
+			return (Long) directByteBufferAddress.invoke(buf);
+		} catch(Exception e) {
+			throw new UnsafeException(e);
+		}
 	}
 
 	/**

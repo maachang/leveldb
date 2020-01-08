@@ -135,7 +135,7 @@ abstract class LevelOperator {
 		if(writeBatchFlag) {
 			// バッチ反映.
 			if (_batch != null) {
-				_batch.flush(leveldb);
+				_batch.execute(leveldb);
 				_batch.close();
 				_batch = null;
 			}

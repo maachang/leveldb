@@ -387,12 +387,15 @@ public final class Json {
 
 	/** 日付情報チェック. **/
 	private static final boolean isNumeric(String o) {
+		return Converter.isNumeric(o);
+		/*
 		try {
 			Double.parseDouble(o);
 		} catch (Exception e) {
 			return false;
 		}
 		return true;
+		*/
 	}
 
 	/** 日付を文字変換. **/

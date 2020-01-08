@@ -151,7 +151,7 @@ public class WriteBatch {
 	 * @param db
 	 *            書き込み先のLeveldbオブジェクトを設定します.
 	 */
-	public void flush(Leveldb db) {
+	public void execute(Leveldb db) {
 		check();
 		if (db == null || db.isClose()) {
 			throw new LeveldbException("書き込み先のLeveldbオブジェクトはクローズされているか無効です");

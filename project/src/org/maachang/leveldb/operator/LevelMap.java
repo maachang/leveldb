@@ -22,7 +22,7 @@ import org.maachang.leveldb.util.ConvertMap;
 /**
  * LeveldbのMap実装.
  */
-@SuppressWarnings({ "rawtypes", "unchecked" })
+@SuppressWarnings("rawtypes")
 public class LevelMap extends LevelOperator implements ConvertMap {
 	protected LevelMapSet set;
 	protected int type;
@@ -190,7 +190,7 @@ public class LevelMap extends LevelOperator implements ConvertMap {
 	}
 	
 	// キー用のJniBufferを取得.
-	private final JniBuffer getKey(Object key, Object twoKey)
+	private final JniBuffer _getKey(Object key, Object twoKey)
 		throws Exception {
 		if (key instanceof JniBuffer) {
 			return (JniBuffer) key;
@@ -218,7 +218,7 @@ public class LevelMap extends LevelOperator implements ConvertMap {
 		JniBuffer keyBuf = null;
 		JniBuffer valBuf = null;
 		try {
-			keyBuf = getKey(key, twoKey);
+			keyBuf = _getKey(key, twoKey);
 			if (value instanceof JniBuffer) {
 				if(writeBatchFlag) {
 					writeBatch().put(keyBuf, (JniBuffer) value);
@@ -288,7 +288,7 @@ public class LevelMap extends LevelOperator implements ConvertMap {
 		JniBuffer keyBuf = null;
 		JniBuffer valBuf = null;
 		try {
-			keyBuf = getKey(key, twoKey);
+			keyBuf = _getKey(key, twoKey);
 			if(writeBatchFlag) {
 				LeveldbIterator snapshot = getSnapshot();
 				snapshot.seek(keyBuf);
@@ -353,7 +353,7 @@ public class LevelMap extends LevelOperator implements ConvertMap {
 		boolean ret = false;
 		JniBuffer keyBuf = null;
 		try {
-			keyBuf = getKey(key, twoKey);
+			keyBuf = _getKey(key, twoKey);
 			if(writeBatchFlag) {
 				LeveldbIterator snapshot = getSnapshot();
 				snapshot.seek(keyBuf);
@@ -476,7 +476,7 @@ public class LevelMap extends LevelOperator implements ConvertMap {
 		checkClose();
 		JniBuffer keyBuf = null;
 		try {
-			keyBuf = getKey(key, twoKey);
+			keyBuf = _getKey(key, twoKey);
 			if(writeBatchFlag) {
 				WriteBatch b = writeBatch();
 				b.remove(keyBuf);
@@ -555,7 +555,8 @@ public class LevelMap extends LevelOperator implements ConvertMap {
 	}
 
 	/**
-	 * 登録データ数を取得. ※Iteratorでカウントするので、件数が多い場合は、処理に時間がかかります.
+	 * 登録データ数を取得.
+	 * ※Iteratorでカウントするので、件数が多い場合は、処理に時間がかかります.
 	 * @return int 登録データ数が返却されます.
 	 */
 	public int size() {

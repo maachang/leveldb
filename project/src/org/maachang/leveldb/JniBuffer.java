@@ -1,9 +1,14 @@
 package org.maachang.leveldb;
 
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+
+import org.maachang.leveldb.Unsafe.UnsafeException;
 
 /**
  * JNI用バッファ.
@@ -17,15 +22,16 @@ public class JniBuffer extends OutputStream {
 	private long address;
 	private int length;
 	private int position;
-
+	
 	/**
 	 * ファイル内容を読み込んで取得.
 	 * 
-	 * @param out
-	 * @param name
+	 * @param out 読み込み先のJniBufferを設定します.
+	 * @param name ファイル名を設定します.
 	 * @throws IOException
 	 */
-	public static final void readFile(JniBuffer out, String name) throws IOException {
+	public static final void readFile(final JniBuffer out, final String name)
+		throws IOException {
 		int len;
 		byte[] bin = new byte[1024];
 		InputStream in = null;
@@ -40,6 +46,122 @@ public class JniBuffer extends OutputStream {
 			if (in != null) {
 				try {
 					in.close();
+				} catch (Exception e) {
+				}
+			}
+		}
+	}
+	
+	/**
+	 * DirectBufferでファイル読み込み.
+	 * 
+	 * @param out 読み込み先のJniBufferを設定します.
+	 * @param buf テンポラリ用のDirectBufferを設定します.
+	 * @param name ファイル名を設定します.
+	 */
+	@SuppressWarnings("resource")
+	public static final void readFile(final JniBuffer out, final ByteBuffer buf, final String name) {
+		int len;
+		FileChannel ch = null;
+		try {
+			final long addr = (long)Unsafe.directByteBufferAddress.invoke(buf);
+			ch = new FileInputStream(name).getChannel();
+			while (true) {
+				buf.clear();
+				if((len = ch.read(buf)) == -1) {
+					break;
+				}
+				out._write(true, addr, len);
+			}
+			ch.close();
+			ch = null;
+		} catch(Exception e) {
+			throw new UnsafeException(e);
+		} finally {
+			if (ch != null) {
+				try {
+					ch.close();
+				} catch (Exception e) {
+				}
+			}
+		}
+	}
+	
+	/**
+	 * ファイルに出力.
+	 * 
+	 * @param jniBuf 書き込み元のJniBufferを設定します.
+	 * @param name 対象のファイル名を設定します.
+	 * @exception IOException I/O例外.
+	 */
+	public static final void writeFile(final JniBuffer jniBuf, final String name)
+		throws IOException {
+		int len;
+		byte[] b = new byte[1024];
+		int jniBufOff = 0;
+		int jniBufLength = jniBuf.position();
+		long jniAddr = jniBuf.address;
+		FileOutputStream fo = null;
+		try {
+			fo = new FileOutputStream(name);
+			while(true) {
+				len = jniBufLength > jniBufOff + 1024 ? 1024 : jniBufLength - jniBufOff;
+				if(len == 0) {
+					break;
+				}
+				jni.getBinary(jniAddr + jniBufOff, b, 0, len);
+				fo.write(b, 0, len);
+				jniBufOff += len;
+			}
+			fo.flush();
+			fo.close();
+			fo = null;
+		} finally {
+			if(fo != null) {
+				try {
+					fo.close();
+				} catch(Exception e) {}
+			}
+		}
+	}
+	
+	/**
+	 * DirectBufferでファイル読み込み.
+	 * 
+	 * @param jniBuf 書き込み元のJniBufferを設定します.
+	 * @param buf テンポラリ用のDirectBufferを設定します.
+	 * @param name 対象のファイル名を設定します.
+	 */
+	@SuppressWarnings("resource")
+	public static final void writeFile(final JniBuffer jniBuf, final ByteBuffer buf, final String name) {
+		int len;
+		FileChannel ch = null;
+		int jniBufOff = 0;
+		int jniBufLength = jniBuf.position();
+		long jniAddr = jniBuf.address;
+		int bufLen = buf.capacity();
+		try {
+			final long addr = (long)Unsafe.directByteBufferAddress.invoke(buf);
+			ch = new FileOutputStream(name).getChannel();
+			while(true) {
+				len = jniBufLength > jniBufOff + bufLen ? bufLen : jniBufLength - jniBufOff;
+				if(len == 0) {
+					break;
+				}
+				jni.memcpy(addr, jniAddr + jniBufOff, len);
+				buf.position(0);
+				buf.limit(len);
+				ch.write(buf);
+				jniBufOff += len;
+			}
+			ch.close();
+			ch = null;
+		} catch(Exception e) {
+			throw new UnsafeException(e);
+		} finally {
+			if (ch != null) {
+				try {
+					ch.close();
 				} catch (Exception e) {
 				}
 			}
@@ -291,19 +413,19 @@ public class JniBuffer extends OutputStream {
 	}
 
 	/** 書き込み処理. **/
-	private void _write(boolean copy, int b) {
+	protected void _write(boolean copy, int b) {
 		recreate(copy, position + 1);
 		JniIO.put(address, position, (byte) b);
 		position += 1;
 	}
 
 	/** 書き込み処理. **/
-	private void _write(boolean copy, byte b[]) {
+	protected void _write(boolean copy, byte b[]) {
 		_write(copy, b, 0, b.length);
 	}
 
 	/** 書き込み処理. **/
-	private void _write(boolean copy, byte b[], int off, int len) {
+	protected void _write(boolean copy, byte b[], int off, int len) {
 		if (b == null) {
 			throw new NullPointerException();
 		} else if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) > b.length) || ((off + len) < 0)) {
@@ -313,6 +435,16 @@ public class JniBuffer extends OutputStream {
 		}
 		recreate(copy, position + len + 1);
 		jni.putBinary(address + position, b, off, len);
+		position += len;
+	}
+	
+	/** メモリ内容を書き込み処理. **/
+	protected void _write(boolean copy, long addr, int len) {
+		if (len == 0) {
+			return;
+		}
+		recreate(copy, position + len + 1);
+		jni.memcpy(address + position, addr, len);
 		position += len;
 	}
 

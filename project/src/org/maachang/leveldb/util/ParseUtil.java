@@ -5,8 +5,8 @@ import java.io.IOException;
 /**
  * Parseユーティリティ.
  */
-public abstract class ParseUtil {
-	private ParseUtil() {
+public final class ParseUtil {
+	protected ParseUtil() {
 	}
 
 	/**
