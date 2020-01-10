@@ -10,7 +10,6 @@ import org.maachang.leveldb.JniBuffer;
 import org.maachang.leveldb.JniIO;
 import org.maachang.leveldb.LevelBuffer;
 import org.maachang.leveldb.LevelId;
-import org.maachang.leveldb.LevelIterator;
 import org.maachang.leveldb.LevelOption;
 import org.maachang.leveldb.LevelValues;
 import org.maachang.leveldb.Leveldb;
@@ -23,9 +22,18 @@ import org.maachang.leveldb.util.ConvertMap;
  * LeveldbのMap実装.
  */
 @SuppressWarnings("rawtypes")
-public class LevelMap extends LevelOperator implements ConvertMap {
+public class LevelMap extends LevelIndexOperator implements ConvertMap {
 	protected LevelMapSet set;
 	protected int type;
+	
+	/**
+	 * オペレータタイプ.
+	 * @return int オペレータタイプが返却されます.
+	 */
+	@Override
+	public int getOperatorType() {
+		return LEVEL_MAP;
+	}
 
 	/**
 	 * コンストラクタ.
@@ -49,53 +57,30 @@ public class LevelMap extends LevelOperator implements ConvertMap {
 	 */
 	public LevelMap(String name, LevelOption option) {
 		Leveldb db = new Leveldb(name, option);
-		super.init(db, true, false);
+		super.init(null, db, true, false);
 		this.type = db.getOption().getType();
 		this.set = null;
+		
+		// インデックス初期化処理.
+		super.initIndex(null);
 	}
 	
 	/**
 	 * コンストラクタ.
 	 * writeBatchを有効にして生成します.
 	 * 
-	 * @param db
-	 *            対象のLeveldbオブジェクトを設定します.
+	 * @param src 親となるオペレータを設定します.
 	 */
-	public LevelMap(Leveldb db) {
-		this(true, db);
+	public LevelMap(LevelMap src) {
+		// leveldbをクローズせずwriteBatchで処理する.
+		super.init(src, src.leveldb, false, true);
+		this.type = src.getOption().getType();
+		this.set = null;
+		
+		// インデックス初期化処理.
+		super.initIndex(src);
 	}
 
-	/**
-	 * コンストラクタ.
-	 * 
-	 * @param writeBatch
-	 *            writeBatchを有効にする場合は[true].
-	 * @param db
-	 *            対象のLeveldbオブジェクトを設定します.
-	 */
-	public LevelMap(boolean writeBatch, Leveldb db) {
-		if(writeBatch) {
-			// leveldbをクローズせずwriteBatchで処理する.
-			super.init(db, false, true);
-		} else {
-			// leveldbをクローズしてwriteBatchで処理しない.
-			super.init(db, true, false);
-		}
-		this.type = db.getOption().getType();
-		this.set = null;
-	}
-	
-	/**
-	 * コンストラクタ.
-	 * writeBatchを有効にして生成します.
-	 * 
-	 * @param map
-	 */
-	public LevelMap(LevelMap map) {
-		// leveldbをクローズせずwriteBatchで処理する.
-		this(true, map.leveldb);
-	}
-	
 	@Override
 	public void close() {
 		this.set = null;
@@ -193,7 +178,8 @@ public class LevelMap extends LevelOperator implements ConvertMap {
 	private final JniBuffer _getKey(Object key, Object twoKey)
 		throws Exception {
 		if (key instanceof JniBuffer) {
-			return (JniBuffer) key;
+			throw new LeveldbException("JniBuffer cannot be set for key.");
+			//return (JniBuffer) key;
 		}
 		return LevelBuffer.key(type, key, twoKey);
 	}
@@ -212,8 +198,8 @@ public class LevelMap extends LevelOperator implements ConvertMap {
 	 */
 	public Object put(Object key, Object twoKey, Object value) {
 		checkClose();
-		if (value != null && value instanceof LevelMap) {
-			throw new LeveldbException("LevelMap element cannot be set for the element.");
+		if (value != null && value instanceof LevelOperator) {
+			throw new LeveldbException("LevelOperator element cannot be set for the element.");
 		}
 		JniBuffer keyBuf = null;
 		JniBuffer valBuf = null;
@@ -225,6 +211,8 @@ public class LevelMap extends LevelOperator implements ConvertMap {
 				} else {
 					leveldb.put(keyBuf, (JniBuffer) value);
 				}
+				// インデックス処理.
+				super.putIndex(key, twoKey, LevelValues.decode((JniBuffer) value));
 			} else {
 				valBuf = LevelBuffer.value(value);
 				if(writeBatchFlag) {
@@ -232,6 +220,8 @@ public class LevelMap extends LevelOperator implements ConvertMap {
 				} else {
 					leveldb.put(keyBuf, valBuf);
 				}
+				// インデックス処理.
+				super.putIndex(key, twoKey, value);
 			}
 			return null;
 		} catch (LeveldbException le) {
@@ -476,13 +466,17 @@ public class LevelMap extends LevelOperator implements ConvertMap {
 		checkClose();
 		JniBuffer keyBuf = null;
 		try {
+			Object v = get(key, twoKey);
 			keyBuf = _getKey(key, twoKey);
 			if(writeBatchFlag) {
 				WriteBatch b = writeBatch();
 				b.remove(keyBuf);
+				super.removeIndex(key, twoKey, v);
 				return true;
 			}
-			return leveldb.remove(keyBuf);
+			final boolean ret = leveldb.remove(keyBuf);
+			super.removeIndex(key, twoKey, v);
+			return ret;
 		} catch (LeveldbException le) {
 			throw le;
 		} catch (Exception e) {
@@ -942,11 +936,10 @@ public class LevelMap extends LevelOperator implements ConvertMap {
 	/**
 	 * LevelMap用Iterator.
 	 */
-	public class LevelMapIterator implements LevelIterator<Object> {
+	public class LevelMapIterator extends LevelIterator<Object> {
 		LevelMap map;
 		LeveldbIterator itr;
 		int type;
-		boolean reverse;
 
 		/**
 		 * コンストラクタ.
@@ -974,18 +967,11 @@ public class LevelMap extends LevelOperator implements ConvertMap {
 		 * クローズ処理.
 		 */
 		public void close() {
+			super.close();
 			if (itr != null) {
 				itr.close();
 				itr = null;
 			}
-		}
-		
-		/**
-		 * 逆カーソル移動かチェック.
-		 * @return
-		 */
-		public boolean isReverse() {
-			return reverse;
 		}
 
 		/**
@@ -1015,6 +1001,7 @@ public class LevelMap extends LevelOperator implements ConvertMap {
 			try {
 				keyBuf = LevelBuffer.key();
 				itr.key(keyBuf);
+				this.key = LevelId.get(map.getType(), keyBuf);
 				Object ret = LevelId.get(type, keyBuf);
 				LevelBuffer.clearBuffer(keyBuf, null);
 				keyBuf = null;

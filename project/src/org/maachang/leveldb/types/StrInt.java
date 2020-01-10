@@ -91,7 +91,7 @@ public final class StrInt extends TwoKey {
 		if (oneLen == 0) {
 			one = "";
 		} else {
-			one = JniIO.getUtf16(addr, 2, oneLen);
+			one = JniIO.getUtf8(addr, 2, oneLen);
 		}
 
 		// two.
@@ -104,7 +104,7 @@ public final class StrInt extends TwoKey {
 	 * @return int バイナリ長が返却されます.
 	 */
 	public final int toBufferLength() {
-		return JniIO.utf16Length(one) + 6;
+		return JniIO.utf8Length(one) + 6;
 	}
 
 	/**
@@ -132,13 +132,13 @@ public final class StrInt extends TwoKey {
 		int pos = buf.position();
 
 		// それぞれの長さを取得.
-		int len = JniIO.utf16Length((String) one);
+		int len = JniIO.utf8Length((String) one);
 		long addr = buf.recreate(true, pos + len + 6);
 
 		// one.
 		JniIO.putShort(addr, pos, (short) len);
 		if (len != 0) {
-			JniIO.putUtf16(addr, pos + 2, (String) one);
+			JniIO.putUtf8(addr, pos + 2, (String) one);
 		}
 
 		// two.

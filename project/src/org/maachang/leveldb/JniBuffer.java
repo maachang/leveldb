@@ -16,7 +16,7 @@ import org.maachang.leveldb.Unsafe.UnsafeException;
 public class JniBuffer extends OutputStream {
 
 	/** クリア時のバッファ保持領域最大長. **/
-	protected static final int CLEAR_BY_MAX_BUFFER = 65535;
+	protected static final int CLEAR_BY_MAX_BUFFER = 8192;
 
 	/** バッファ情報. **/
 	private long address;
@@ -688,7 +688,7 @@ public class JniBuffer extends OutputStream {
 		}
 		position = 0;
 		recreate(false, (len * 3) + 1);
-		int res = JniIO.putUtf16(address, 0, string, off, len);
+		int res = JniIO.putUtf8(address, 0, string, off, len);
 		position += res;
 		return this;
 	}
@@ -720,7 +720,7 @@ public class JniBuffer extends OutputStream {
 		if (len == 0 || position == 0) {
 			return null;
 		}
-		return JniIO.getUtf16(address, 0, len);
+		return JniIO.getUtf8(address, 0, len);
 	}
 
 	/**

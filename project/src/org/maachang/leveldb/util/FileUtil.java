@@ -145,7 +145,7 @@ public final class FileUtil {
 			plus = "." + plus;
 		}
 		List<String> lst = new ArrayList<String>();
-		readDirToFileList(lst, dir, dir, plus);
+		_readDirToFileList(lst, dir, dir, plus);
 		if (lst.size() > 0) {
 			int len = lst.size();
 			String[] ret = new String[len];
@@ -159,10 +159,8 @@ public final class FileUtil {
 		return null;
 	}
 
-	/**
-	 * 指定ディレクトリ以下のディレクトリ名を取得.
-	 */
-	private static final void readDirToFileList(List<String> out, String base, String dir, String plus)
+	// 指定ディレクトリ以下のディレクトリ名を取得.
+	private static final void _readDirToFileList(List<String> out, String base, String dir, String plus)
 			throws Exception {
 		File fp = new File(dir);
 		String[] names = fp.list();
@@ -175,7 +173,7 @@ public final class FileUtil {
 				}
 				String name = new StringBuilder().append(dir).append(FILE_SP).append(names[i]).toString();
 				if (FileUtil.isDir(name)) {
-					readDirToFileList(out, base, name, plus);
+					_readDirToFileList(out, base, name, plus);
 				} else if (plus == null || Converter.toLowerCase(name).endsWith(plus)) {
 					name = name.substring(base.length(), name.length());
 					if (name.indexOf("\\") != -1) {

@@ -7,7 +7,6 @@ import org.maachang.leveldb.JniIO;
 import org.maachang.leveldb.KeyValue;
 import org.maachang.leveldb.LevelBuffer;
 import org.maachang.leveldb.LevelId;
-import org.maachang.leveldb.LevelIterator;
 import org.maachang.leveldb.LevelOption;
 import org.maachang.leveldb.LevelValues;
 import org.maachang.leveldb.Leveldb;
@@ -22,10 +21,20 @@ import org.maachang.leveldb.util.GeoQuadKey;
 /**
  * 緯度経度での範囲検索を行うLeveldb.
  */
-public class LevelQuadKey extends LevelOperator {
+public class LevelLatLon extends LevelIndexOperator {
 	protected int type;
-	protected Time12SequenceId sequenceId = null;
-	protected Object minKey = null;
+	protected Time12SequenceId sequenceId;
+	protected int machineId;
+	protected Object minKey;
+	
+	/**
+	 * オペレータタイプ.
+	 * @return int オペレータタイプが返却されます.
+	 */
+	@Override
+	public int getOperatorType() {
+		return LEVEL_LAT_LON;
+	}
 	
 	/**
 	 * コンストラクタ.
@@ -36,7 +45,7 @@ public class LevelQuadKey extends LevelOperator {
 	 * @param machineId
 	 *            マシンIDを設定します.
 	 */
-	public LevelQuadKey(String name, int machineId) {
+	public LevelLatLon(String name, int machineId) {
 		this(name, machineId, null);
 	}
 
@@ -53,7 +62,7 @@ public class LevelQuadKey extends LevelOperator {
 	 *            オプションのタイプは１キーを設定することで、緯度経度のセカンドキーになります.
 	 *            [LevelOption.TYPE_NONE]を設定することで、シーケンスIDがセットされます.
 	 */
-	public LevelQuadKey(String name, int machineId, LevelOption option) {
+	public LevelLatLon(String name, int machineId, LevelOption option) {
 		int type = LevelOption.checkType(option.getType());
 		if(type != LevelOption.TYPE_NONE) {
 			if(LevelOption.typeMode(type) != 1 || type == LevelOption.TYPE_MULTI) {
@@ -67,23 +76,31 @@ public class LevelQuadKey extends LevelOperator {
 		}
 		Leveldb db = new Leveldb(name, option);
 		// leveldbをクローズしてwriteBatchで処理しない.
-		super.init(db, true, false);
+		super.init(null, db, true, false);
 		this.type = option.getType();
 		this.minKey = getMinKey(type);
+		this.machineId = machineId;
+		
+		// インデックス初期化.
+		super.initIndex(null);
 	}
 	
 	/**
 	 * コンストラクタ.
 	 * writeBatchを有効にして生成します.
 	 * 
-	 * @param db
+	 * @param latlon 親となるオペレータを設定します.
 	 */
-	public LevelQuadKey(LevelQuadKey db) {
+	public LevelLatLon(LevelLatLon latlon) {
 		// leveldbをクローズせずwriteBatchで処理する.
-		super.init(db.leveldb, false, true);
-		this.sequenceId = db.sequenceId;
-		this.type = db.getOption().getType();
-		this.minKey = db.minKey;
+		super.init(latlon, latlon.leveldb, false, true);
+		this.sequenceId = latlon.sequenceId;
+		this.type = latlon.getOption().getType();
+		this.minKey = latlon.minKey;
+		this.machineId = latlon.machineId;
+		
+		// インデックス初期化処理.
+		super.initIndex(latlon);
 	}
 	
 	// LeveQuadKeyIterator にわたすセカンドキーを取得.
@@ -152,8 +169,8 @@ public class LevelQuadKey extends LevelOperator {
 	 */
 	public Object[] put(long qk, Object secKey, Object value) {
 		checkClose();
-		if (value != null && value instanceof LevelMap) {
-			throw new LeveldbException("LevelMap element cannot be set for the element.");
+		if (value != null && value instanceof LevelOperator) {
+			throw new LeveldbException("LevelOperator element cannot be set for the element.");
 		}
 		byte[] seqId = null;
 		JniBuffer keyBuf = null;
@@ -177,6 +194,8 @@ public class LevelQuadKey extends LevelOperator {
 				} else {
 					leveldb.put(keyBuf, (JniBuffer) value);
 				}
+				// インデックス処理.
+				super.putIndex(qk, secKey, LevelValues.decode((JniBuffer) value));
 			} else {
 				valBuf = LevelBuffer.value(value);
 				if(writeBatchFlag) {
@@ -184,7 +203,10 @@ public class LevelQuadKey extends LevelOperator {
 				} else {
 					leveldb.put(keyBuf, valBuf);
 				}
+				// インデックス処理.
+				super.putIndex(qk, secKey, value);
 			}
+			
 			// セカンドキーがシーケンスIDの場合は、文字変換で返却.
 			if(sequenceId != null) {
 				return new Object[] {qk, Time12SequenceId.toString(seqId)};
@@ -200,7 +222,7 @@ public class LevelQuadKey extends LevelOperator {
 	}
 	
 	// キー情報を取得.
-	private final JniBuffer getKey(long qk, Object secKey)
+	private final JniBuffer _getKey(long qk, Object secKey)
 		throws Exception {
 		if(sequenceId != null && secKey instanceof String) {
 			secKey = Time12SequenceId.toBinary((String)secKey);
@@ -229,13 +251,17 @@ public class LevelQuadKey extends LevelOperator {
 		checkClose();
 		JniBuffer keyBuf = null;
 		try {
-			keyBuf = getKey(qk, secKey);
+			Object v = get(qk, secKey);
+			keyBuf = _getKey(qk, secKey);
 			if(writeBatchFlag) {
 				WriteBatch b = writeBatch();
 				b.remove(keyBuf);
+				super.removeIndex(qk, secKey, v);
 				return true;
 			}
-			return leveldb.remove(keyBuf);
+			boolean ret = leveldb.remove(keyBuf);
+			super.removeIndex(qk, secKey, v);
+			return ret;
 		} catch (LeveldbException le) {
 			throw le;
 		} catch (Exception e) {
@@ -267,7 +293,7 @@ public class LevelQuadKey extends LevelOperator {
 		JniBuffer keyBuf = null;
 		JniBuffer valBuf = null;
 		try {
-			keyBuf = getKey(qk, secKey);
+			keyBuf = _getKey(qk, secKey);
 			if(writeBatchFlag) {
 				LeveldbIterator snapshot = getSnapshot();
 				snapshot.seek(keyBuf);
@@ -316,7 +342,7 @@ public class LevelQuadKey extends LevelOperator {
 		boolean ret = false;
 		JniBuffer keyBuf = null;
 		try {
-			keyBuf = getKey(qk, secKey);
+			keyBuf = _getKey(qk, secKey);
 			if(writeBatchFlag) {
 				LeveldbIterator snapshot = getSnapshot();
 				snapshot.seek(keyBuf);
@@ -401,6 +427,15 @@ public class LevelQuadKey extends LevelOperator {
 			}
 		}
 		return leveldb.isEmpty();
+	}
+	
+	/**
+	 * マシンIDを取得.
+	 * 
+	 * @return int マシンIDが返却されます.
+	 */
+	public int getMachineId() {
+		return machineId;
 	}
 	
 	/**
@@ -571,7 +606,7 @@ public class LevelQuadKey extends LevelOperator {
 	protected LevelQKListIterator _search(LevelQKListIterator ret, Long qk, Object secKey)
 		throws Exception {
 		if(qk != null) {
-			Leveldb.search(ret.itr, ret.reverse, type, getKey(qk, secKey), null);
+			Leveldb.search(ret.itr, ret.reverse, type, _getKey(qk, secKey), null);
 		} else if(ret.reverse) {
 			ret.itr.last();
 		}
@@ -581,10 +616,9 @@ public class LevelQuadKey extends LevelOperator {
 	/**
 	 * リスト検索用LevelQuadKeyDb用Iterator.
 	 */
-	public class LevelQKListIterator implements LevelIterator<KeyValue<Object[], Object>> {
-		LevelQuadKey db;
+	public class LevelQKListIterator extends LevelIterator<KeyValue<Object[], Object>> {
+		LevelLatLon db;
 		LeveldbIterator itr;
-		boolean reverse;
 		KeyValue<Object[], Object> element;
 
 		/**
@@ -597,7 +631,7 @@ public class LevelQuadKey extends LevelOperator {
 		 * @param itr
 		 *            LeveldbIteratorオブジェクトを設定します.
 		 */
-		LevelQKListIterator(boolean reverse, LevelQuadKey db, LeveldbIterator itr) {
+		LevelQKListIterator(boolean reverse, LevelLatLon db, LeveldbIterator itr) {
 			this.db = db;
 			this.itr = itr;
 			this.reverse = reverse;
@@ -613,18 +647,11 @@ public class LevelQuadKey extends LevelOperator {
 		 * クローズ処理.
 		 */
 		public void close() {
+			super.close();
 			if (itr != null) {
 				itr.close();
 				itr = null;
 			}
-		}
-		
-		/**
-		 * 逆カーソル移動かチェック.
-		 * @return
-		 */
-		public boolean isReverse() {
-			return reverse;
 		}
 
 		/**
@@ -662,6 +689,7 @@ public class LevelQuadKey extends LevelOperator {
 				LevelBuffer.clearBuffer(keyBuf, valBuf);
 				keyBuf = null;
 				valBuf = null;
+				this.key = key;
 				if(reverse) {
 					itr.before();
 				} else {
@@ -734,8 +762,8 @@ public class LevelQuadKey extends LevelOperator {
 	/**
 	 * 範囲検索用LevelQuadKeyDb用Iterator.
 	 */
-	public class LeveQKSearchIterator implements LevelIterator<KeyValue<Object[], Object>> {
-		protected LevelQuadKey db;
+	public class LeveQKSearchIterator extends LevelIterator<KeyValue<Object[], Object>> {
+		protected LevelLatLon db;
 		protected LeveldbIterator itr;
 		private KeyValue<Object[], Object> element;
 		protected int type;
@@ -749,7 +777,7 @@ public class LevelQuadKey extends LevelOperator {
 		protected Object nowKey;
 		protected Object nowValue;
 		
-		protected LeveQKSearchIterator(long qk, Object secKey, int distance, LevelQuadKey db, boolean snapshot) {
+		protected LeveQKSearchIterator(long qk, Object secKey, int distance, LevelLatLon db, boolean snapshot) {
 			double[] latLon = GeoQuadKey.latLon(qk);
 			long[] searchList = GeoQuadKey.searchCode(
 				GeoQuadKey.getDetail(distance), latLon[0], latLon[1]);
@@ -776,17 +804,13 @@ public class LevelQuadKey extends LevelOperator {
 		
 		@Override
 		public void close() {
+			super.close();
 			if(itr != null) {
 				itr.close();
 				itr = null;
 			}
 			list = null;
 			endFlag = true;
-		}
-		
-		@Override
-		public boolean isReverse() {
-			return false;
 		}
 		
 		private void _next() {
@@ -880,12 +904,15 @@ public class LevelQuadKey extends LevelOperator {
 			Object value = this.nowValue;
 			_next();
 			if(key != null) {
+				Object[] keyList = null;
 				TwoKey tk = (TwoKey)key;
 				if(db.sequenceId != null) {
-					element.set(new Object[] {tk.get(0), Time12SequenceId.toString((byte[])tk.get(1))}, value);
+					keyList = new Object[] {tk.get(0), Time12SequenceId.toString((byte[])tk.get(1))};
 				} else {
-					element.set(new Object[] {tk.get(0), tk.get(1)}, value);
+					keyList = new Object[] {tk.get(0), tk.get(1)};
 				}
+				this.key = keyList;
+				element.set(keyList, value);
 				return element;
 			}
 			return null;

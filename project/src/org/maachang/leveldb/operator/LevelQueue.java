@@ -5,7 +5,6 @@ import java.util.NoSuchElementException;
 import org.maachang.leveldb.JniBuffer;
 import org.maachang.leveldb.KeyValue;
 import org.maachang.leveldb.LevelBuffer;
-import org.maachang.leveldb.LevelIterator;
 import org.maachang.leveldb.LevelOption;
 import org.maachang.leveldb.LevelValues;
 import org.maachang.leveldb.Leveldb;
@@ -18,6 +17,16 @@ import org.maachang.leveldb.Time12SequenceId;
  */
 public class LevelQueue extends LevelOperator {
 	protected Time12SequenceId sequenceId;
+	protected int machineId;
+	
+	/**
+	 * オペレータタイプ.
+	 * @return int オペレータタイプが返却されます.
+	 */
+	@Override
+	public int getOperatorType() {
+		return LEVEL_QUEUE;
+	}
 	
 	/**
 	 * コンストラクタ.
@@ -72,7 +81,8 @@ public class LevelQueue extends LevelOperator {
 		option.setType(LevelOption.TYPE_FREE);
 		Leveldb db  = new Leveldb(name, option);
 		// leveldbをクローズしてwriteBatchで処理しない.
-		super.init(db, true, false);
+		super.init(null, db, true, false);
+		this.machineId = machineId;
 		this.sequenceId = new Time12SequenceId(machineId);
 	}
 	
@@ -80,72 +90,15 @@ public class LevelQueue extends LevelOperator {
 	 * コンストラクタ.
 	 * writeBatchを有効にして生成します.
 	 * 
-	 * @param db
-	 *            Leveldbを設定します.
-	 */
-	public LevelQueue(Leveldb db) {
-		this(true, 0, db);
-	}
-	
-	/**
-	 * コンストラクタ.
-	 * writeBatchを有効にして生成します.
-	 * 
-	 * @param machineId
-	 *            マシンIDを設定します.
-	 * @param db
-	 *            Leveldbを設定します.
-	 */
-	public LevelQueue(int machineId, Leveldb db) {
-		this(true, machineId, db);
-	}
-	
-	/**
-	 * コンストラクタ.
-	 * 
-	 * @param writeBatch
-	 *            writeBatchを有効にする場合は[true].
-	 * @param db
-	 *            Leveldbを設定します.
-	 */
-	public LevelQueue(boolean writeBatch, Leveldb db) {
-		this(writeBatch, 0, db);
-	}
-	
-	/**
-	 * コンストラクタ.
-	 * 
-	 * @param writeBatch
-	 *            writeBatchを有効にする場合は[true].
-	 * @param machineId
-	 *            マシンIDを設定します.
-	 * @param db
-	 *            Leveldbを設定します.
-	 */
-	public LevelQueue(boolean writeBatch, int machineId, Leveldb db) {
-		if(db.getType() != LevelOption.TYPE_FREE) {
-			throw new LeveldbException("The key type of the opened Leveldb is not TYPE_FREE.");
-		}
-		if(writeBatch) {
-			// leveldbをクローズしてwriteBatchで処理しない.
-			super.init(db, false, true);
-		} else {
-			// leveldbをクローズしてwriteBatchで処理しない.
-			super.init(db, true, false);
-		}
-		this.sequenceId = new Time12SequenceId(machineId);
-	}
-	
-	/**
-	 * コンストラクタ.
-	 * writeBatchを有効にして生成します.
-	 * 
-	 * @param queue
+	 * @param queue LevelQueueを設定します.
 	 */
 	public LevelQueue(LevelQueue queue) {
-		this(true, queue.sequenceId.getMachineId(), queue.leveldb);
+		// leveldbをクローズしてwriteBatchで処理しない.
+		super.init(queue, queue.leveldb, false, true);
+		this.machineId = queue.machineId;
+		this.sequenceId = new Time12SequenceId(queue.machineId);
 	}
-
+	
 	/**
 	 * 最後に追加.
 	 * 
@@ -282,9 +235,18 @@ public class LevelQueue extends LevelOperator {
 	}
 	
 	/**
+	 * マシンIDを取得.
+	 * 
+	 * @return int マシンIDが返却されます.
+	 */
+	public int getMachineId() {
+		return machineId;
+	}
+	
+	/**
 	 * Queue用Iterator.
 	 */
-	public static class LevelQueueIterator implements LevelIterator<KeyValue<String, Object>> {
+	public static class LevelQueueIterator extends LevelIterator<KeyValue<String, Object>> {
 		private KeyValue<String, Object> keyValue = new KeyValue<String, Object>();
 		private LeveldbIterator itr = null;
 		private LevelQueue queue = null;
@@ -329,6 +291,7 @@ public class LevelQueue extends LevelOperator {
 		 */
 		@Override
 		public void close() {
+			super.close();
 			LeveldbIterator i = itr; itr = null;
 			if (i != null) {
 				i.close();
@@ -370,8 +333,8 @@ public class LevelQueue extends LevelOperator {
 				if (!itr.valid()) {
 					close();
 				}
-				keyValue.set(Time12SequenceId.toString(keyBuf.getBinary()),
-					LevelValues.decode(valBuf));
+				this.key = Time12SequenceId.toString(keyBuf.getBinary());
+				keyValue.set((String)this.key, LevelValues.decode(valBuf));
 				LevelBuffer.clearBuffer(keyBuf, valBuf);
 				keyBuf = null; valBuf = null;
 				return keyValue;

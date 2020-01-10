@@ -186,14 +186,14 @@ public final class LevelId {
 				if (oneLen == 0) {
 					out[0] = "";
 				} else {
-					out[0] = JniIO.getUtf16(addr, 2, oneLen);
+					out[0] = JniIO.getUtf8(addr, 2, oneLen);
 				}
 
 				// two.
 				if (len <= oneLen + 2) {
 					out[1] = "";
 				} else {
-					out[1] = JniIO.getUtf16(addr, 2 + oneLen, len - (oneLen + 2));
+					out[1] = JniIO.getUtf8(addr, 2 + oneLen, len - (oneLen + 2));
 				}
 			}
 		},
@@ -228,7 +228,7 @@ public final class LevelId {
 				if (oneLen == 0) {
 					out[0] = "";
 				} else {
-					out[0] = JniIO.getUtf16(addr, 2, oneLen);
+					out[0] = JniIO.getUtf8(addr, 2, oneLen);
 				}
 
 				// two.
@@ -266,7 +266,7 @@ public final class LevelId {
 				if (oneLen == 0) {
 					out[0] = "";
 				} else {
-					out[0] = JniIO.getUtf16(addr, 2, oneLen);
+					out[0] = JniIO.getUtf8(addr, 2, oneLen);
 				}
 
 				// two.
@@ -307,7 +307,7 @@ public final class LevelId {
 				if (len <= 4) {
 					out[1] = "";
 				} else {
-					out[1] = JniIO.getUtf16(addr, 4, len - 4);
+					out[1] = JniIO.getUtf8(addr, 4, len - 4);
 				}
 			}
 		},
@@ -411,7 +411,7 @@ public final class LevelId {
 				if (len <= 8) {
 					out[1] = "";
 				} else {
-					out[1] = JniIO.getUtf16(addr, 8, len - 8);
+					out[1] = JniIO.getUtf8(addr, 8, len - 8);
 				}
 			}
 		},
@@ -513,7 +513,7 @@ public final class LevelId {
 				if (oneLen == 0) {
 					out[0] = "";
 				} else {
-					out[0] = JniIO.getUtf16(addr, 2, oneLen);
+					out[0] = JniIO.getUtf8(addr, 2, oneLen);
 				}
 
 				// two.
@@ -646,7 +646,7 @@ public final class LevelId {
 				if (len <= oneLen + 2) {
 					out[1] = "";
 				} else {
-					out[1] = JniIO.getUtf16(addr, 2 + oneLen, len - (oneLen + 2));
+					out[1] = JniIO.getUtf8(addr, 2 + oneLen, len - (oneLen + 2));
 				}
 			}
 		},

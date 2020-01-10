@@ -12,12 +12,28 @@ import org.maachang.leveldb.util.Flag;
 /**
  * LeveldbOperator.
  */
-abstract class LevelOperator {
+public abstract class LevelOperator {
+	/** オペレータタイプ: インデックス. **/
+	public static final int LEVEL_INDEX = 1;
+	
+	/** オペレータタイプ: Map. **/
+	public static final int LEVEL_MAP = 2;
+	
+	/** オペレータタイプ: キュー. **/
+	public static final int LEVEL_QUEUE = 3;
+	
+	/** オペレータタイプ: シーケンス. **/
+	public static final int LEVEL_SEQUENCE = 4;
+	
+	/** オペレータタイプ: 緯度経度. **/
+	public static final int LEVEL_LAT_LON = 5;
+	
 	protected boolean sub = false;
 	protected boolean writeBatchFlag = true;
 	protected Leveldb leveldb;
 	protected WriteBatch _batch;
 	protected LeveldbIterator _snapshot;
+	protected Flag parentCloseFlag = null;
 	protected Flag closeFlag = new Flag();
 	
 	/**
@@ -29,14 +45,20 @@ abstract class LevelOperator {
 	
 	/**
 	 * 初期化処理.
+	 * @param opr 元のオブジェクトを設定します.
 	 * @param db leveldbオブジェクトを設定します.
 	 * @param sub [true]を設定するとleveldbオブジェクトをcloseで処理します.
 	 * @param writeBatchFlag commit/rollback処理を有効にする場合は[true].
 	 */
-	protected void init(Leveldb db, boolean sub, boolean writeBatchFlag) {
+	protected void init(LevelOperator opr, Leveldb db, boolean sub, boolean writeBatchFlag) {
 		this.leveldb = db;
 		this.sub = sub; 
 		this.writeBatchFlag = writeBatchFlag;
+		if(opr != null) {
+			parentCloseFlag = opr.closeFlag;
+		} else {
+			parentCloseFlag = new Flag(false);
+		}
 		this.closeFlag.set(false);
 	}
 	
@@ -56,7 +78,9 @@ abstract class LevelOperator {
 				}
 			}
 			if (sub) {
-				leveldb.close();
+				if(leveldb != null && !parentCloseFlag.get()) {
+					leveldb.close();
+				}
 			}
 			leveldb = null;
 		}
@@ -64,7 +88,7 @@ abstract class LevelOperator {
 
 	// チェック処理.
 	protected void checkClose() {
-		if (closeFlag.get()) {
+		if (parentCloseFlag.get() || closeFlag.get()) {
 			throw new LeveldbException("The object has already been cleared.");
 		}
 	}
@@ -172,7 +196,16 @@ abstract class LevelOperator {
 	 * @return boolean [true]の場合、クローズしています.
 	 */
 	public boolean isClose() {
-		return closeFlag.get();
+		return parentCloseFlag.get() || closeFlag.get();
+	}
+	
+	/**
+	 * 親オペレータがクローズしているかチェック.
+	 * 
+	 * @return boolean [true]の場合、クローズしています.
+	 */
+	public boolean isParentClose() {
+		return parentCloseFlag.get();
 	}
 	
 	/**
@@ -222,4 +255,10 @@ abstract class LevelOperator {
 	public boolean isWriteBatch() {
 		return writeBatchFlag;
 	}
+	
+	/**
+	 * オペレータタイプ.
+	 * @return int オペレータタイプが返却されます.
+	 */
+	public abstract int getOperatorType();
 }

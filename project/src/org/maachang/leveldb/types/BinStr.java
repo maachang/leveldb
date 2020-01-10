@@ -101,7 +101,7 @@ public final class BinStr extends TwoKey {
 		if (len <= oneLen + 2) {
 			two = "";
 		} else {
-			two = JniIO.getUtf16(addr, 2 + oneLen, len - (oneLen + 2));
+			two = JniIO.getUtf8(addr, 2 + oneLen, len - (oneLen + 2));
 		}
 	}
 
@@ -111,7 +111,7 @@ public final class BinStr extends TwoKey {
 	 * @return int バイナリ長が返却されます.
 	 */
 	public final int toBufferLength() {
-		return one.length + +JniIO.utf16Length(two) + 2;
+		return one.length + +JniIO.utf8Length(two) + 2;
 	}
 
 	/**
@@ -140,7 +140,7 @@ public final class BinStr extends TwoKey {
 
 		// それぞれの長さを取得.
 		int len = ((byte[]) one).length;
-		int len2 = JniIO.utf16Length((String) two);
+		int len2 = JniIO.utf8Length((String) two);
 		long addr = buf.recreate(true, pos + len + len2 + 2);
 
 		// one.
@@ -151,7 +151,7 @@ public final class BinStr extends TwoKey {
 
 		// two.
 		if (len2 != 0) {
-			JniIO.putUtf16(addr, pos + len + 2, (String) two);
+			JniIO.putUtf8(addr, pos + len + 2, (String) two);
 		}
 		buf.addPosition(len + len2 + 2);
 	}

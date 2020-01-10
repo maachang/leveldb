@@ -7,7 +7,6 @@ import org.maachang.leveldb.JniIO;
 import org.maachang.leveldb.KeyValue;
 import org.maachang.leveldb.LevelBuffer;
 import org.maachang.leveldb.LevelId;
-import org.maachang.leveldb.LevelIterator;
 import org.maachang.leveldb.LevelOption;
 import org.maachang.leveldb.LevelValues;
 import org.maachang.leveldb.Leveldb;
@@ -19,8 +18,18 @@ import org.maachang.leveldb.WriteBatch;
 /**
  * キー情報をシーケンスIDで管理.
  */
-public class LevelSequence extends LevelOperator {
-	protected Time12SequenceId sequenceId = null;
+public class LevelSequence extends LevelIndexOperator {
+	protected Time12SequenceId sequenceId;
+	protected int machineId;
+
+	/**
+	 * オペレータタイプ.
+	 * @return int オペレータタイプが返却されます.
+	 */
+	@Override
+	public int getOperatorType() {
+		return LEVEL_SEQUENCE;
+	}
 	
 	/**
 	 * コンストラクタ.
@@ -53,98 +62,46 @@ public class LevelSequence extends LevelOperator {
 		} else {
 			option = LevelOption.create(LevelOption.TYPE_FREE);
 		}
-		sequenceId = new Time12SequenceId(machineId);
 		Leveldb db = new Leveldb(name, option);
 		// leveldbをクローズしてwriteBatchで処理しない.
-		super.init(db, true, false);
+		super.init(null, db, true, false);
+		this.sequenceId = new Time12SequenceId(machineId);
+		this.machineId = machineId;
+		
+		// インデックス初期化.
+		super.initIndex(null);
 	}
 	
 	/**
 	 * コンストラクタ.
 	 * writeBatchを有効にして生成します.
 	 * 
-	 * @param db
+	 * @param seq 親となるオペレータを設定します.
 	 */
-	public LevelSequence(LevelSequence db) {
+	public LevelSequence(LevelSequence seq) {
 		// leveldbをクローズせずwriteBatchで処理する.
-		super.init(db.leveldb, false, true);
-		this.sequenceId = db.sequenceId;
-	}
-	
-	/**
-	 * コンストラクタ.
-	 * 
-	 * @param writeBatch
-	 *            writeBatchを有効にする場合は[true].
-	 * @param machineId
-	 *            マシンIDを設定します.
-	 * @param db
-	 *            Leveldbを設定します.
-	 */
-	public LevelSequence(boolean writeBatch, int machineId, Leveldb db) {
-		if(db.getType() != LevelOption.TYPE_FREE) {
-			throw new LeveldbException("The key type of the opened Leveldb is not TYPE_FREE.");
-		}
-		if(writeBatch) {
-			// leveldbをクローズしてwriteBatchで処理しない.
-			super.init(db, false, true);
-		} else {
-			// leveldbをクローズしてwriteBatchで処理しない.
-			super.init(db, true, false);
-		}
-		this.sequenceId = new Time12SequenceId(machineId);
-	}
-	
-	/**
-	 * 新しいシーケンスIDで追加.
-	 * 
-	 * @param value 設定対象の要素を設定します.
-	 * @return シーケンスIDが返却されます.
-	 */
-	public String add(Object value) {
-		checkClose();
-		JniBuffer keyBuf = null;
-		JniBuffer valBuf = null;
-		try {
-			byte[] key = sequenceId.next();
-			keyBuf = LevelBuffer.key(LevelOption.TYPE_FREE, key);
-			if(value instanceof JniBuffer) {
-				if(writeBatchFlag) {
-					writeBatch().put(keyBuf, (JniBuffer)value);
-				} else {
-					leveldb.put(keyBuf, (JniBuffer)value);
-				}
-			} else {
-				valBuf = LevelBuffer.value(value);
-				if(writeBatchFlag) {
-					writeBatch().put(keyBuf, valBuf);
-				} else {
-					leveldb.put(keyBuf, valBuf);
-				}
-			}
-			return Time12SequenceId.toString(key);
-		} catch (LeveldbException le) {
-			throw le;
-		} catch (Exception e) {
-			throw new LeveldbException(e);
-		} finally {
-			LevelBuffer.clearBuffer(keyBuf, valBuf);
-		}
+		super.init(seq, seq.leveldb, false, true);
+		this.sequenceId = seq.sequenceId;
+		this.machineId = seq.machineId;
+		
+		// インデックス初期化.
+		super.initIndex(seq);
 	}
 	
 	// シーケンスIDのキー情報を正しく取得.
-	private static final JniBuffer getKey(Object key)
+	private static final JniBuffer _getKey(Object key)
 		throws Exception {
 		if(key == null) {
 			return null;
 		}
 		byte[] bkey = null;
 		if(key instanceof JniBuffer) {
-			JniBuffer ret = (JniBuffer)key;
-			if(ret.position() != Time12SequenceId.ID_LENGTH) {
-				throw new LeveldbException("Failed to interpret the specified sequence ID.");
-			}
-			return ret;
+			throw new LeveldbException("JniBuffer cannot be set for key.");
+//			JniBuffer ret = (JniBuffer)key;
+//			if(ret.position() != Time12SequenceId.ID_LENGTH) {
+//				throw new LeveldbException("Failed to interpret the specified sequence ID.");
+//			}
+//			return ret;
 		} else if(key instanceof byte[]) {
 			bkey = (byte[])key;
 		} else if(key instanceof String) {
@@ -154,6 +111,16 @@ public class LevelSequence extends LevelOperator {
 			throw new LeveldbException("Failed to interpret the specified sequence ID.");
 		}
 		return LevelBuffer.key(LevelOption.TYPE_FREE, bkey);
+	}
+	
+	/**
+	 * 新しいシーケンスIDで追加.
+	 * 
+	 * @param value 設定対象の要素を設定します.
+	 * @return シーケンスIDが返却されます.
+	 */
+	public String add(Object value) {
+		return this.put(null, value);
 	}
 	
 	/**
@@ -168,13 +135,19 @@ public class LevelSequence extends LevelOperator {
 		JniBuffer keyBuf = null;
 		JniBuffer valBuf = null;
 		try {
-			keyBuf = getKey(key);
+			if(key == null) {
+				key = sequenceId.next();
+			} else if(key instanceof String) {
+				key = Time12SequenceId.toBinary((String)key);
+			}
+			keyBuf = _getKey(key);
 			if(value instanceof JniBuffer) {
 				if(writeBatchFlag) {
 					writeBatch().put(keyBuf, (JniBuffer)value);
 				} else {
 					leveldb.put(keyBuf, (JniBuffer)value);
 				}
+				super.putIndex(key, null, LevelValues.decode((JniBuffer)value));
 			} else {
 				valBuf = LevelBuffer.value(value);
 				if(writeBatchFlag) {
@@ -182,13 +155,9 @@ public class LevelSequence extends LevelOperator {
 				} else {
 					leveldb.put(keyBuf, valBuf);
 				}
+				super.putIndex(key, null, value);
 			}
-			if(key instanceof String) {
-				return (String)key;
-			} else if(key instanceof byte[]) {
-				return Time12SequenceId.toString((byte[])key);
-			}
-			return Time12SequenceId.toString(keyBuf.getBinary());
+			return Time12SequenceId.toString((byte[])key);
 		} catch (LeveldbException le) {
 			throw le;
 		} catch (Exception e) {
@@ -210,7 +179,7 @@ public class LevelSequence extends LevelOperator {
 		JniBuffer keyBuf = null;
 		JniBuffer valBuf = null;
 		try {
-			keyBuf = getKey(key);
+			keyBuf = _getKey(key);
 			if(writeBatchFlag) {
 				LeveldbIterator snapshot = getSnapshot();
 				snapshot.seek(keyBuf);
@@ -249,7 +218,7 @@ public class LevelSequence extends LevelOperator {
 		boolean ret = false;
 		JniBuffer keyBuf = null;
 		try {
-			keyBuf = getKey(key);
+			keyBuf = _getKey(key);
 			if(writeBatchFlag) {
 				LeveldbIterator snapshot = getSnapshot();
 				snapshot.seek(keyBuf);
@@ -315,19 +284,19 @@ public class LevelSequence extends LevelOperator {
 		checkClose();
 		JniBuffer keyBuf = null;
 		try {
-			keyBuf = getKey(key);
+			if(key instanceof String) {
+				key = Time12SequenceId.toBinary((String)key);
+			}
+			Object v = get(key);
+			keyBuf = _getKey(key);
 			if(writeBatchFlag) {
 				WriteBatch b = writeBatch();
 				b.remove(keyBuf);
 			} else {
 				leveldb.remove(keyBuf);
 			}
-			if(key instanceof String) {
-				return (String)key;
-			} else if(key instanceof byte[]) {
-				return Time12SequenceId.toString((byte[])key);
-			}
-			return Time12SequenceId.toString(keyBuf.getBinary());
+			super.removeIndex(key, null, v);
+			return Time12SequenceId.toString((byte[])key);
 		} catch (LeveldbException le) {
 			throw le;
 		} catch (Exception e) {
@@ -359,6 +328,15 @@ public class LevelSequence extends LevelOperator {
 			}
 		}
 		return leveldb.isEmpty();
+	}
+	
+	/**
+	 * マシンIDを取得.
+	 * 
+	 * @return int マシンIDが返却されます.
+	 */
+	public int getMachineId() {
+		return machineId;
 	}
 	
 	/**
@@ -479,7 +457,7 @@ public class LevelSequence extends LevelOperator {
 	protected LevelSequenceIterator _search(LevelSequenceIterator ret, Object key)
 		throws Exception {
 		if(key != null) {
-			Leveldb.search(ret.itr, ret.reverse, LevelOption.TYPE_FREE, getKey(key), null);
+			Leveldb.search(ret.itr, ret.reverse, LevelOption.TYPE_FREE, _getKey(key), null);
 		} else if(ret.reverse) {
 			ret.itr.last();
 		}
@@ -489,10 +467,9 @@ public class LevelSequence extends LevelOperator {
 	/**
 	 * LevelSequence用Iterator.
 	 */
-	public class LevelSequenceIterator implements LevelIterator<KeyValue<String, Object>> {
+	public class LevelSequenceIterator extends LevelIterator<KeyValue<String, Object>> {
 		LevelSequence seq;
 		LeveldbIterator itr;
-		boolean reverse;
 		KeyValue<String, Object> element;
 
 		/**
@@ -521,18 +498,11 @@ public class LevelSequence extends LevelOperator {
 		 * クローズ処理.
 		 */
 		public void close() {
+			super.close();
 			if (itr != null) {
 				itr.close();
 				itr = null;
 			}
-		}
-		
-		/**
-		 * 逆カーソル移動かチェック.
-		 * @return
-		 */
-		public boolean isReverse() {
-			return reverse;
 		}
 
 		/**
@@ -567,6 +537,7 @@ public class LevelSequence extends LevelOperator {
 				itr.value(valBuf);
 				Object ret = LevelId.get(LevelOption.TYPE_FREE, keyBuf);
 				Object val = LevelValues.decode(valBuf);
+				key = Time12SequenceId.toString((byte[])ret);
 				LevelBuffer.clearBuffer(keyBuf, valBuf);
 				keyBuf = null;
 				valBuf = null;
@@ -578,7 +549,7 @@ public class LevelSequence extends LevelOperator {
 				if(!itr.valid()) {
 					close();
 				}
-				element.set(Time12SequenceId.toString((byte[])ret), val);
+				element.set((String)key, val);
 				return element;
 			} catch (LeveldbException le) {
 				throw le;

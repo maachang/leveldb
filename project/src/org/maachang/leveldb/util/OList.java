@@ -151,11 +151,12 @@ public final class OList<T> {
 			ret = (T)list[0];
 			list[0] = null;
 		} else {
-			// 厳密な削除.
-			/*
-			 * length -- ; for( int i = no ; i < length ; i ++ ) { list[ i ] = list[ i + 1 ]
-			 * ; } list[ length ] = null ;
-			 */
+//			length --;
+//			for(int i = no ;i < length ;i ++) {
+//				list[i] = list[i + 1];
+//			}
+//			list[length] = null;
+			
 
 			// 速度重視の削除.
 			length--;
