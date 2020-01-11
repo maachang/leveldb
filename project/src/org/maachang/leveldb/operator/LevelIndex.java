@@ -158,7 +158,7 @@ class LevelIndex extends LevelOperator {
 		}
 	}
 	
-	// valueがMapの場合、カラム名の上布おを取得する.
+	// valueがMapの場合、カラム名の情報を取得する.
 	@SuppressWarnings("rawtypes")
 	private static final Object getValueInColumns(String[] columnNames, Object value) {
 		// valueがMapじゃない場合はインデックス化しない.
@@ -353,37 +353,6 @@ class LevelIndex extends LevelOperator {
 	}
 	
 	/**
-	 * 情報取得.
-	 * @param value
-	 * @return
-	 */
-	public LevelIndexIterator get(Object value) {
-		checkClose();
-		// valueがMapじゃない場合はインデックス化しない.
-		Object o = getValueInColumns(indexColumnList, value);
-		if(o == null) {
-			return null;
-		}
-		return _iterator(false, o);
-	}
-	
-	/**
-	 * 情報取得.
-	 * @param reverse
-	 * @param value
-	 * @return
-	 */
-	public LevelIndexIterator get(boolean reverse, Object value) {
-		checkClose();
-		// valueがMapじゃない場合はインデックス化しない.
-		Object o = getValueInColumns(indexColumnList, value);
-		if(o == null) {
-			return null;
-		}
-		return _iterator(reverse, o);
-	}
-	
-	/**
 	 * インデックスカラムをソート順で取得.
 	 * @return
 	 */
@@ -405,7 +374,7 @@ class LevelIndex extends LevelOperator {
 	 * @param columnValue
 	 * @return
 	 */
-	public LevelIndexIterator getDirectValue(Object columnValue) {
+	public LevelIndexIterator get(Object columnValue) {
 		return _iterator(false, columnValue);
 	}
 	
@@ -415,7 +384,7 @@ class LevelIndex extends LevelOperator {
 	 * @param columnValue
 	 * @return
 	 */
-	public LevelIndexIterator getDirectValue(boolean reverse, Object columnValue) {
+	public LevelIndexIterator get(boolean reverse, Object columnValue) {
 		return _iterator(reverse, columnValue);
 	}
 	
@@ -568,8 +537,7 @@ class LevelIndex extends LevelOperator {
 	/**
 	 * Levelインデックスイテレータ.
 	 */
-	public static final class LevelIndexIterator
-		extends LevelIterator<Map<String,Object>> {
+	public static final class LevelIndexIterator extends LevelIterator<Object, Map<String,Object>> {
 		LevelIndex base;
 		Leveldb src;
 		Leveldb index;
@@ -618,29 +586,40 @@ class LevelIndex extends LevelOperator {
 				close();
 				throw new NoSuchElementException();
 			}
+			Object ret;
 			JniBuffer keyBuf = null;
 			JniBuffer valBuf = null;
 			try {
-				keyBuf = LevelBuffer.key();
-				itr.value(keyBuf);
-				if(reverse) {
-					itr.before();
-				} else {
-					itr.next();
+				// mapの情報で、インデックスを含むものだけを取得.
+				while(true) {
+					if(keyBuf == null) {
+						keyBuf = LevelBuffer.key();
+					} else {
+						keyBuf.position(0);
+					}
+					itr.value(keyBuf);
+					if(reverse) {
+						itr.before();
+					} else {
+						itr.next();
+					}
+					if (!itr.valid()) {
+						close();
+					}
+					if(valBuf == null) {
+						valBuf = LevelBuffer.value();
+					} else {
+						valBuf.position(0);
+					}
+					if(src.get(valBuf, keyBuf) == 0) {
+						continue;
+					}
+					ret = LevelValues.decode(valBuf);
+					if(LevelIndex.getValueInColumns(base.indexColumnList, ret) != null) {
+						this.key = LevelId.get(src.getType(), keyBuf);
+						return (Map)ret;
+					}
 				}
-				if (!itr.valid()) {
-					close();
-				}
-				valBuf = LevelBuffer.value();
-				if(src.get(valBuf, keyBuf) == 0) {
-					return null;
-				}
-				key = LevelId.get(src.getType(), keyBuf);
-				Object ret = LevelValues.decode(valBuf);
-				if(ret instanceof Map) {
-					return (Map)ret;
-				}
-				return null;
 			} catch (LeveldbException le) {
 				throw le;
 			} catch (Exception e) {

@@ -5,7 +5,7 @@ import java.util.Iterator;
 /**
  * LevelIterator.
  */
-public abstract class LevelIterator<E> implements Iterator<E> {
+public abstract class LevelIterator<K,V> implements Iterator<V> {
 	protected boolean reverse = false;
 	protected Object key = null;
 	
@@ -28,7 +28,8 @@ public abstract class LevelIterator<E> implements Iterator<E> {
 	 * キー名を取得.
 	 * @return Object キー名が返却されます.
 	 */
-	public Object getKey() {
-		return key;
+	@SuppressWarnings("unchecked")
+	public K getKey() {
+		return (K)key;
 	}
 }

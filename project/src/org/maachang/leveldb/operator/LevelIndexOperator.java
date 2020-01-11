@@ -357,9 +357,9 @@ public abstract class LevelIndexOperator extends LevelOperator {
 					idxColumn + "' does not exist.");
 			}
 			if(value == null) {
-				return idx.get(desc, value);
-			} else {
 				return idx.getSortIndex(desc);
+			} else {
+				return idx.get(desc, value);
 			}
 		} finally {
 			indexLock.readLock().unlock();

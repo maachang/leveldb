@@ -3,7 +3,6 @@ package org.maachang.leveldb.operator;
 import java.util.NoSuchElementException;
 
 import org.maachang.leveldb.JniBuffer;
-import org.maachang.leveldb.KeyValue;
 import org.maachang.leveldb.LevelBuffer;
 import org.maachang.leveldb.LevelOption;
 import org.maachang.leveldb.LevelValues;
@@ -246,8 +245,7 @@ public class LevelQueue extends LevelOperator {
 	/**
 	 * Queue用Iterator.
 	 */
-	public static class LevelQueueIterator extends LevelIterator<KeyValue<String, Object>> {
-		private KeyValue<String, Object> keyValue = new KeyValue<String, Object>();
+	public static class LevelQueueIterator extends LevelIterator<String, Object> {
 		private LeveldbIterator itr = null;
 		private LevelQueue queue = null;
 		
@@ -296,7 +294,6 @@ public class LevelQueue extends LevelOperator {
 			if (i != null) {
 				i.close();
 			}
-			keyValue = null;
 		}
 
 		/**
@@ -317,7 +314,7 @@ public class LevelQueue extends LevelOperator {
 		 * @return
 		 */
 		@Override
-		public KeyValue<String, Object> next() {
+		public Object next() {
 			if (queue.isClose() || itr == null || !itr.valid()) {
 				close();
 				throw new NoSuchElementException();
@@ -334,10 +331,10 @@ public class LevelQueue extends LevelOperator {
 					close();
 				}
 				this.key = Time12SequenceId.toString(keyBuf.getBinary());
-				keyValue.set((String)this.key, LevelValues.decode(valBuf));
+				Object value = LevelValues.decode(valBuf);
 				LevelBuffer.clearBuffer(keyBuf, valBuf);
 				keyBuf = null; valBuf = null;
-				return keyValue;
+				return value;
 			} catch (LeveldbException le) {
 				throw le;
 			} catch (Exception e) {

@@ -475,7 +475,9 @@ public class LevelMap extends LevelIndexOperator implements ConvertMap {
 				return true;
 			}
 			final boolean ret = leveldb.remove(keyBuf);
-			super.removeIndex(key, twoKey, v);
+			if(ret) {
+				super.removeIndex(key, twoKey, v);
+			}
 			return ret;
 		} catch (LeveldbException le) {
 			throw le;
@@ -936,7 +938,7 @@ public class LevelMap extends LevelIndexOperator implements ConvertMap {
 	/**
 	 * LevelMap用Iterator.
 	 */
-	public class LevelMapIterator extends LevelIterator<Object> {
+	public class LevelMapIterator extends LevelIterator<Object, Object> {
 		LevelMap map;
 		LeveldbIterator itr;
 		int type;

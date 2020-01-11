@@ -41,6 +41,17 @@ import org.maachang.leveldb.util.ObjectList;
 public final class LevelValues {
 	protected LevelValues() {
 	}
+	
+	/** 拡張変換処理. **/
+	private static OriginCode ORIGIN_CODE = null;
+	
+	/**
+	 * 拡張変換処理を追加.
+	 * @param code
+	 */
+	public static final void setOriginCode(OriginCode code) {
+		ORIGIN_CODE = code;
+	}
 
 	/**
 	 * オブジェクトをバイナリに変換.
@@ -343,7 +354,7 @@ public final class LevelValues {
 	 * @exception Exception
 	 *                例外.
 	 */
-	protected static final byte[] toBinary(Serializable value) throws Exception {
+	public static final byte[] toBinary(Serializable value) throws Exception {
 		if (value == null) {
 			throw new IllegalArgumentException("Argument is invalid");
 		}
@@ -386,6 +397,17 @@ public final class LevelValues {
 	 */
 	public static final void encodeObject(JniBuffer buf, Object o) throws Exception {
 		byte[] b;
+		
+		// その他変換コードが設定されている場合.
+		if(ORIGIN_CODE != null) {
+			// オブジェクト変換.
+			o = ORIGIN_CODE.convert(o);
+			
+			// その他変換コードが設定されている場合.
+			if(ORIGIN_CODE.encode(buf, o)) {
+				return;
+			}
+		}
 		if (o == null) {
 			head(buf, 0xff); // null.
 		} else if (o instanceof Number) {
@@ -1166,7 +1188,11 @@ public final class LevelValues {
 			return null;
 		}
 		}
-		throw new IOException("Unknown type [" + code + "] detected.");
+		// その他変換コードが設定されている場合.
+		if(code >= OriginCode.USE_OBJECT_CODE && ORIGIN_CODE != null) {
+			return ORIGIN_CODE.decode(pos, code, b, length);
+		}
+		throw new IOException("Unknown type '" + code + "' detected.");
 	}
 
 	/**
@@ -1208,15 +1234,13 @@ public final class LevelValues {
 	}
 
 	/**
-	 * Levelテーブル専用オブジェクト変換.
+	 * オブジェクト配列をエンコード.
 	 * 
 	 * @params buf 出力先のバッファ先を設定します.
-	 * @param c
-	 *            LevelTableの１行情報を設定します.
-	 * @exception Exception
-	 *                例外.
+	 * @param c オブジェク配列を設定します.
+	 * @exception Exception 例外.
 	 */
-	public static final void encodeTableObject(JniBuffer buf, Object[] c) throws Exception {
+	public static final void encodeObjectArray(JniBuffer buf, Object... c) throws Exception {
 		head(buf, 50); // 他配列.
 		byte4(buf, 0); // Object配列.
 		int len = c.length;
@@ -1226,4 +1250,69 @@ public final class LevelValues {
 		}
 	}
 
+	/**
+	 * 拡張エンコード、デコード処理を行う場合の継承クラス.
+	 * 
+	 * エンコード時には、必ず
+	 * 
+	 *  head(buf, 81); // objectCode(81番以降をセット).
+	 *  オブジェクトを変換.
+	 *  
+	 * のように設定します.
+	 */
+	public static abstract class OriginCode {
+		/**
+		 * オブジェクトコード利用可能開始番号.
+		 */
+		protected static final int USE_OBJECT_CODE = 81;
+		
+		/**
+		 * オブジェクトの変換.
+		 * @param o オブジェクトを設定します.
+		 * @return Object 変換されたオブジェクトが返却されます.
+		 * @exception Exception 例外.
+		 */
+		public Object convert(Object o) throws Exception {
+			return o;
+		}
+		
+		/**
+		 * オブジェクトデータ変換.
+		 * 
+		 * @param buf
+		 *            対象のバッファを設定します.
+		 * @param o
+		 *            対象のオブジェクトを設定します.
+		 * @return boolean
+		 *            変換出来た場合は[true]を返却します.
+		 * @exception Exception
+		 *                例外.
+		 */
+		public abstract boolean encode(JniBuffer buf, Object o) throws Exception;
+		
+		/**
+		 * オブジェクト解析.
+		 * 
+		 * @param pos
+		 *            対象のポジションを設定します.
+		 * @param objectCode
+		 *            オブジェクトコードが設定されます.
+		 * @param b
+		 *            対象のバイナリを設定します.
+		 * @param length
+		 *            対象の長さを設定します.
+		 * @return Object 変換されたオブジェクトが返却されます.
+		 */
+		public abstract Object decode(int[] pos, int objectCode, JniBuffer b, int length) throws Exception;
+		
+		/**
+		 * 当てはまらない条件のデコード返却.
+		 * デコード対象のオブジェクトコードの場合は、この処理を呼び出します.
+		 * 
+		 * @param objectCode
+		 */
+		public void noneDecode(int objectCode) throws Exception {
+			throw new IOException("Unknown type '" + objectCode + "' detected.");
+		}
+	}
 }

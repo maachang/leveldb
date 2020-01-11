@@ -30,22 +30,22 @@ public class LevelOperatorManager {
 	// オペレータパス.
 	protected static final String OPERATOR_PATH = LevelOperatorConstants.OPERATOR_FOLDER;
 
-	// ユニークオブジェクト名のキー名の先頭名.
+	// ユニークオペレータ名のキー名の先頭名.
 	private static final String _UNIQUE_HEADER = "@u_";
 
-	// オブジェクト名とユニークオブジェクト名の先頭名.
+	// オペレータ名とユニークオペレータ名の先頭名.
 	private static final String _NAME_HEADER = "@n_";
 	
-	// 緯度経度管理オブジェクト名.
+	// 緯度経度管理オペレータ名.
 	private static final String LATLON_NAME = "@ll@";
 	
-	// シーケンスIDオブジェクト名.
+	// シーケンスIDオペレータ名.
 	private static final String SEQUENCE_NAME = "@sq@";
 	
-	// キューオブジェクト名.
+	// キューオペレータ名.
 	private static final String QUEUE_NAME = "@qu@";
 	
-	// MAPオブジェクト名.
+	// MAPオペレータ名.
 	private static final String MAP_NAME = "@mp@";
 	
 	// ベースパス.
@@ -60,11 +60,11 @@ public class LevelOperatorManager {
 	// ユニーク名を作成するTime12SequenceId.
 	private Time12SequenceId uniqueManager = null;
 
-	// オブジェクト情報管理.
-	// key = ユニークオブジェクト名.
+	// オペレータ情報管理.
+	// key = ユニークオペレータ名.
 	private Map<String, LevelOperator> operatorMemManager = new ConcurrentHashMap<String, LevelOperator>();
 
-	// オブジェクト名管理.
+	// オペレータ名管理.
 	private Map<String, String> nameMemManager = new ConcurrentHashMap<String, String>();
 
 	// クローズフラグ.
@@ -108,9 +108,9 @@ public class LevelOperatorManager {
 	}
 
 	// ファイナライズ.
-	protected void finalize() throws Exception {
-		this.close();
-	}
+	//protected void finalize() throws Exception {
+	//	this.close();
+	//}
 
 	/**
 	 * クローズ処理.
@@ -147,7 +147,7 @@ public class LevelOperatorManager {
 	}
 
 	/**
-	 * オブジェクトがクローズしているかチェック.
+	 * オペレータがクローズしているかチェック.
 	 * 
 	 * @return
 	 */
@@ -169,12 +169,12 @@ public class LevelOperatorManager {
 		return machineId;
 	}
 
-	// 指定オブジェクト名からユニークオブジェクト名を取得.
+	// 指定オペレータ名からユニークオペレータ名を取得.
 	protected final String getUniqueName(String name) {
 		return (String) manager.get(_NAME_HEADER + name);
 	}
 
-	// 指定ユニーク名からオブジェクト名を取得.
+	// 指定ユニーク名からオペレータ名を取得.
 	protected final String getObjectName(String uname) {
 		String key, value;
 		String target = _UNIQUE_HEADER + uname;
@@ -190,13 +190,146 @@ public class LevelOperatorManager {
 		return null;
 	}
 
+	// オペレータを作成.
+	protected void _createOperator(JniBuffer valBuf, String name, String uniqueOrigin, int objectType, LevelOption opt) {
+		try {
+			String uname;
+			switch(objectType) {
+			case LevelOperator.LEVEL_LAT_LON:
+				uname = LATLON_NAME + uniqueOrigin;
+				break;
+			case LevelOperator.LEVEL_SEQUENCE:
+				uname = SEQUENCE_NAME + uniqueOrigin;
+				break;
+			case LevelOperator.LEVEL_QUEUE:
+				uname = QUEUE_NAME + uniqueOrigin;
+				break;
+			default:
+				uname = MAP_NAME + uniqueOrigin;
+				break;
+			}
+			if(opt == null) {
+				// タイプなしで作成.
+				opt = LevelOption.create(LevelOption.TYPE_NONE);
+			}
+			opt.toBuffer(valBuf);
+			manager.put(_UNIQUE_HEADER + uname, valBuf);
+			LevelBuffer.clearBuffer(null, valBuf);
+			valBuf = null;
+			manager.put(_NAME_HEADER + name, uname);
+		} catch (LeveldbException le) {
+			throw le;
+		} catch (Exception e) {
+			throw new LeveldbException(e);
+		}
+	}
+	
+	// オペレータ情報の完全削除.
+	protected void _destroyOperator(String name, LevelOption opt) {
+		Leveldb.destroy(basePath + OPERATOR_PATH + name, opt);
+	}
+
+	// 指定オペレータ削除処理.
+	protected boolean _delete(JniBuffer valBuf, String name, String uname) {
+		try {
+			LevelOption opt = new LevelOption(valBuf);
+			LevelBuffer.clearBuffer(null, valBuf);
+			valBuf = null;
+			// オペレータがオープンの場合は、強制クローズ.
+			LevelOperator obj = operatorMemManager.get(uname);
+			if (obj != null) {
+				obj.close();
+				obj = null;
+			}
+			_destroyOperator(uname, opt);
+			manager.remove(_UNIQUE_HEADER + uname);
+			manager.remove(_NAME_HEADER + name);
+			operatorMemManager.remove(uname);
+			nameMemManager.remove(name);
+			return true;
+		} catch (LeveldbException le) {
+			throw le;
+		} catch (Exception e) {
+			throw new LeveldbException(e);
+		}
+	}
+
+	// ユニーク名からオペレータタイプを取得.
+	private int _unameByOperatorType(String uname) {
+		if(uname.startsWith(LATLON_NAME)) {
+			return LevelOperator.LEVEL_LAT_LON;
+		} else if(uname.startsWith(SEQUENCE_NAME)) {
+			return LevelOperator.LEVEL_SEQUENCE;
+		} else if(uname.startsWith(QUEUE_NAME)) {
+			return LevelOperator.LEVEL_QUEUE;
+		} else {
+			return LevelOperator.LEVEL_MAP;
+		}
+	}
+	
+	// オペレータをロード.
+	private LevelOperator _loadOperator(String name) {
+		JniBuffer valBuf = null;
+		try {
+			if (!manager.containsKey(_NAME_HEADER + name)) {
+				return null;
+			}
+			String uname = getUniqueName(name);
+			valBuf = LevelBuffer.value();
+			if (!manager.getBuffer(valBuf, _UNIQUE_HEADER + uname)) {
+				return null;
+			}
+			LevelOption opt = new LevelOption(valBuf);
+			LevelBuffer.clearBuffer(null, valBuf);
+			valBuf = null;
+			String dbName = basePath + OPERATOR_PATH + uname;
+			LevelOperator ret = null;
+			switch(_unameByOperatorType(uname)) {
+			case LevelOperator.LEVEL_LAT_LON:
+				if(opt.getType() == LevelOption.TYPE_NONE) {
+					ret = new LevelLatLon(dbName, machineId);
+				} else {
+					ret = new LevelLatLon(dbName, machineId, opt);
+				}
+				break;
+			case LevelOperator.LEVEL_SEQUENCE:
+				if(opt.getType() == LevelOption.TYPE_NONE) {
+					ret = new LevelSequence(dbName, machineId);
+				} else {
+					ret = new LevelSequence(dbName, machineId, opt);
+				}
+				break;
+			case LevelOperator.LEVEL_QUEUE:
+				if(opt.getType() == LevelOption.TYPE_NONE) {
+					ret = new LevelQueue(machineId, dbName);
+				} else {
+					ret = new LevelQueue(machineId, dbName, opt);
+				}
+				break;
+			case LevelOperator.LEVEL_MAP:
+				if(opt.getType() == LevelOption.TYPE_NONE) {
+					ret = new LevelMap(dbName);
+				} else {
+					ret = new LevelMap(dbName, opt);
+				}
+				break;
+			}
+			// キャッシュにセット.
+			operatorMemManager.put(uname, ret);
+			nameMemManager.put(name, uname);
+			return ret;
+		} finally {
+			LevelBuffer.clearBuffer(null, valBuf);
+		}
+	}
+
 	/**
-	 * Mapオブジェクトを生成.
+	 * Mapオペレータを生成.
 	 * 
 	 * @param name
-	 *            オブジェクト名を設定します.
+	 *            オペレータ名を設定します.
 	 * @param opt
-	 *            オブジェクト用のLeveldbOption を設定します.
+	 *            オペレータ用のLeveldbOption を設定します.
 	 * @return [true]の場合、生成成功です.
 	 */
 	public boolean createMap(String name, LevelOption opt) {
@@ -204,12 +337,12 @@ public class LevelOperatorManager {
 	}
 	
 	/**
-	 * 新しい緯度経度用オブジェクトオブジェクトを生成.
+	 * 新しい緯度経度用オペレータオペレータを生成.
 	 * 
 	 * @param name
-	 *            オブジェクト名を設定します.
+	 *            オペレータ名を設定します.
 	 * @param opt
-	 *            オブジェクト用のLeveldbOption を設定します.
+	 *            オペレータ用のLeveldbOption を設定します.
 	 * @return [true]の場合、生成成功です.
 	 */
 	public boolean createLatLon(String name, LevelOption opt) {
@@ -217,12 +350,12 @@ public class LevelOperatorManager {
 	}
 	
 	/**
-	 * シーケンスオブジェクトオブジェクトを生成.
+	 * シーケンスオペレータオペレータを生成.
 	 * 
 	 * @param name
-	 *            オブジェクト名を設定します.
+	 *            オペレータ名を設定します.
 	 * @param opt
-	 *            オブジェクト用のLeveldbOption を設定します.
+	 *            オペレータ用のLeveldbOption を設定します.
 	 * @return [true]の場合、生成成功です.
 	 */
 	public boolean createSequence(String name, LevelOption opt) {
@@ -230,10 +363,10 @@ public class LevelOperatorManager {
 	}
 
 	/**
-	 * キューオブジェクトオブジェクトを生成.
+	 * キューオペレータオペレータを生成.
 	 * 
 	 * @param name
-	 *            オブジェクト名を設定します.
+	 *            オペレータ名を設定します.
 	 * @return [true]の場合、生成成功です.
 	 */
 	public boolean createQueue(String name) {
@@ -241,14 +374,14 @@ public class LevelOperatorManager {
 	}
 
 	/**
-	 * 新しいオブジェクトを生成.
+	 * 新しいオペレータを生成.
 	 * 
 	 * @param name
-	 *            オブジェクト名を設定します.
+	 *            オペレータ名を設定します.
 	 * @param objectType
-	 *            オブジェクトタイプを設定します.
+	 *            オペレータタイプを設定します.
 	 * @param opt
-	 *            オブジェクト用のLeveldbOption を設定します.
+	 *            オペレータ用のLeveldbOption を設定します.
 	 * @return [true]の場合、生成成功です.
 	 */
 	public boolean create(String name, int objectType, LevelOption opt) {
@@ -261,55 +394,17 @@ public class LevelOperatorManager {
 				return false;
 			}
 			valBuf = LevelBuffer.value();
-			try {
-				String uname = Time12SequenceId.toString(uniqueManager.next());
-				switch(objectType) {
-				case LevelOperator.LEVEL_LAT_LON:
-					uname = LATLON_NAME + uname;
-					break;
-				case LevelOperator.LEVEL_SEQUENCE:
-					uname = SEQUENCE_NAME + uname;
-					break;
-				case LevelOperator.LEVEL_QUEUE:
-					uname = QUEUE_NAME + uname;
-					break;
-				default:
-					uname = MAP_NAME + uname;
-					break;
-				}
-				if(opt == null) {
-					// タイプなしで作成.
-					opt = LevelOption.create(LevelOption.TYPE_NONE);
-				}
-				opt.toBuffer(valBuf);
-				manager.put(_UNIQUE_HEADER + uname, valBuf);
-				LevelBuffer.clearBuffer(null, valBuf);
-				valBuf = null;
-				manager.put(_NAME_HEADER + name, uname);
-				return true;
-			} catch (LeveldbException le) {
-				throw le;
-			} catch (Exception e) {
-				throw new LeveldbException(e);
-			}
+			String uname = Time12SequenceId.toString(uniqueManager.next());
+			_createOperator(valBuf, name, uname, objectType, opt);
+			return true;
 		} finally {
 			rwLock.writeLock().unlock();
 			LevelBuffer.clearBuffer(null, valBuf);
 		}
 	}
-	
-	/**
-	 * オブジェクト情報の完全削除.
-	 * 
-	 * @param name
-	 * @param opt
-	 */
-	public void destroyOperator(String name, LevelOption opt) {
-		Leveldb.destroy(basePath + OPERATOR_PATH + name, opt);
-	}
 
 	/**
-	 * 指定オブジェクトを削除.
+	 * 指定オペレータを削除.
 	 * 
 	 * @param name
 	 * @return
@@ -323,40 +418,57 @@ public class LevelOperatorManager {
 			if (!manager.containsKey(_NAME_HEADER + name)) {
 				return false;
 			}
-			valBuf = LevelBuffer.value();
-			try {
-				String uname = getUniqueName(name);
-				if (uname == null || !manager.getBuffer(valBuf, _UNIQUE_HEADER + uname)) {
-					return false;
-				}
-				LevelOption opt = new LevelOption(valBuf);
-				LevelBuffer.clearBuffer(null, valBuf);
-				valBuf = null;
-				// オブジェクトがオープンの場合は、強制クローズ.
-				LevelOperator obj = operatorMemManager.get(uname);
-				if (obj != null) {
-					obj.close();
-					obj = null;
-				}
-				destroyOperator(uname, opt);
-				manager.remove(_UNIQUE_HEADER + uname);
-				manager.remove(_NAME_HEADER + name);
-				operatorMemManager.remove(uname);
-				nameMemManager.remove(name);
-				return true;
-			} catch (LeveldbException le) {
-				throw le;
-			} catch (Exception e) {
-				throw new LeveldbException(e);
+			String uname = getUniqueName(name);
+			if (uname == null) {
+				return false;
 			}
+			valBuf = LevelBuffer.value();
+			return _delete(valBuf, name, uname);
 		} finally {
 			rwLock.writeLock().unlock();
 			LevelBuffer.clearBuffer(null, valBuf);
 		}
 	}
-
+	
 	/**
-	 * 指定オブジェクトの名前変更.
+	 * データの中身を全クリア.
+	 * @param name
+	 * @return
+	 */
+	public boolean trancate(String name) {
+		JniBuffer valBuf = null;
+		rwLock.writeLock().lock();
+		try {
+			closeCheck();
+			// 対象の情報が存在しない場合.
+			if (!manager.containsKey(_NAME_HEADER + name)) {
+				return false;
+			}
+			String uname = getUniqueName(name);
+			if (uname == null) {
+				return false;
+			}
+			valBuf = LevelBuffer.value();
+			if (!manager.getBuffer(valBuf, _UNIQUE_HEADER + uname)) {
+				return false;
+			}
+			// オペレータを再作成することで、高速にデータ削除.
+			LevelOption opt = new LevelOption(valBuf);
+			valBuf.position(0);
+			// オペレータを削除.
+			_delete(valBuf, name, uname);
+			valBuf.position(0);
+			// 新しくオペレータを生成.
+			_createOperator(valBuf, name, uname, _unameByOperatorType(uname), opt);
+			return true;
+		} finally {
+			rwLock.writeLock().unlock();
+			LevelBuffer.clearBuffer(null, valBuf);
+		}
+	}
+	
+	/**
+	 * 指定オペレータの名前変更.
 	 * 
 	 * @param src
 	 * @param dest
@@ -390,59 +502,9 @@ public class LevelOperatorManager {
 			rwLock.writeLock().unlock();
 		}
 	}
-	
-	// オブジェクトを取得.
-	private LevelOperator _get(String name) {
-		JniBuffer valBuf = null;
-		try {
-			if (!manager.containsKey(_NAME_HEADER + name)) {
-				return null;
-			}
-			String uname = getUniqueName(name);
-			valBuf = LevelBuffer.value();
-			if (!manager.getBuffer(valBuf, _UNIQUE_HEADER + uname)) {
-				return null;
-			}
-			LevelOption opt = new LevelOption(valBuf);
-			LevelBuffer.clearBuffer(null, valBuf);
-			valBuf = null;
-			String dbName = basePath + OPERATOR_PATH + uname;
-			LevelOperator ret = null;
-			if(uname.startsWith(LATLON_NAME)) {
-				if(opt.getType() == LevelOption.TYPE_NONE) {
-					ret = new LevelLatLon(dbName, machineId);
-				} else {
-					ret = new LevelLatLon(dbName, machineId, opt);
-				}
-			} else if(uname.startsWith(SEQUENCE_NAME)) {
-				if(opt.getType() == LevelOption.TYPE_NONE) {
-					ret = new LevelSequence(dbName, machineId);
-				} else {
-					ret = new LevelSequence(dbName, machineId, opt);
-				}
-			} else if(uname.startsWith(QUEUE_NAME)) {
-				if(opt.getType() == LevelOption.TYPE_NONE) {
-					ret = new LevelQueue(machineId, dbName);
-				} else {
-					ret = new LevelQueue(machineId, dbName, opt);
-				}
-			} else {
-				if(opt.getType() == LevelOption.TYPE_NONE) {
-					ret = new LevelMap(dbName);
-				} else {
-					ret = new LevelMap(dbName, opt);
-				}
-			}
-			operatorMemManager.put(uname, ret);
-			nameMemManager.put(name, uname);
-			return ret;
-		} finally {
-			LevelBuffer.clearBuffer(null, valBuf);
-		}
-	}
 
 	/**
-	 * オブジェクトの取得.
+	 * オペレータを取得.
 	 * 
 	 * @param name
 	 * @return
@@ -458,7 +520,7 @@ public class LevelOperatorManager {
 				readUnlockFlag = true;
 				rwLock.writeLock().lock();
 				try {
-					return _get(name);
+					return _loadOperator(name);
 				} finally {
 					rwLock.writeLock().unlock();
 				}
@@ -472,7 +534,7 @@ public class LevelOperatorManager {
 	}
 	
 	/**
-	 * ユニーク名からオブジェクトを取得.
+	 * ユニーク名からオペレータを取得.
 	 * @param uname 対象のユニーク名を設定します.
 	 * @return
 	 */
@@ -486,7 +548,7 @@ public class LevelOperatorManager {
 				readUnlockFlag = true;
 				rwLock.writeLock().lock();
 				try {
-					ret = _get(getObjectName(uname));
+					ret = _loadOperator(getObjectName(uname));
 				} finally {
 					rwLock.writeLock().unlock();
 				}
@@ -500,10 +562,8 @@ public class LevelOperatorManager {
 	}
 	
 	/**
-	 * オブジェクト名群を取得.
+	 * オペレータ名群を取得.
 	 * 
-	 * @param offset
-	 * @param length
 	 * @return
 	 */
 	public List<String> names() {
@@ -511,7 +571,7 @@ public class LevelOperatorManager {
 	}
 
 	/**
-	 * オブジェクト名群を取得.
+	 * オペレータ名群を取得.
 	 * 
 	 * @param offset
 	 * @param length

@@ -1,10 +1,10 @@
 package org.maachang.leveldb.operator;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.maachang.leveldb.JniBuffer;
 import org.maachang.leveldb.JniIO;
-import org.maachang.leveldb.KeyValue;
 import org.maachang.leveldb.LevelBuffer;
 import org.maachang.leveldb.LevelId;
 import org.maachang.leveldb.LevelOption;
@@ -15,6 +15,7 @@ import org.maachang.leveldb.LeveldbIterator;
 import org.maachang.leveldb.Time12SequenceId;
 import org.maachang.leveldb.WriteBatch;
 import org.maachang.leveldb.types.TwoKey;
+import org.maachang.leveldb.util.FixedArray;
 import org.maachang.leveldb.util.GeoLine;
 import org.maachang.leveldb.util.GeoQuadKey;
 
@@ -260,7 +261,9 @@ public class LevelLatLon extends LevelIndexOperator {
 				return true;
 			}
 			boolean ret = leveldb.remove(keyBuf);
-			super.removeIndex(qk, secKey, v);
+			if(ret) {
+				super.removeIndex(qk, secKey, v);
+			}
 			return ret;
 		} catch (LeveldbException le) {
 			throw le;
@@ -616,10 +619,9 @@ public class LevelLatLon extends LevelIndexOperator {
 	/**
 	 * リスト検索用LevelQuadKeyDb用Iterator.
 	 */
-	public class LevelQKListIterator extends LevelIterator<KeyValue<Object[], Object>> {
+	public class LevelQKListIterator extends LevelIterator<Object[], Object> {
 		LevelLatLon db;
 		LeveldbIterator itr;
-		KeyValue<Object[], Object> element;
 
 		/**
 		 * コンストラクタ.
@@ -635,7 +637,6 @@ public class LevelLatLon extends LevelIndexOperator {
 			this.db = db;
 			this.itr = itr;
 			this.reverse = reverse;
-			this.element = new KeyValue<Object[], Object>();
 		}
 
 		// ファイナライズ.
@@ -672,7 +673,7 @@ public class LevelLatLon extends LevelIndexOperator {
 		 * 
 		 * @return String 次の要素が返却されます.
 		 */
-		public KeyValue<Object[], Object> next() {
+		public Object next() {
 			if (db.isClose() || itr == null || !itr.valid()) {
 				close();
 				throw new NoSuchElementException();
@@ -689,7 +690,6 @@ public class LevelLatLon extends LevelIndexOperator {
 				LevelBuffer.clearBuffer(keyBuf, valBuf);
 				keyBuf = null;
 				valBuf = null;
-				this.key = key;
 				if(reverse) {
 					itr.before();
 				} else {
@@ -700,11 +700,11 @@ public class LevelLatLon extends LevelIndexOperator {
 				}
 				TwoKey tk = (TwoKey)key;
 				if(db.sequenceId != null) {
-					element.set(new Object[] {tk.get(0), Time12SequenceId.toString((byte[])tk.get(1))}, val);
+					this.key = new Object[] {tk.get(0), Time12SequenceId.toString((byte[])tk.get(1))};
 				} else {
-					element.set(new Object[] {tk.get(0), tk.get(1)}, val);
+					this.key = new Object[] {tk.get(0), tk.get(1)};
 				}
-				return element;
+				return val;
 			} catch (LeveldbException le) {
 				throw le;
 			} catch (Exception e) {
@@ -762,10 +762,9 @@ public class LevelLatLon extends LevelIndexOperator {
 	/**
 	 * 範囲検索用LevelQuadKeyDb用Iterator.
 	 */
-	public class LeveQKSearchIterator extends LevelIterator<KeyValue<Object[], Object>> {
+	public class LeveQKSearchIterator extends LevelIterator<List<Object>, Object> {
 		protected LevelLatLon db;
 		protected LeveldbIterator itr;
-		private KeyValue<Object[], Object> element;
 		protected int type;
 		protected int latM;
 		protected int lonM;
@@ -793,7 +792,6 @@ public class LevelLatLon extends LevelIndexOperator {
 			this.list = searchList;
 			this.nowCount = -1;
 			this.endFlag = false;
-			this.element = new KeyValue<Object[], Object>();
 			_next();
 		}
 		
@@ -895,7 +893,7 @@ public class LevelLatLon extends LevelIndexOperator {
 		}
 
 		@Override
-		public KeyValue<Object[], Object> next() {
+		public Object next() {
 			if(db.isClose() || endFlag) {
 				close();
 				throw new NoSuchElementException();
@@ -904,16 +902,15 @@ public class LevelLatLon extends LevelIndexOperator {
 			Object value = this.nowValue;
 			_next();
 			if(key != null) {
-				Object[] keyList = null;
 				TwoKey tk = (TwoKey)key;
 				if(db.sequenceId != null) {
-					keyList = new Object[] {tk.get(0), Time12SequenceId.toString((byte[])tk.get(1))};
+					this.key = new FixedArray<Object>(
+						new Object[] {tk.get(0), Time12SequenceId.toString((byte[])tk.get(1))});
 				} else {
-					keyList = new Object[] {tk.get(0), tk.get(1)};
+					this.key = new FixedArray<Object>(
+						new Object[] {tk.get(0), tk.get(1)});
 				}
-				this.key = keyList;
-				element.set(keyList, value);
-				return element;
+				return value;
 			}
 			return null;
 		}

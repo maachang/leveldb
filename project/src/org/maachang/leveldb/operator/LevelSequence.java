@@ -292,10 +292,12 @@ public class LevelSequence extends LevelIndexOperator {
 			if(writeBatchFlag) {
 				WriteBatch b = writeBatch();
 				b.remove(keyBuf);
+				super.removeIndex(key, null, v);
 			} else {
-				leveldb.remove(keyBuf);
+				if(leveldb.remove(keyBuf)) {
+					super.removeIndex(key, null, v);
+				}
 			}
-			super.removeIndex(key, null, v);
 			return Time12SequenceId.toString((byte[])key);
 		} catch (LeveldbException le) {
 			throw le;
@@ -467,7 +469,7 @@ public class LevelSequence extends LevelIndexOperator {
 	/**
 	 * LevelSequence用Iterator.
 	 */
-	public class LevelSequenceIterator extends LevelIterator<KeyValue<String, Object>> {
+	public class LevelSequenceIterator extends LevelIterator<String, Object> {
 		LevelSequence seq;
 		LeveldbIterator itr;
 		KeyValue<String, Object> element;
@@ -523,7 +525,7 @@ public class LevelSequence extends LevelIndexOperator {
 		 * 
 		 * @return String 次の要素が返却されます.
 		 */
-		public KeyValue<String, Object> next() {
+		public Object next() {
 			if (seq.isClose() || itr == null || !itr.valid()) {
 				close();
 				throw new NoSuchElementException();
@@ -537,7 +539,7 @@ public class LevelSequence extends LevelIndexOperator {
 				itr.value(valBuf);
 				Object ret = LevelId.get(LevelOption.TYPE_FREE, keyBuf);
 				Object val = LevelValues.decode(valBuf);
-				key = Time12SequenceId.toString((byte[])ret);
+				this.key = Time12SequenceId.toString((byte[])ret);
 				LevelBuffer.clearBuffer(keyBuf, valBuf);
 				keyBuf = null;
 				valBuf = null;
@@ -549,8 +551,7 @@ public class LevelSequence extends LevelIndexOperator {
 				if(!itr.valid()) {
 					close();
 				}
-				element.set((String)key, val);
-				return element;
+				return val;
 			} catch (LeveldbException le) {
 				throw le;
 			} catch (Exception e) {
