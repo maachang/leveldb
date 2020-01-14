@@ -396,10 +396,12 @@ public class JniBuffer extends OutputStream {
 	 * 
 	 * @param p
 	 *            対象のポジションを設定します.
+	 * @return JniBuffer オブジェクトが返却されます.
 	 */
-	public void position(int p) {
+	public JniBuffer position(int p) {
 		recreate(true, p + 1);
 		position = p;
+		return this;
 	}
 	
 	/**
@@ -407,9 +409,10 @@ public class JniBuffer extends OutputStream {
 	 * 
 	 * @param p
 	 *            追加するポジションを設定します.
+	 * @return JniBuffer オブジェクトが返却されます.
 	 */
-	public void addPosition(int p) {
-		position(position + p);
+	public JniBuffer addPosition(int p) {
+		return position(position + p);
 	}
 
 	/** 書き込み処理. **/
@@ -454,16 +457,19 @@ public class JniBuffer extends OutputStream {
 	 * @exception IOException
 	 *                例外.
 	 */
+	@Override
 	public void close() throws IOException {
 		clear();
 	}
 
 	/**
-	 * 更新処理. ※jniBufferでは意味がありません.
+	 * 更新処理.
+	 * ※jniBufferでは意味がありません.
 	 * 
 	 * @exception IOException
 	 *                例外.
 	 */
+	@Override
 	public void flush() throws IOException {
 	}
 
@@ -475,6 +481,7 @@ public class JniBuffer extends OutputStream {
 	 * @exception IOException
 	 *                例外.
 	 */
+	@Override
 	public void write(int b) throws IOException {
 		_write(true, b);
 	}
@@ -487,6 +494,7 @@ public class JniBuffer extends OutputStream {
 	 * @exception IOException
 	 *                例外.
 	 */
+	@Override
 	public void write(byte b[]) throws IOException {
 		_write(true, b, 0, b.length);
 	}
@@ -503,6 +511,7 @@ public class JniBuffer extends OutputStream {
 	 * @exception IOException
 	 *                例外.
 	 */
+	@Override
 	public void write(byte b[], int off, int len) throws IOException {
 		_write(true, b, off, len);
 	}

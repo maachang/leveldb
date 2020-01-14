@@ -786,7 +786,7 @@ public class LevelMap extends LevelIndexOperator implements ConvertMap {
 	 *            対象のキーを設定します.
 	 * @return LevelMapIterator LevelMapIteratorが返却されます.
 	 */
-	public Object snapshot(boolean reverse, Object key) {
+	public LevelMapIterator snapshot(boolean reverse, Object key) {
 		return _snapshot(reverse, key, null);
 	}
 
@@ -799,7 +799,7 @@ public class LevelMap extends LevelIndexOperator implements ConvertMap {
 	 *            対象のキー群を設定します.
 	 * @return LevelMapIterator LevelMapIteratorが返却されます.
 	 */
-	public Object snapshotMultiKey(boolean reverse, Object... keys) {
+	public LevelMapIterator snapshotMultiKey(boolean reverse, Object... keys) {
 		if (type != LevelOption.TYPE_MULTI) {
 			throw new LeveldbException("Leveldb definition key type is not multi-key.");
 		}
@@ -974,6 +974,11 @@ public class LevelMap extends LevelIndexOperator implements ConvertMap {
 				itr.close();
 				itr = null;
 			}
+		}
+
+		@Override
+		public boolean isClose() {
+			return itr == null || itr.isClose();
 		}
 
 		/**

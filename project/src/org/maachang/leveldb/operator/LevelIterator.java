@@ -17,6 +17,12 @@ public abstract class LevelIterator<K,V> implements Iterator<V> {
 	}
 	
 	/**
+	 * クローズ済みかチェック.
+	 * @return
+	 */
+	public abstract boolean isClose();
+	
+	/**
 	 * 逆カーソル移動かチェック.
 	 * @return
 	 */

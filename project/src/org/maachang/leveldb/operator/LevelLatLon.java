@@ -654,6 +654,11 @@ public class LevelLatLon extends LevelIndexOperator {
 				itr = null;
 			}
 		}
+		
+		@Override
+		public boolean isClose() {
+			return itr == null || itr.isClose();
+		}
 
 		/**
 		 * 次の情報が存在するかチェック.
@@ -809,6 +814,11 @@ public class LevelLatLon extends LevelIndexOperator {
 			}
 			list = null;
 			endFlag = true;
+		}
+		
+		@Override
+		public boolean isClose() {
+			return itr == null || itr.isClose();
 		}
 		
 		private void _next() {

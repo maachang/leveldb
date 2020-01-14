@@ -267,6 +267,14 @@ public class LevelOperatorManager {
 		}
 	}
 	
+	// オペレータが存在するかチェック.
+	private boolean _isOperator(String name) {
+		if (!manager.containsKey(_NAME_HEADER + name)) {
+			return false;
+		}
+		return true;
+	}
+	
 	// オペレータをロード.
 	private LevelOperator _loadOperator(String name) {
 		JniBuffer valBuf = null;
@@ -337,7 +345,7 @@ public class LevelOperatorManager {
 	}
 	
 	/**
-	 * 新しい緯度経度用オペレータオペレータを生成.
+	 * 緯度経度用オペレータオペレータを生成.
 	 * 
 	 * @param name
 	 *            オペレータ名を設定します.
@@ -367,10 +375,12 @@ public class LevelOperatorManager {
 	 * 
 	 * @param name
 	 *            オペレータ名を設定します.
+	 * @param opt
+	 *            オペレータ用のLeveldbOption を設定します.
 	 * @return [true]の場合、生成成功です.
 	 */
-	public boolean createQueue(String name) {
-		return create(name, LevelOperator.LEVEL_QUEUE, null);
+	public boolean createQueue(String name, LevelOption opt) {
+		return create(name, LevelOperator.LEVEL_QUEUE, opt);
 	}
 
 	/**
@@ -502,7 +512,22 @@ public class LevelOperatorManager {
 			rwLock.writeLock().unlock();
 		}
 	}
-
+	
+	/**
+	 * オペレータが登録されてるかチェック.
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public boolean contains(String name) {
+		rwLock.readLock().lock();
+		try {
+			return _isOperator(name);
+		} finally {
+			rwLock.readLock().unlock();
+		}
+	}
+	
 	/**
 	 * オペレータを取得.
 	 * 
@@ -562,7 +587,7 @@ public class LevelOperatorManager {
 	}
 	
 	/**
-	 * オペレータ名群を取得.
+	 * 登録オペレータ名群を取得.
 	 * 
 	 * @return
 	 */
@@ -571,7 +596,7 @@ public class LevelOperatorManager {
 	}
 
 	/**
-	 * オペレータ名群を取得.
+	 * 登録オペレータ名群を取得.
 	 * 
 	 * @param offset
 	 * @param length
@@ -597,6 +622,36 @@ public class LevelOperatorManager {
 							}
 						}
 						cnt ++;
+					}
+				}
+				it.close();
+				it = null;
+				return ret;
+			} finally {
+				if (it != null) {
+					it.close();
+				}
+			}
+		} finally {
+			rwLock.readLock().unlock();
+		}
+	}
+	
+	/**
+	 * 登録オペレータ数を取得.
+	 * 
+	 * @return
+	 */
+	public int size() {
+		rwLock.readLock().lock();
+		try {
+			LevelMapIterator it = null;
+			try {
+				int ret = 0;
+				it = (LevelMapIterator) manager.snapshot();
+				while (it.hasNext()) {
+					if (((String)it.next()).startsWith(_NAME_HEADER)) {
+						ret ++;
 					}
 				}
 				it.close();

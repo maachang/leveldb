@@ -97,7 +97,8 @@ public final class LevelValues {
 	 */
 	public static final Object decode(JniBuffer b, int off, int len) throws Exception {
 		if (len > b.position()) {
-			throw new IllegalArgumentException("The specified length is out of range:" + len + "," + b.position());
+			throw new IllegalArgumentException("The specified length is out of range:"
+				+ len + "," + b.position());
 		}
 		int[] p = new int[] { off };
 		return decodeObject(p, b, len);
@@ -118,7 +119,8 @@ public final class LevelValues {
 	 */
 	public static final Object decodeBinary(int[] outOff, JniBuffer b, int len) throws Exception {
 		if (len > b.position()) {
-			throw new IllegalArgumentException("The specified length is out of range:" + len + "," + b.position());
+			throw new IllegalArgumentException("The specified length is out of range:"
+				+ len + "," + b.position());
 		}
 		return decodeObject(outOff, b, len);
 	}
@@ -1243,11 +1245,37 @@ public final class LevelValues {
 	public static final void encodeObjectArray(JniBuffer buf, Object... c) throws Exception {
 		head(buf, 50); // 他配列.
 		byte4(buf, 0); // Object配列.
-		int len = c.length;
+		int len = c == null ? 0 : c.length;
 		byte4(buf, len); // 長さ.
 		for (int i = 0; i < len; i++) {
 			encodeObject(buf, c[i]);
 		}
+	}
+	
+	/**
+	 * オブジェクト配列をデコード.
+	 * @param buf
+	 * @param off
+	 * @return
+	 * @throws Exception
+	 */
+	public static final Object decodeObjectArray(JniBuffer buf, int[] off) throws Exception {
+		long b = buf.address();
+		int length = buf.position();
+		int code = byte1Int(b, off);
+		if(code != 50) {
+			throw new LeveldbException("Object array conversion pattern does not match.");
+		}
+		code = byte4Int(b, off);
+		if(code != 0) {
+			throw new LeveldbException("Object array conversion pattern does not match.");
+		}
+		int len = byte4Int(b, off);
+		Object[] ret = new Object[len];
+		for(int i = 0; i < len; i ++) {
+			ret[i] = decodeObject(off, buf, length);
+		}
+		return ret;
 	}
 
 	/**
@@ -1264,7 +1292,7 @@ public final class LevelValues {
 		/**
 		 * オブジェクトコード利用可能開始番号.
 		 */
-		protected static final int USE_OBJECT_CODE = 81;
+		protected static final int USE_OBJECT_CODE = 100;
 		
 		/**
 		 * オブジェクトの変換.

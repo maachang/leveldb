@@ -296,6 +296,11 @@ public class LevelQueue extends LevelOperator {
 			}
 		}
 
+		@Override
+		public boolean isClose() {
+			return itr == null || itr.isClose();
+		}
+
 		/**
 		 * 次の情報が存在するかチェック.
 		 * @return

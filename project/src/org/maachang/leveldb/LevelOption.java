@@ -2,6 +2,7 @@ package org.maachang.leveldb;
 
 import java.util.Map;
 
+import org.maachang.leveldb.util.Alphabet;
 import org.maachang.leveldb.util.Converter;
 
 /**
@@ -91,14 +92,20 @@ public final class LevelOption {
 	protected int block_size = -1;
 	protected int block_cache = -1;
 	protected int block_restart_interval = -1;
+	
+	// 拡張オプション.
+	protected Object[] expansion = null;
 
 	/**
 	 * LevelOption生成.
 	 * 
 	 * @param args
-	 *            オプションパラメータを設定します. [0]type. キータイプ. [1]write_buffer_size. 書き込みバッファ数.
-	 *            [2]max_open_files. オープン最大ファイル数. [3]block_size. ブロックサイズ.
-	 *            [4]block_cache. ブロックキャッシュ.
+	 *            オプションパラメータを設定します.
+	 *            [0]type: キータイプ.
+	 *            [1]write_buffer_size: 書き込みバッファ数.
+	 *            [2]max_open_files: オープン最大ファイル数.
+	 *            [3]block_size: ブロックサイズ.
+	 *            [4]block_cache: ブロックキャッシュ.
 	 */
 	public static final LevelOption create(Object... args) {
 		return new LevelOption(args);
@@ -118,9 +125,12 @@ public final class LevelOption {
 	 * LevelOption生成.
 	 * 
 	 * @param args
-	 *            オプションパラメータを設定します. args.get("type") キータイプ. args.get("bufferSize")
-	 *            書き込みバッファサイズ. args.get("openFiles") オープン最大ファイル数.
-	 *            args.get("blockSize") ブロックサイズ. args.get("blockCache") ブロックキャッシュ.
+	 *            オプションパラメータを設定します.
+	 *            args.get("type") キータイプ.
+	 *            args.get("bufferSize") 書き込みバッファサイズ.
+	 *            args.get("openFiles") オープン最大ファイル数.
+	 *            args.get("blockSize") ブロックサイズ.
+	 *            args.get("blockCache") ブロックキャッシュ.
 	 */
 	public static final LevelOption create(Map<String, Object> args) {
 		return new LevelOption(args);
@@ -141,22 +151,31 @@ public final class LevelOption {
 	 *            対象のJniBufferを設定します.
 	 */
 	public LevelOption(int[] o, JniBuffer buf) {
-		long p = buf.address();
-		type = LevelValues.byte4Int(p, o);
-		write_buffer_size = LevelValues.byte4Int(p, o);
-		max_open_files = LevelValues.byte4Int(p, o);
-		block_size = LevelValues.byte4Int(p, o);
-		block_cache = LevelValues.byte4Int(p, o);
-		block_restart_interval = LevelValues.byte4Int(p, o);
+		try {
+			long p = buf.address();
+			type = LevelValues.byte4Int(p, o);
+			write_buffer_size = LevelValues.byte4Int(p, o);
+			max_open_files = LevelValues.byte4Int(p, o);
+			block_size = LevelValues.byte4Int(p, o);
+			block_cache = LevelValues.byte4Int(p, o);
+			block_restart_interval = LevelValues.byte4Int(p, o);
+			expansion = (Object[])LevelValues.decodeObjectArray(buf, o);
+		} catch(Exception e) {
+			throw new LeveldbException(e);
+		}
 	}
 
 	/**
 	 * コンストラクタ.
 	 * 
 	 * @param args
-	 *            オプションパラメータを設定します. [0]type. キータイプ. [1]write_buffer_size. 書き込みバッファ数.
-	 *            [2]max_open_files. オープン最大ファイル数. [3]block_size. ブロックサイズ.
-	 *            [4]block_cache. ブロックキャッシュ. [5]block_restart_interval
+	 *            オプションパラメータを設定します.
+	 *            [0]type. キータイプ.
+	 *            [1]write_buffer_size. 書き込みバッファ数.
+	 *            [2]max_open_files. オープン最大ファイル数.
+	 *            [3]block_size. ブロックサイズ.
+	 *            [4]block_cache. ブロックキャッシュ.
+	 *            [5]block_restart_interval
 	 */
 	public LevelOption(Object... args) {
 		if (args == null || args.length == 0) {
@@ -192,9 +211,12 @@ public final class LevelOption {
 	 * コンストラクタ.
 	 * 
 	 * @param args
-	 *            オプションパラメータを設定します. args.get("type") キータイプ. args.get("bufferSize")
-	 *            書き込みバッファサイズ. args.get("openFiles") オープン最大ファイル数.
-	 *            args.get("blockSize") ブロックサイズ. args.get("blockCache") ブロックキャッシュ.
+	 *            オプションパラメータを設定します.
+	 *            args.get("type") キータイプ.
+	 *            args.get("bufferSize") 書き込みバッファサイズ.
+	 *            args.get("openFiles") オープン最大ファイル数.
+	 *            args.get("blockSize") ブロックサイズ.
+	 *            args.get("blockCache") ブロックキャッシュ.
 	 *            args.get("blockRestartInterval");
 	 */
 	public LevelOption(Map<String, Object> args) {
@@ -216,7 +238,7 @@ public final class LevelOption {
 		// eq.
 		if (mode == 0) {
 			for (int i = 0; i < len; i++) {
-				if (c.equals(n[i])) {
+				if (Alphabet.eq(c, n[i])) {
 					return true;
 				}
 			}
@@ -224,7 +246,7 @@ public final class LevelOption {
 		// start.
 		else if (mode == 1) {
 			for (int i = 0; i < len; i++) {
-				if (c.startsWith(n[i])) {
+				if (Alphabet.indexOf(c, n[i]) == 0) {
 					return true;
 				}
 			}
@@ -232,7 +254,7 @@ public final class LevelOption {
 		// end.
 		else if (mode == 2) {
 			for (int i = 0; i < len; i++) {
-				if (c.endsWith(n[i])) {
+				if (Alphabet.indexOf(c, n[i]) == c.length() - n[i].length()) {
 					return true;
 				}
 			}
@@ -722,6 +744,22 @@ public final class LevelOption {
 		}
 		this.block_restart_interval = block_restart_interval;
 	}
+	
+	/**
+	 * 拡張オプションを設定.
+	 * @param o
+	 */
+	public void setExpansion(Object... o) {
+		expansion = o;
+	}
+	
+	/**
+	 * 拡張オプションを取得.
+	 * @return
+	 */
+	public Object[] getExpansion() {
+		return expansion;
+	}
 
 	/**
 	 * 文字列変換.
@@ -740,15 +778,39 @@ public final class LevelOption {
 	 * 
 	 * @param out
 	 *            対象のバッファ情報を設定します.
-	 * @exception Exception
-	 *                例外.
 	 */
-	public final void toBuffer(JniBuffer out) throws Exception {
-		LevelValues.byte4(out, type);
-		LevelValues.byte4(out, write_buffer_size);
-		LevelValues.byte4(out, max_open_files);
-		LevelValues.byte4(out, block_size);
-		LevelValues.byte4(out, block_cache);
-		LevelValues.byte4(out, block_restart_interval);
+	public final void toBuffer(JniBuffer out) {
+		try {
+			LevelValues.byte4(out, type);
+			LevelValues.byte4(out, write_buffer_size);
+			LevelValues.byte4(out, max_open_files);
+			LevelValues.byte4(out, block_size);
+			LevelValues.byte4(out, block_cache);
+			LevelValues.byte4(out, block_restart_interval);
+			LevelValues.encodeObjectArray(out, expansion);
+		} catch(Exception e) {
+			throw new LeveldbException(e);
+		}
+	}
+	
+	/**
+	 * オブジェクトコピー.
+	 * @return
+	 */
+	public final LevelOption copyObject() {
+		LevelOption ret = new LevelOption();
+		ret.type = type;
+		ret.write_buffer_size = write_buffer_size;
+		ret.max_open_files = max_open_files;
+		ret.block_size = block_size;
+		ret.block_cache = block_cache;
+		ret.block_restart_interval = block_restart_interval;
+		if(expansion != null) {
+			int len = expansion.length;
+			Object[] ex = new Object[len];
+			System.arraycopy(expansion, 0, ex, 0, len);
+			ret.expansion = ex;
+		}
+		return ret;
 	}
 }

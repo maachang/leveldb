@@ -367,6 +367,33 @@ public abstract class LevelIndexOperator extends LevelOperator {
 	}
 	
 	/**
+	 * LevelIndexオブジェクトを取得.
+	 * 
+	 * @param column インデクスカラム名を設定します.
+	 *               設定方法は、hoge.moge.abc や "hoge", "moge", "abc"のように階層設定可能.
+	 * @return
+	 */
+	public LevelIndex getLevelIndex(String... column) {
+		checkClose();
+		if(column == null || column.length == 0) {
+			throw new NullPointerException();
+		}
+		final String idxColumn = LevelIndex.srcColumnNames(column);
+		indexLock.readLock().lock();
+		try {
+			final int no = indexColumns == null ? -1 : indexColumns.search(idxColumn);
+			final LevelIndex idx = no == -1 ? null : indexList.get(no);
+			if(idx == null || idx.isClose()) {
+				throw new LeveldbException("Index information of column name '"+
+					idxColumn + "' does not exist.");
+			}
+			return idx;
+		} finally {
+			indexLock.readLock().unlock();
+		}
+	}
+	
+	/**
 	 * インデックスが存在するかチェック.
 	 * 
 	 * @param column インデクスカラム名を設定します.

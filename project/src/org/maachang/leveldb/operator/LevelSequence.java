@@ -507,6 +507,11 @@ public class LevelSequence extends LevelIndexOperator {
 			}
 		}
 
+		@Override
+		public boolean isClose() {
+			return itr == null || itr.isClose();
+		}
+
 		/**
 		 * 次の情報が存在するかチェック.
 		 * 
