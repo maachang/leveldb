@@ -177,9 +177,18 @@ public class LevelMap extends LevelIndexOperator implements ConvertMap {
 	// キー用のJniBufferを取得.
 	private final JniBuffer _getKey(Object key, Object twoKey)
 		throws Exception {
+		return _getKey(true, key, twoKey);
+	}
+	
+	// キー用のJniBufferを取得.
+	private final JniBuffer _getKey(boolean jniBufFlg, Object key, Object twoKey)
+		throws Exception {
+		// インデックスの操作が必要な場合は、jniBufFlg は false.
 		if (key instanceof JniBuffer) {
-			throw new LeveldbException("JniBuffer cannot be set for key.");
-			//return (JniBuffer) key;
+			if(!jniBufFlg) {
+				throw new LeveldbException("JniBuffer cannot be set for key.");
+			}
+			return (JniBuffer) key;
 		}
 		return LevelBuffer.key(type, key, twoKey);
 	}
@@ -204,7 +213,7 @@ public class LevelMap extends LevelIndexOperator implements ConvertMap {
 		JniBuffer keyBuf = null;
 		JniBuffer valBuf = null;
 		try {
-			keyBuf = _getKey(key, twoKey);
+			keyBuf = _getKey(false, key, twoKey);
 			if (value instanceof JniBuffer) {
 				if(writeBatchFlag) {
 					writeBatch().put(keyBuf, (JniBuffer) value);
@@ -467,7 +476,7 @@ public class LevelMap extends LevelIndexOperator implements ConvertMap {
 		JniBuffer keyBuf = null;
 		try {
 			Object v = get(key, twoKey);
-			keyBuf = _getKey(key, twoKey);
+			keyBuf = _getKey(false, key, twoKey);
 			if(writeBatchFlag) {
 				WriteBatch b = writeBatch();
 				b.remove(keyBuf);

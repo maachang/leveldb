@@ -179,13 +179,24 @@ public class LevelLatLon extends LevelIndexOperator {
 		try {
 			// シーケンスIDがセカンドキーである場合.
 			if(sequenceId != null) {
-				// シーケンスIDが文字列の場合は、バイナリ変換.
-				if(secKey != null && secKey instanceof String) {
-					secKey = Time12SequenceId.toBinary((String)secKey);
-				// シーケンスIDが空か、バイナリで無い場合は、新しいシーケンスIDを発行.
-				} else if(secKey == null || !(secKey instanceof byte[])) {
+				// セカンドキーが空の場合.
+				if(secKey == null) {
+					// 新しいシーケンスIDを設定.
 					seqId = sequenceId.next();
 					secKey = seqId;
+				// 有効なシーケンスIDがセカンドキーで設定されている場合.
+				} else if(secKey instanceof byte[] || secKey instanceof String) {
+					// シーケンスIDが文字列の場合は、バイナリ変換.
+					if(secKey instanceof String) {
+						secKey = Time12SequenceId.toBinary((String)secKey);
+					}
+					// バイナリサイズが不正な場合.
+					if(((byte[])secKey).length != Time12SequenceId.ID_LENGTH) {
+						throw new LeveldbException("Second key is not set correctly.");
+					}
+				// 無効なシーケンスIDが設定されている場合.
+				} else {
+					throw new LeveldbException("Second key is not set correctly.");
 				}
 			}
 			keyBuf = LevelBuffer.key(type, qk, secKey);
@@ -225,8 +236,21 @@ public class LevelLatLon extends LevelIndexOperator {
 	// キー情報を取得.
 	private final JniBuffer _getKey(long qk, Object secKey)
 		throws Exception {
-		if(sequenceId != null && secKey instanceof String) {
-			secKey = Time12SequenceId.toBinary((String)secKey);
+		if(sequenceId != null) {
+			// 有効なシーケンスIDがセカンドキーで設定されている場合.
+			if(secKey != null && (secKey instanceof byte[] || secKey instanceof String)) {
+				// シーケンスIDが文字列の場合は、バイナリ変換.
+				if(secKey instanceof String) {
+					secKey = Time12SequenceId.toBinary((String)secKey);
+				}
+				// バイナリサイズが不正な場合.
+				if(((byte[])secKey).length != Time12SequenceId.ID_LENGTH) {
+					throw new LeveldbException("Second key is not set correctly.");
+				}
+			// 無効なシーケンスIDが設定されている場合.
+			} else {
+				throw new LeveldbException("Second key is not set correctly.");
+			}
 		}
 		return LevelBuffer.key(type, qk, secKey);
 	}
@@ -430,6 +454,14 @@ public class LevelLatLon extends LevelIndexOperator {
 			}
 		}
 		return leveldb.isEmpty();
+	}
+	
+	/**
+	 * セカンドキーにシーケンスID発行かチェック.
+	 * @return boolean [true]の場合、セカンドキーはシーケンスIDです.
+	 */
+	public boolean isSecondKeyBySequenceId() {
+		return sequenceId != null;
 	}
 	
 	/**

@@ -91,17 +91,25 @@ public class LevelSequence extends LevelIndexOperator {
 	// シーケンスIDのキー情報を正しく取得.
 	private static final JniBuffer _getKey(Object key)
 		throws Exception {
+		return _getKey(true, key);
+	}
+	// シーケンスIDのキー情報を正しく取得.
+	private static final JniBuffer _getKey(boolean jniBufFlg, Object key)
+		throws Exception {
 		if(key == null) {
 			return null;
 		}
 		byte[] bkey = null;
+		// インデックスの操作が必要な場合は、jniBufFlg は false.
 		if(key instanceof JniBuffer) {
-			throw new LeveldbException("JniBuffer cannot be set for key.");
-//			JniBuffer ret = (JniBuffer)key;
-//			if(ret.position() != Time12SequenceId.ID_LENGTH) {
-//				throw new LeveldbException("Failed to interpret the specified sequence ID.");
-//			}
-//			return ret;
+			if(!jniBufFlg) {
+				throw new LeveldbException("JniBuffer cannot be set for key.");
+			}
+			JniBuffer ret = (JniBuffer)key;
+			if(ret.position() != Time12SequenceId.ID_LENGTH) {
+				throw new LeveldbException("Failed to interpret the specified sequence ID.");
+			}
+			return ret;
 		} else if(key instanceof byte[]) {
 			bkey = (byte[])key;
 		} else if(key instanceof String) {
@@ -137,10 +145,8 @@ public class LevelSequence extends LevelIndexOperator {
 		try {
 			if(key == null) {
 				key = sequenceId.next();
-			} else if(key instanceof String) {
-				key = Time12SequenceId.toBinary((String)key);
 			}
-			keyBuf = _getKey(key);
+			keyBuf = _getKey(false, key);
 			if(value instanceof JniBuffer) {
 				if(writeBatchFlag) {
 					writeBatch().put(keyBuf, (JniBuffer)value);
@@ -288,7 +294,7 @@ public class LevelSequence extends LevelIndexOperator {
 				key = Time12SequenceId.toBinary((String)key);
 			}
 			Object v = get(key);
-			keyBuf = _getKey(key);
+			keyBuf = _getKey(false, key);
 			if(writeBatchFlag) {
 				WriteBatch b = writeBatch();
 				b.remove(keyBuf);
