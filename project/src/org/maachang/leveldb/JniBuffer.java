@@ -697,7 +697,7 @@ public class JniBuffer extends OutputStream {
 		}
 		position = 0;
 		recreate(false, (len * 3) + 1);
-		int res = JniIO.putUtf8(address, 0, string, off, len);
+		int res = JniIO.putUtf16(address, 0, string, off, len);
 		position += res;
 		return this;
 	}
@@ -729,7 +729,7 @@ public class JniBuffer extends OutputStream {
 		if (len == 0 || position == 0) {
 			return null;
 		}
-		return JniIO.getUtf8(address, 0, len);
+		return JniIO.getUtf16(address, 0, len);
 	}
 
 	/**

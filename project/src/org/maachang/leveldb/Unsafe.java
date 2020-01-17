@@ -29,6 +29,14 @@ public final class Unsafe {
 				.getDeclaredField("theUnsafe");
 			f.setAccessible(true);
 			u = f.get(null);
+			// WARNING: An illegal reflective access operation has occurred
+			// java9からワーニングが出るので、出ないように対応する.
+			try {
+				Class<?> cls = Class.forName("jdk.internal.module.IllegalAccessLogger");
+				Field logger = cls.getDeclaredField("logger");
+				((sun.misc.Unsafe)u).putObjectVolatile(cls, ((sun.misc.Unsafe)u).staticFieldOffset(logger), null);
+			} catch(Throwable t) {}
+			
 		} catch (Throwable e) {
 			u = null;
 		}

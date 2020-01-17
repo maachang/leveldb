@@ -221,7 +221,7 @@ public class LevelMap extends LevelIndexOperator implements ConvertMap {
 					leveldb.put(keyBuf, (JniBuffer) value);
 				}
 				// インデックス処理.
-				super.putIndex(key, twoKey, LevelValues.decode((JniBuffer) value));
+				super.putIndex(key, twoKey, value);
 			} else {
 				valBuf = LevelBuffer.value(value);
 				if(writeBatchFlag) {

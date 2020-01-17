@@ -207,7 +207,7 @@ public class LevelLatLon extends LevelIndexOperator {
 					leveldb.put(keyBuf, (JniBuffer) value);
 				}
 				// インデックス処理.
-				super.putIndex(qk, secKey, LevelValues.decode((JniBuffer) value));
+				super.putIndex(qk, secKey, value);
 			} else {
 				valBuf = LevelBuffer.value(value);
 				if(writeBatchFlag) {

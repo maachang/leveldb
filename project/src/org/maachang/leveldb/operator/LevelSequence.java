@@ -153,7 +153,7 @@ public class LevelSequence extends LevelIndexOperator {
 				} else {
 					leveldb.put(keyBuf, (JniBuffer)value);
 				}
-				super.putIndex(key, null, LevelValues.decode((JniBuffer)value));
+				super.putIndex(key, null, value);
 			} else {
 				valBuf = LevelBuffer.value(value);
 				if(writeBatchFlag) {

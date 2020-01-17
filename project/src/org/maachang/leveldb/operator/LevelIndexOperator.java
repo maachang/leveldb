@@ -4,7 +4,9 @@ import java.io.File;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.maachang.leveldb.JniBuffer;
 import org.maachang.leveldb.LevelOption;
+import org.maachang.leveldb.LevelValues;
 import org.maachang.leveldb.Leveldb;
 import org.maachang.leveldb.LeveldbException;
 import org.maachang.leveldb.operator.LevelIndex.LevelIndexIterator;
@@ -141,7 +143,16 @@ public abstract class LevelIndexOperator extends LevelOperator {
 			final int len = indexList == null ? 0 : indexList.size();
 			for(int i = 0; i < len; i ++) {
 				if((idx = indexList.get(i)) != null && !idx.isClose()) {
-					idx.put(key, twoKey, value);
+					if(value instanceof JniBuffer) {
+						try {
+							idx.put(key, twoKey, LevelValues.decode((JniBuffer) value));
+						} catch(Exception e) {
+							throw new LeveldbException(e);
+						}
+					} else {
+						idx.put(key, twoKey, value);
+					}
+					break;
 				}
 			}
 		} finally {
@@ -158,7 +169,16 @@ public abstract class LevelIndexOperator extends LevelOperator {
 			final int len = indexList == null ? 0 : indexList.size();
 			for(int i = 0; i < len; i ++) {
 				if((idx = indexList.get(i)) != null && !idx.isClose()) {
-					idx.remove(key, twoKey, value);
+					if(value instanceof JniBuffer) {
+						try {
+							idx.remove(key, twoKey, LevelValues.decode((JniBuffer) value));
+						} catch(Exception e) {
+							throw new LeveldbException(e);
+						}
+					} else {
+						idx.remove(key, twoKey, value);
+					}
+					break;
 				}
 			}
 		} finally {

@@ -97,6 +97,10 @@ public class LevelOperatorManager {
 		if(!path.endsWith("/")) {
 			path += "/";
 		}
+		// フォルダが存在しない場合は作成する.
+		if(!FileUtil.isDir(path) || !FileUtil.isDir(path + OPERATOR_PATH)) {
+			FileUtil.mkdir(path + OPERATOR_PATH);
+		}
 		LevelOption opt = LevelOption.create(LevelOption.TYPE_STRING);
 		LevelMap map = new LevelMap(path + MANAGER_PATH, opt);
 
@@ -292,6 +296,7 @@ public class LevelOperatorManager {
 			valBuf = null;
 			String dbName = basePath + OPERATOR_PATH + uname;
 			LevelOperator ret = null;
+			
 			switch(_unameByOperatorType(uname)) {
 			case LevelOperator.LEVEL_LAT_LON:
 				if(opt.getType() == LevelOption.TYPE_NONE) {

@@ -1,9 +1,11 @@
 package org.maachang.leveldb;
 
+import java.lang.reflect.Array;
 import java.util.Map;
 
 import org.maachang.leveldb.util.Alphabet;
 import org.maachang.leveldb.util.Converter;
+import org.maachang.leveldb.util.Json;
 
 /**
  * LevelOptionオプション.
@@ -100,12 +102,6 @@ public final class LevelOption {
 	 * LevelOption生成.
 	 * 
 	 * @param args
-	 *            オプションパラメータを設定します.
-	 *            [0]type: キータイプ.
-	 *            [1]write_buffer_size: 書き込みバッファ数.
-	 *            [2]max_open_files: オープン最大ファイル数.
-	 *            [3]block_size: ブロックサイズ.
-	 *            [4]block_cache: ブロックキャッシュ.
 	 */
 	public static final LevelOption create(Object... args) {
 		return new LevelOption(args);
@@ -145,28 +141,43 @@ public final class LevelOption {
 	/**
 	 * コンストラクタ.
 	 * 
-	 * @param o
-	 *            バッファポジションを設定します.
-	 * @param buf
-	 *            対象のJniBufferを設定します.
+	 * @param args
 	 */
-	public LevelOption(int[] o, JniBuffer buf) {
-		try {
-			long p = buf.address();
-			type = LevelValues.byte4Int(p, o);
-			write_buffer_size = LevelValues.byte4Int(p, o);
-			max_open_files = LevelValues.byte4Int(p, o);
-			block_size = LevelValues.byte4Int(p, o);
-			block_cache = LevelValues.byte4Int(p, o);
-			block_restart_interval = LevelValues.byte4Int(p, o);
-			expansion = (Object[])LevelValues.decodeObjectArray(buf, o);
-		} catch(Exception e) {
-			throw new LeveldbException(e);
+	@SuppressWarnings("rawtypes")
+	public LevelOption(Object... args) {
+		int len = 0;
+		if (args == null || (len = args.length) == 0) {
+			return;
+		}
+		if(len >= 2 && args[0] instanceof int[] && args[1] instanceof JniBuffer) {
+			_createJniBuffer((int[])args[0], (JniBuffer)args[1]);
+		} else if(args[0] instanceof JniBuffer) {
+			_createJniBuffer(new int[] {0}, (JniBuffer)args[0]);
+		} else if(args[0] instanceof Map) {
+			Map m = (Map)args[0];
+			// オプションパラメータを設定します.
+			// map.get("type") キータイプ.
+			// map.get("bufferSize") 書き込みバッファサイズ.
+			// map.get("openFiles") オープン最大ファイル数.
+			// map.get("blockSize") ブロックサイズ.
+			// map.get("blockCache") ブロックキャッシュ.
+			// map.get("blockRestartInterval");
+			_create(m.get("type"), m.get("bufferSize"), m.get("openFiles"), m.get("blockSize"),
+					m.get("blockCache"), m.get("blockRestartInterval"));
+			Object ex = m.get("expansion");
+			if(ex != null && ex.getClass().isArray() && Array.getLength(ex) > 0) {
+				len = Array.getLength(ex);
+				Object[] ary = new Object[len];
+				System.arraycopy(ex, 0, ary, 0, len);
+				setExpansion(ary);
+			}
+		} else {
+			_create(args);
 		}
 	}
-
+	
 	/**
-	 * コンストラクタ.
+	 * 生成処理.
 	 * 
 	 * @param args
 	 *            オプションパラメータを設定します.
@@ -177,10 +188,7 @@ public final class LevelOption {
 	 *            [4]block_cache. ブロックキャッシュ.
 	 *            [5]block_restart_interval
 	 */
-	public LevelOption(Object... args) {
-		if (args == null || args.length == 0) {
-			return;
-		}
+	private void _create(Object... args) {
 		int len = args.length;
 		if (len >= 1) {
 			if (Converter.isNumeric(args[0])) {
@@ -204,24 +212,55 @@ public final class LevelOption {
 		if (len >= 6 && Converter.isNumeric(args[5])) {
 			setBlockRestartInterval(Converter.convertInt(args[5]));
 		}
-
+		if(len >= 7) {
+			int aryLen = len - 6;
+			Object[] ary = new Object[aryLen];
+			System.arraycopy(args, 6, ary, 0, aryLen);
+			setExpansion(ary);
+		}
+	}
+	
+	/**
+	 * 生成処理.
+	 * 
+	 * @param o
+	 *            バッファポジションを設定します.
+	 * @param buf
+	 *            対象のJniBufferを設定します.
+	 */
+	public void _createJniBuffer(int[] o, JniBuffer buf) {
+		try {
+			long p = buf.address();
+			type = LevelValues.byte4Int(p, o);
+			write_buffer_size = LevelValues.byte4Int(p, o);
+			max_open_files = LevelValues.byte4Int(p, o);
+			block_size = LevelValues.byte4Int(p, o);
+			block_cache = LevelValues.byte4Int(p, o);
+			block_restart_interval = LevelValues.byte4Int(p, o);
+			expansion = (Object[])LevelValues.decodeObjectArray(o, buf);
+		} catch(Exception e) {
+			throw new LeveldbException(e);
+		}
 	}
 
 	/**
-	 * コンストラクタ.
+	 * バッファ変換.
 	 * 
-	 * @param args
-	 *            オプションパラメータを設定します.
-	 *            args.get("type") キータイプ.
-	 *            args.get("bufferSize") 書き込みバッファサイズ.
-	 *            args.get("openFiles") オープン最大ファイル数.
-	 *            args.get("blockSize") ブロックサイズ.
-	 *            args.get("blockCache") ブロックキャッシュ.
-	 *            args.get("blockRestartInterval");
+	 * @param out
+	 *            対象のバッファ情報を設定します.
 	 */
-	public LevelOption(Map<String, Object> args) {
-		this(args.get("type"), args.get("bufferSize"), args.get("openFiles"), args.get("blockSize"),
-				args.get("blockCache"), args.get("blockRestartInterval"));
+	public final void toBuffer(JniBuffer out) {
+		try {
+			LevelValues.byte4(out, type);
+			LevelValues.byte4(out, write_buffer_size);
+			LevelValues.byte4(out, max_open_files);
+			LevelValues.byte4(out, block_size);
+			LevelValues.byte4(out, block_cache);
+			LevelValues.byte4(out, block_restart_interval);
+			LevelValues.encodeObjectArray(out, expansion);
+		} catch(Exception e) {
+			throw new LeveldbException(e);
+		}
 	}
 
 	/** タイプパターン定義. **/
@@ -767,32 +806,14 @@ public final class LevelOption {
 	 * @return String 文字列が返却されます.
 	 */
 	public final String toString() {
-		return new StringBuilder().append(" type:").append(stringType(type)).append(" write_buffer_size:")
-				.append(write_buffer_size).append(" max_open_files:").append(max_open_files).append(" block_size:")
-				.append(block_size).append(" block_cache:").append(block_cache).append(" block_restart_interval:")
-				.append(block_restart_interval).toString();
+		return new StringBuilder().append(" type:(").append(type).append("):").append(stringType(type))
+			.append(" write_buffer_size:").append(write_buffer_size).append(" max_open_files:")
+			.append(max_open_files).append(" block_size:").append(block_size).append(" block_cache:")
+			.append(block_cache).append(" block_restart_interval:").append(block_restart_interval)
+			.append(" expansion:").append(Json.encode(expansion))
+			.toString();
 	}
 
-	/**
-	 * バッファ変換.
-	 * 
-	 * @param out
-	 *            対象のバッファ情報を設定します.
-	 */
-	public final void toBuffer(JniBuffer out) {
-		try {
-			LevelValues.byte4(out, type);
-			LevelValues.byte4(out, write_buffer_size);
-			LevelValues.byte4(out, max_open_files);
-			LevelValues.byte4(out, block_size);
-			LevelValues.byte4(out, block_cache);
-			LevelValues.byte4(out, block_restart_interval);
-			LevelValues.encodeObjectArray(out, expansion);
-		} catch(Exception e) {
-			throw new LeveldbException(e);
-		}
-	}
-	
 	/**
 	 * オブジェクトコピー.
 	 * @return

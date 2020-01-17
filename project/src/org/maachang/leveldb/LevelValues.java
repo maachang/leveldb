@@ -10,6 +10,7 @@ import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -280,11 +281,11 @@ public final class LevelValues {
 	 *                例外.
 	 */
 	public static final void stringBinary(JniBuffer buf, String s) throws Exception {
-		int len = JniIO.utf8Length(s);
+		int len = JniIO.utf16Length(s);
 		buf.recreate(true, buf.position() + len + 7);
 		byte4(buf, len);
 		if (len != 0) {
-			buf.addPosition(JniIO.putUtf8(buf.address(), buf.position(), s));
+			buf.addPosition(JniIO.putUtf16(buf.address(), buf.position(), s));
 		}
 	}
 
@@ -381,7 +382,327 @@ public final class LevelValues {
 
 	/** ヘッダ文字セット. **/
 	public static final void head(JniBuffer buf, int n) throws Exception {
-		byte1(buf, n);
+		byte1(buf, (n & 0x000000ff));
+	}
+	
+	/** ヘッダ文字取得. **/
+	public static final int head(long b, int[] off) {
+		return byte1Int(b, off) & 0x000000ff;
+	}
+
+
+	/** 1バイト数値変換. **/
+	public static final int byte1Int(long b, int[] off) {
+		return JniIO.get(b, off[0]++) & 0xff;
+	}
+
+	/** 2バイト数値変換. **/
+	public static final int byte2Int(long b, int[] off) {
+		int ret = ((JniIO.get(b, off[0]) & 0xff) << 8) | (JniIO.get(b, off[0]+1) & 0xff);
+		off[0] += 2;
+		return ret;
+	}
+
+	/** 4バイト数値変換. **/
+	public static final int byte4Int(long b, int[] off) {
+		int o = off[0];
+		int h = JniIO.get(b, o);
+		if ((h & 0x3f) == 0) {
+			// ヘッダ2ビットが単体１バイト定義の場合.
+			switch ((h & 0xc0) >> 6) {
+			case 0:
+				off[0] += 2;
+				return (JniIO.get(b, o + 1) & 0xff);
+			case 1:
+				off[0] += 3;
+				return ((JniIO.get(b, o + 1) & 0xff) << 8) | (JniIO.get(b, o + 2) & 0xff);
+			case 2:
+				off[0] += 4;
+				return ((JniIO.get(b, o + 1) & 0xff) << 16) | ((JniIO.get(b, o + 2) & 0xff) << 8)
+						| (JniIO.get(b, o + 3) & 0xff);
+			case 3:
+				off[0] += 5;
+				return ((JniIO.get(b, o + 1) & 0xff) << 24) | ((JniIO.get(b, o + 2) & 0xff) << 16)
+						| ((JniIO.get(b, o + 3) & 0xff) << 8) | (JniIO.get(b, o + 4) & 0xff);
+			}
+			throw new IllegalArgumentException("Invalid byte4Int condition:" + off[0]);
+		}
+		// ヘッダ2ビットが混在定義の場合.
+		switch ((h & 0xc0) >> 6) {
+		case 0:
+			off[0] += 1;
+			return (h & 0x3f);
+		case 1:
+			off[0] += 2;
+			return ((h & 0x3f) << 8) | (JniIO.get(b, o + 1) & 0xff);
+		case 2:
+			off[0] += 3;
+			return ((h & 0x3f) << 16) | ((JniIO.get(b, o + 1) & 0xff) << 8) | (JniIO.get(b, o + 2) & 0xff);
+		case 3:
+			off[0] += 4;
+			return ((h & 0x3f) << 24) | ((JniIO.get(b, o + 1) & 0xff) << 16) | ((JniIO.get(b, o + 2) & 0xff) << 8)
+					| (JniIO.get(b, o + 3) & 0xff);
+		}
+		throw new IllegalArgumentException("Invalid byte4Int condition:" + off[0]);
+	}
+
+	/** 8バイト数値変換. **/
+	public static final long byte8Long(long b, int[] off) {
+		int o = off[0];
+		int h = JniIO.get(b, o);
+		if ((h & 0x1f) == 0) {
+			// ヘッダ3ビットが単体１バイト定義の場合.
+			switch ((h & 0xe0) >> 5) {
+			case 0:
+				off[0] += 2;
+				return (long) (JniIO.get(b, o + 1) & 0xff);
+			case 1:
+				off[0] += 3;
+				return (long) (((JniIO.get(b, o + 1) & 0xff) << 8) | (JniIO.get(b, o + 2) & 0xff));
+			case 2:
+				off[0] += 4;
+				return (long) (((JniIO.get(b, o + 1) & 0xff) << 16) | ((JniIO.get(b, o + 2) & 0xff) << 8)
+						| (JniIO.get(b, o + 3) & 0xff));
+			case 3:
+				off[0] += 5;
+				return (long) (((JniIO.get(b, o + 1) & 0xff) << 24) | ((JniIO.get(b, o + 2) & 0xff) << 16)
+						| ((JniIO.get(b, o + 3) & 0xff) << 8) | (JniIO.get(b, o + 4) & 0xff));
+			case 4:
+				off[0] += 6;
+				return (long) (((JniIO.get(b, o + 1) & 0xffL) << 32L) | ((JniIO.get(b, o + 2) & 0xffL) << 24L)
+						| ((JniIO.get(b, o + 3) & 0xffL) << 16L) | ((JniIO.get(b, o + 4) & 0xffL) << 8L)
+						| (JniIO.get(b, o + 5) & 0xffL));
+			case 5:
+				off[0] += 7;
+				return (long) (((JniIO.get(b, o + 1) & 0xffL) << 40L) | ((JniIO.get(b, o + 2) & 0xffL) << 32L)
+						| ((JniIO.get(b, o + 3) & 0xffL) << 24L) | ((JniIO.get(b, o + 4) & 0xffL) << 16L)
+						| ((JniIO.get(b, o + 5) & 0xffL) << 8L) | (JniIO.get(b, o + 6) & 0xffL));
+			case 6:
+				off[0] += 8;
+				return (long) (((JniIO.get(b, o + 1) & 0xffL) << 48L) | ((JniIO.get(b, o + 2) & 0xffL) << 40L)
+						| ((JniIO.get(b, o + 3) & 0xffL) << 32L) | ((JniIO.get(b, o + 4) & 0xffL) << 24L)
+						| ((JniIO.get(b, o + 5) & 0xffL) << 16L) | ((JniIO.get(b, o + 6) & 0xffL) << 8L)
+						| (JniIO.get(b, o + 7) & 0xffL));
+			case 7:
+				off[0] += 9;
+				return (long) (((JniIO.get(b, o + 1) & 0xffL) << 56L) | ((JniIO.get(b, o + 2) & 0xffL) << 48L)
+						| ((JniIO.get(b, o + 3) & 0xffL) << 40L) | ((JniIO.get(b, o + 4) & 0xffL) << 32L)
+						| ((JniIO.get(b, o + 5) & 0xffL) << 24L) | ((JniIO.get(b, o + 6) & 0xffL) << 16L)
+						| ((JniIO.get(b, o + 7) & 0xffL) << 8L) | (JniIO.get(b, o + 8) & 0xffL));
+			}
+			throw new IllegalArgumentException("Invalid byte8Long condition:" + off[0]);
+		}
+		// ヘッダ3ビットが混在定義の場合.
+		switch ((h & 0xe0) >> 5) {
+		case 0:
+			off[0] += 1;
+			return (long) (h & 0x1f);
+		case 1:
+			off[0] += 2;
+			return (long) (((h & 0x1f) << 8) | (JniIO.get(b, o + 1) & 0xff));
+		case 2:
+			off[0] += 3;
+			return (long) (((h & 0x1f) << 16) | ((JniIO.get(b, o + 1) & 0xff) << 8) | (JniIO.get(b, o + 2) & 0xff));
+		case 3:
+			off[0] += 4;
+			return (long) (((h & 0x1f) << 24) | ((JniIO.get(b, o + 1) & 0xff) << 16)
+					| ((JniIO.get(b, o + 2) & 0xff) << 8) | (JniIO.get(b, o + 3) & 0xff));
+		case 4:
+			off[0] += 5;
+			return (long) (((h & 0x1fL) << 32L) | ((JniIO.get(b, o + 1) & 0xffL) << 24L)
+					| ((JniIO.get(b, o + 2) & 0xffL) << 16L) | ((JniIO.get(b, o + 3) & 0xffL) << 8L)
+					| (JniIO.get(b, o + 4) & 0xffL));
+		case 5:
+			off[0] += 6;
+			return (long) (((h & 0x1fL) << 40L) | ((JniIO.get(b, o + 1) & 0xffL) << 32L)
+					| ((JniIO.get(b, o + 2) & 0xffL) << 24L) | ((JniIO.get(b, o + 3) & 0xffL) << 16L)
+					| ((JniIO.get(b, o + 4) & 0xffL) << 8L) | (JniIO.get(b, o + 5) & 0xffL));
+		case 6:
+			off[0] += 7;
+			return (long) (((h & 0x1fL) << 48L) | ((JniIO.get(b, o + 1) & 0xffL) << 40L)
+					| ((JniIO.get(b, o + 2) & 0xffL) << 32L) | ((JniIO.get(b, o + 3) & 0xffL) << 24L)
+					| ((JniIO.get(b, o + 4) & 0xffL) << 16L) | ((JniIO.get(b, o + 5) & 0xffL) << 8L)
+					| (JniIO.get(b, o + 6) & 0xffL));
+		case 7:
+			off[0] += 8;
+			return (long) (((h & 0x1fL) << 56L) | ((JniIO.get(b, o + 1) & 0xffL) << 48L)
+					| ((JniIO.get(b, o + 2) & 0xffL) << 40L) | ((JniIO.get(b, o + 3) & 0xffL) << 32L)
+					| ((JniIO.get(b, o + 4) & 0xffL) << 24L) | ((JniIO.get(b, o + 5) & 0xffL) << 16L)
+					| ((JniIO.get(b, o + 6) & 0xffL) << 8L) | (JniIO.get(b, o + 7) & 0xffL));
+		}
+		throw new IllegalArgumentException("Invalid byte8Long condition:" + off[0]);
+	}
+
+	/**
+	 * バイナリ文字変換.
+	 * 
+	 * @param b
+	 *            対象のバイナリを設定します.
+	 * @param pos
+	 *            対象のポジションを設定します.
+	 * @return String 対象の情報が返却されます.
+	 * @exception Exception
+	 *                例外.
+	 */
+	public static final String byteString(long b, int[] pos) throws Exception {
+		int len = byte4Int(b, pos);
+		if (len == 0) {
+			return "";
+		}
+		String ret = JniIO.getUtf16(b, pos[0], len);
+		pos[0] += len;
+		return ret;
+	}
+
+	/**
+	 * バイナリLevelArray変換.
+	 * 
+	 * @param b
+	 *            対象のバイナリを設定します.
+	 * @param pos
+	 *            対象のポジションを設定します.
+	 * @param length
+	 *            対象の長さを設定します.
+	 * @return LevelArray 対象の情報が返却されます.
+	 * @exception Exception
+	 *                例外.
+	 */
+	public static final LevelArray byteLevelArray(int[] pos, JniBuffer b, int length) throws Exception {
+		LevelArray ret = new LevelArray();
+		int len = byte4Int(b.address(), pos);
+		if (len == 0) {
+			return ret;
+		}
+
+		int i;
+		Object[] keyList = new Object[len + LevelArray.ADD_LEN];
+		Object[] dataList = new Object[len + LevelArray.ADD_LEN];
+		for (i = 0; i < len; i++) {
+			keyList[i] = decodeObject(pos, b, length);
+			dataList[i] = decodeObject(pos, b, length);
+		}
+		ret.keyList = keyList;
+		ret.dataList = dataList;
+		ret.length = len;
+		return ret;
+	}
+
+	/**
+	 * バイナリTwoKey変換.
+	 * 
+	 * @param code
+	 *            2キータイプを設定します.
+	 * @param b
+	 *            対象のバイナリを設定します.
+	 * @param pos
+	 *            対象のポジションを設定します.
+	 * @return LevelArray 対象の情報が返却されます.
+	 * @exception Exception
+	 *                例外.
+	 */
+	public static final TwoKey byteTwoKey(int code, int[] pos, JniBuffer b) throws Exception {
+		int len = byte4Int(b.address(), pos);
+		TwoKey ret = null;
+		switch (code) {
+		case LevelOption.TYPE_STR_STR:
+			ret = new StrStr(b, pos[0], len);
+			break;
+		case LevelOption.TYPE_STR_N32:
+			ret = new StrInt(b, pos[0], len);
+			break;
+		case LevelOption.TYPE_STR_N64:
+			ret = new StrLong(b, pos[0], len);
+			break;
+		case LevelOption.TYPE_N32_STR:
+			ret = new IntStr(b, pos[0], len);
+			break;
+		case LevelOption.TYPE_N32_N32:
+			ret = new IntInt(b, pos[0], len);
+			break;
+		case LevelOption.TYPE_N32_N64:
+			ret = new IntLong(b, pos[0], len);
+			break;
+		case LevelOption.TYPE_N64_STR:
+			ret = new LongStr(b, pos[0], len);
+			break;
+		case LevelOption.TYPE_N64_N32:
+			ret = new LongInt(b, pos[0], len);
+			break;
+		case LevelOption.TYPE_N64_N64:
+			ret = new LongLong(b, pos[0], len);
+			break;
+		case LevelOption.TYPE_STR_BIN:
+			ret = new StrBin(b, pos[0], len);
+			break;
+		case LevelOption.TYPE_N32_BIN:
+			ret = new IntBin(b, pos[0], len);
+			break;
+		case LevelOption.TYPE_N64_BIN:
+			ret = new LongBin(b, pos[0], len);
+			break;
+		}
+		if (ret != null) {
+			pos[0] += len;
+			return ret;
+		}
+		throw new IllegalArgumentException("The specified TwoKey condition is out of range:" + code);
+	}
+
+	/**
+	 * シリアライズ変換.
+	 * 
+	 * @param b
+	 *            対象のバイナリを設定します.
+	 * @param pos
+	 *            対象のポジションを設定します.
+	 * @return Object 対象の情報が返却されます.
+	 * @exception Exception
+	 *                例外.
+	 */
+	public static final Object byteSerial(long b, int[] pos) throws Exception {
+		int len = byte4Int(b, pos);
+		if (len == 0) {
+			return null;
+		}
+		byte[] bb = new byte[len];
+		JniIO.getBinary(b, pos[0], bb, 0, len);
+		Object ret = toObject(bb, 0, len);
+		pos[0] += len;
+		return ret;
+	}
+
+	/**
+	 * バイナリをシリアライズオブジェクトに変換.
+	 * 
+	 * @param bin
+	 *            対象のバイナリを設定します.
+	 * @param off
+	 *            対象のオフセット値を設定します.
+	 * @param len
+	 *            対象の長さを設定します.
+	 * @return Serializable 変換されたシリアライズオブジェクトが返されます.
+	 * @exception Exception
+	 *                例外.
+	 */
+	public static final Serializable toObject(byte[] bin, int off, int len) throws Exception {
+		if (bin == null || bin.length <= 0) {
+			throw new IllegalArgumentException("Binary length for serialization restore does not exist.");
+		}
+		ObjectInputStream in = null;
+		Serializable ret = null;
+		try {
+			in = new ObjectInputStream(new ByteArrayInputStream(bin, off, len));
+			ret = (Serializable) in.readObject();
+		} catch (Exception e) {
+			throw e;
+		} finally {
+			try {
+				in.close();
+			} catch (Exception e) {
+			}
+			in = null;
+		}
+		return ret;
 	}
 
 	/** オブジェクトを表すクラス. **/
@@ -636,319 +957,7 @@ public final class LevelValues {
 			head(buf, 0xff); // null.
 		}
 	}
-
-	/** 1バイト数値変換. **/
-	public static final int byte1Int(long b, int[] off) {
-		return JniIO.get(b, off[0]++) & 0xff;
-	}
-
-	/** 2バイト数値変換. **/
-	public static final int byte2Int(long b, int[] off) {
-		return ((JniIO.get(b, off[0]++) & 0xff) << 8) | (JniIO.get(b, off[0]++) & 0xff);
-	}
-
-	/** 4バイト数値変換. **/
-	public static final int byte4Int(long b, int[] off) {
-		int o = off[0];
-		int h = JniIO.get(b, o);
-		if ((h & 0x3f) == 0) {
-			// ヘッダ2ビットが単体１バイト定義の場合.
-			switch ((h & 0xc0) >> 6) {
-			case 0:
-				off[0] += 2;
-				return (JniIO.get(b, o + 1) & 0xff);
-			case 1:
-				off[0] += 3;
-				return ((JniIO.get(b, o + 1) & 0xff) << 8) | (JniIO.get(b, o + 2) & 0xff);
-			case 2:
-				off[0] += 4;
-				return ((JniIO.get(b, o + 1) & 0xff) << 16) | ((JniIO.get(b, o + 2) & 0xff) << 8)
-						| (JniIO.get(b, o + 3) & 0xff);
-			case 3:
-				off[0] += 5;
-				return ((JniIO.get(b, o + 1) & 0xff) << 24) | ((JniIO.get(b, o + 2) & 0xff) << 16)
-						| ((JniIO.get(b, o + 3) & 0xff) << 8) | (JniIO.get(b, o + 4) & 0xff);
-			}
-			throw new IllegalArgumentException("Invalid byte4Int condition:" + off[0]);
-		}
-		// ヘッダ2ビットが混在定義の場合.
-		switch ((h & 0xc0) >> 6) {
-		case 0:
-			off[0] += 1;
-			return (h & 0x3f);
-		case 1:
-			off[0] += 2;
-			return ((h & 0x3f) << 8) | (JniIO.get(b, o + 1) & 0xff);
-		case 2:
-			off[0] += 3;
-			return ((h & 0x3f) << 16) | ((JniIO.get(b, o + 1) & 0xff) << 8) | (JniIO.get(b, o + 2) & 0xff);
-		case 3:
-			off[0] += 4;
-			return ((h & 0x3f) << 24) | ((JniIO.get(b, o + 1) & 0xff) << 16) | ((JniIO.get(b, o + 2) & 0xff) << 8)
-					| (JniIO.get(b, o + 3) & 0xff);
-		}
-		throw new IllegalArgumentException("Invalid byte4Int condition:" + off[0]);
-	}
-
-	/** 8バイト数値変換. **/
-	public static final long byte8Long(long b, int[] off) {
-		int o = off[0];
-		int h = JniIO.get(b, o);
-		if ((h & 0x1f) == 0) {
-			// ヘッダ3ビットが単体１バイト定義の場合.
-			switch ((h & 0xe0) >> 5) {
-			case 0:
-				off[0] += 2;
-				return (long) (JniIO.get(b, o + 1) & 0xff);
-			case 1:
-				off[0] += 3;
-				return (long) (((JniIO.get(b, o + 1) & 0xff) << 8) | (JniIO.get(b, o + 2) & 0xff));
-			case 2:
-				off[0] += 4;
-				return (long) (((JniIO.get(b, o + 1) & 0xff) << 16) | ((JniIO.get(b, o + 2) & 0xff) << 8)
-						| (JniIO.get(b, o + 3) & 0xff));
-			case 3:
-				off[0] += 5;
-				return (long) (((JniIO.get(b, o + 1) & 0xff) << 24) | ((JniIO.get(b, o + 2) & 0xff) << 16)
-						| ((JniIO.get(b, o + 3) & 0xff) << 8) | (JniIO.get(b, o + 4) & 0xff));
-			case 4:
-				off[0] += 6;
-				return (long) (((JniIO.get(b, o + 1) & 0xffL) << 32L) | ((JniIO.get(b, o + 2) & 0xffL) << 24L)
-						| ((JniIO.get(b, o + 3) & 0xffL) << 16L) | ((JniIO.get(b, o + 4) & 0xffL) << 8L)
-						| (JniIO.get(b, o + 5) & 0xffL));
-			case 5:
-				off[0] += 7;
-				return (long) (((JniIO.get(b, o + 1) & 0xffL) << 40L) | ((JniIO.get(b, o + 2) & 0xffL) << 32L)
-						| ((JniIO.get(b, o + 3) & 0xffL) << 24L) | ((JniIO.get(b, o + 4) & 0xffL) << 16L)
-						| ((JniIO.get(b, o + 5) & 0xffL) << 8L) | (JniIO.get(b, o + 6) & 0xffL));
-			case 6:
-				off[0] += 8;
-				return (long) (((JniIO.get(b, o + 1) & 0xffL) << 48L) | ((JniIO.get(b, o + 2) & 0xffL) << 40L)
-						| ((JniIO.get(b, o + 3) & 0xffL) << 32L) | ((JniIO.get(b, o + 4) & 0xffL) << 24L)
-						| ((JniIO.get(b, o + 5) & 0xffL) << 16L) | ((JniIO.get(b, o + 6) & 0xffL) << 8L)
-						| (JniIO.get(b, o + 7) & 0xffL));
-			case 7:
-				off[0] += 9;
-				return (long) (((JniIO.get(b, o + 1) & 0xffL) << 56L) | ((JniIO.get(b, o + 2) & 0xffL) << 48L)
-						| ((JniIO.get(b, o + 3) & 0xffL) << 40L) | ((JniIO.get(b, o + 4) & 0xffL) << 32L)
-						| ((JniIO.get(b, o + 5) & 0xffL) << 24L) | ((JniIO.get(b, o + 6) & 0xffL) << 16L)
-						| ((JniIO.get(b, o + 7) & 0xffL) << 8L) | (JniIO.get(b, o + 8) & 0xffL));
-			}
-			throw new IllegalArgumentException("Invalid byte8Long condition:" + off[0]);
-		}
-		// ヘッダ3ビットが混在定義の場合.
-		switch ((h & 0xe0) >> 5) {
-		case 0:
-			off[0] += 1;
-			return (long) (h & 0x1f);
-		case 1:
-			off[0] += 2;
-			return (long) (((h & 0x1f) << 8) | (JniIO.get(b, o + 1) & 0xff));
-		case 2:
-			off[0] += 3;
-			return (long) (((h & 0x1f) << 16) | ((JniIO.get(b, o + 1) & 0xff) << 8) | (JniIO.get(b, o + 2) & 0xff));
-		case 3:
-			off[0] += 4;
-			return (long) (((h & 0x1f) << 24) | ((JniIO.get(b, o + 1) & 0xff) << 16)
-					| ((JniIO.get(b, o + 2) & 0xff) << 8) | (JniIO.get(b, o + 3) & 0xff));
-		case 4:
-			off[0] += 5;
-			return (long) (((h & 0x1fL) << 32L) | ((JniIO.get(b, o + 1) & 0xffL) << 24L)
-					| ((JniIO.get(b, o + 2) & 0xffL) << 16L) | ((JniIO.get(b, o + 3) & 0xffL) << 8L)
-					| (JniIO.get(b, o + 4) & 0xffL));
-		case 5:
-			off[0] += 6;
-			return (long) (((h & 0x1fL) << 40L) | ((JniIO.get(b, o + 1) & 0xffL) << 32L)
-					| ((JniIO.get(b, o + 2) & 0xffL) << 24L) | ((JniIO.get(b, o + 3) & 0xffL) << 16L)
-					| ((JniIO.get(b, o + 4) & 0xffL) << 8L) | (JniIO.get(b, o + 5) & 0xffL));
-		case 6:
-			off[0] += 7;
-			return (long) (((h & 0x1fL) << 48L) | ((JniIO.get(b, o + 1) & 0xffL) << 40L)
-					| ((JniIO.get(b, o + 2) & 0xffL) << 32L) | ((JniIO.get(b, o + 3) & 0xffL) << 24L)
-					| ((JniIO.get(b, o + 4) & 0xffL) << 16L) | ((JniIO.get(b, o + 5) & 0xffL) << 8L)
-					| (JniIO.get(b, o + 6) & 0xffL));
-		case 7:
-			off[0] += 8;
-			return (long) (((h & 0x1fL) << 56L) | ((JniIO.get(b, o + 1) & 0xffL) << 48L)
-					| ((JniIO.get(b, o + 2) & 0xffL) << 40L) | ((JniIO.get(b, o + 3) & 0xffL) << 32L)
-					| ((JniIO.get(b, o + 4) & 0xffL) << 24L) | ((JniIO.get(b, o + 5) & 0xffL) << 16L)
-					| ((JniIO.get(b, o + 6) & 0xffL) << 8L) | (JniIO.get(b, o + 7) & 0xffL));
-		}
-		throw new IllegalArgumentException("Invalid byte8Long condition:" + off[0]);
-	}
-
-	/**
-	 * バイナリ文字変換.
-	 * 
-	 * @param b
-	 *            対象のバイナリを設定します.
-	 * @param pos
-	 *            対象のポジションを設定します.
-	 * @return String 対象の情報が返却されます.
-	 * @exception Exception
-	 *                例外.
-	 */
-	public static final String byteString(long b, int[] pos) throws Exception {
-		int len = byte4Int(b, pos);
-		if (len == 0) {
-			return "";
-		}
-		String ret = JniIO.getUtf8(b, pos[0], len);
-		pos[0] += len;
-		return ret;
-	}
-
-	/**
-	 * バイナリLevelArray変換.
-	 * 
-	 * @param b
-	 *            対象のバイナリを設定します.
-	 * @param pos
-	 *            対象のポジションを設定します.
-	 * @param length
-	 *            対象の長さを設定します.
-	 * @return LevelArray 対象の情報が返却されます.
-	 * @exception Exception
-	 *                例外.
-	 */
-	public static final LevelArray byteLevelArray(int[] pos, JniBuffer b, int length) throws Exception {
-		LevelArray ret = new LevelArray();
-		int len = byte4Int(b.address(), pos);
-		if (len == 0) {
-			return ret;
-		}
-
-		int i;
-		Object[] keyList = new Object[len + LevelArray.ADD_LEN];
-		Object[] dataList = new Object[len + LevelArray.ADD_LEN];
-		for (i = 0; i < len; i++) {
-			keyList[i] = decodeObject(pos, b, length);
-			dataList[i] = decodeObject(pos, b, length);
-		}
-		ret.keyList = keyList;
-		ret.dataList = dataList;
-		ret.length = len;
-		return ret;
-	}
-
-	/**
-	 * バイナリTwoKey変換.
-	 * 
-	 * @param code
-	 *            2キータイプを設定します.
-	 * @param b
-	 *            対象のバイナリを設定します.
-	 * @param pos
-	 *            対象のポジションを設定します.
-	 * @return LevelArray 対象の情報が返却されます.
-	 * @exception Exception
-	 *                例外.
-	 */
-	public static final TwoKey byteTwoKey(int code, int[] pos, JniBuffer b) throws Exception {
-		int len = byte4Int(b.address(), pos);
-		TwoKey ret = null;
-		switch (code) {
-		case LevelOption.TYPE_STR_STR:
-			ret = new StrStr(b, pos[0], len);
-			break;
-		case LevelOption.TYPE_STR_N32:
-			ret = new StrInt(b, pos[0], len);
-			break;
-		case LevelOption.TYPE_STR_N64:
-			ret = new StrLong(b, pos[0], len);
-			break;
-		case LevelOption.TYPE_N32_STR:
-			ret = new IntStr(b, pos[0], len);
-			break;
-		case LevelOption.TYPE_N32_N32:
-			ret = new IntInt(b, pos[0], len);
-			break;
-		case LevelOption.TYPE_N32_N64:
-			ret = new IntLong(b, pos[0], len);
-			break;
-		case LevelOption.TYPE_N64_STR:
-			ret = new LongStr(b, pos[0], len);
-			break;
-		case LevelOption.TYPE_N64_N32:
-			ret = new LongInt(b, pos[0], len);
-			break;
-		case LevelOption.TYPE_N64_N64:
-			ret = new LongLong(b, pos[0], len);
-			break;
-		case LevelOption.TYPE_STR_BIN:
-			ret = new StrBin(b, pos[0], len);
-			break;
-		case LevelOption.TYPE_N32_BIN:
-			ret = new IntBin(b, pos[0], len);
-			break;
-		case LevelOption.TYPE_N64_BIN:
-			ret = new LongBin(b, pos[0], len);
-			break;
-		}
-		if (ret != null) {
-			pos[0] += len;
-			return ret;
-		}
-		throw new IllegalArgumentException("The specified TwoKey condition is out of range:" + code);
-	}
-
-	/**
-	 * シリアライズ変換.
-	 * 
-	 * @param b
-	 *            対象のバイナリを設定します.
-	 * @param pos
-	 *            対象のポジションを設定します.
-	 * @return Object 対象の情報が返却されます.
-	 * @exception Exception
-	 *                例外.
-	 */
-	public static final Object byteSerial(long b, int[] pos) throws Exception {
-		int len = byte4Int(b, pos);
-		if (len == 0) {
-			return null;
-		}
-		byte[] bb = new byte[len];
-		JniIO.getBinary(b, pos[0], bb, 0, len);
-		Object ret = toObject(bb, 0, len);
-		pos[0] += len;
-		return ret;
-	}
-
-	/**
-	 * バイナリをシリアライズオブジェクトに変換.
-	 * 
-	 * @param bin
-	 *            対象のバイナリを設定します.
-	 * @param off
-	 *            対象のオフセット値を設定します.
-	 * @param len
-	 *            対象の長さを設定します.
-	 * @return Serializable 変換されたシリアライズオブジェクトが返されます.
-	 * @exception Exception
-	 *                例外.
-	 */
-	public static final Serializable toObject(byte[] bin, int off, int len) throws Exception {
-		if (bin == null || bin.length <= 0) {
-			throw new IllegalArgumentException("Binary length for serialization restore does not exist.");
-		}
-		ObjectInputStream in = null;
-		Serializable ret = null;
-		try {
-			in = new ObjectInputStream(new ByteArrayInputStream(bin, off, len));
-			ret = (Serializable) in.readObject();
-		} catch (Exception e) {
-			throw e;
-		} finally {
-			try {
-				in.close();
-			} catch (Exception e) {
-			}
-			in = null;
-		}
-		return ret;
-	}
-
+	
 	/**
 	 * オブジェクト解析.
 	 * 
@@ -968,7 +977,7 @@ public final class LevelValues {
 		long addr = b.address();
 		int i, len;
 		Object ret;
-		int code = byte1Int(addr, pos);
+		int code = head(addr, pos);
 		switch (code) {
 		case 1: {
 			// string.
@@ -1157,6 +1166,7 @@ public final class LevelValues {
 		}
 		case 52: {
 			// Map.
+			Object k, v;
 			len = byte4Int(addr, pos);
 			Map map = new ArrayMap();
 			for (i = 0; i < len; i++) {
@@ -1189,14 +1199,18 @@ public final class LevelValues {
 			// NULL.
 			return null;
 		}
+		
 		}
 		// その他変換コードが設定されている場合.
-		if(code >= OriginCode.USE_OBJECT_CODE && ORIGIN_CODE != null) {
-			return ORIGIN_CODE.decode(pos, code, b, length);
+		if(ORIGIN_CODE != null && code >= OriginCode.USE_OBJECT_CODE) {
+			ret = ORIGIN_CODE.decode(pos, code, b, length);
+			if(ret != null) {
+				return ret;
+			}
 		}
 		throw new IOException("Unknown type '" + code + "' detected.");
 	}
-
+	
 	/**
 	 * 有効最大ビット長を取得.
 	 * 
@@ -1259,7 +1273,7 @@ public final class LevelValues {
 	 * @return
 	 * @throws Exception
 	 */
-	public static final Object decodeObjectArray(JniBuffer buf, int[] off) throws Exception {
+	public static final Object decodeObjectArray(int[] off, JniBuffer buf) throws Exception {
 		long b = buf.address();
 		int length = buf.position();
 		int code = byte1Int(b, off);
