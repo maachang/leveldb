@@ -221,7 +221,11 @@ public class LevelMap extends LevelIndexOperator implements ConvertMap {
 					leveldb.put(keyBuf, (JniBuffer) value);
 				}
 				// インデックス処理.
-				super.putIndex(key, twoKey, value);
+				if(!indexEmpty()) {
+					LevelBuffer.clearBuffer(keyBuf, null);
+					keyBuf = null;
+					super.putIndex(key, twoKey, value);
+				}
 			} else {
 				valBuf = LevelBuffer.value(value);
 				if(writeBatchFlag) {
@@ -230,7 +234,11 @@ public class LevelMap extends LevelIndexOperator implements ConvertMap {
 					leveldb.put(keyBuf, valBuf);
 				}
 				// インデックス処理.
-				super.putIndex(key, twoKey, value);
+				if(!indexEmpty()) {
+					LevelBuffer.clearBuffer(keyBuf, valBuf);
+					keyBuf = null; valBuf = null;
+					super.putIndex(key, twoKey, value);
+				}
 			}
 			return null;
 		} catch (LeveldbException le) {
@@ -421,18 +429,18 @@ public class LevelMap extends LevelIndexOperator implements ConvertMap {
 	 */
 	public Object get(Object key, Object twoKey) {
 		checkClose();
-		JniBuffer buf = null;
+		JniBuffer valBuf = null;
 		try {
-			buf = LevelBuffer.value();
-			if (getBuffer(buf, key, twoKey)) {
-				return LevelValues.decode(buf);
+			valBuf = LevelBuffer.value();
+			if (getBuffer(valBuf, key, twoKey)) {
+				return LevelValues.decode(valBuf);
 			}
 		} catch (LeveldbException le) {
 			throw le;
 		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			LevelBuffer.clearBuffer(null, buf);
+			LevelBuffer.clearBuffer(null, valBuf);
 		}
 		return null;
 	}
@@ -474,17 +482,27 @@ public class LevelMap extends LevelIndexOperator implements ConvertMap {
 	public boolean remove(Object key, Object twoKey) {
 		checkClose();
 		JniBuffer keyBuf = null;
+		Object v = null;
 		try {
-			Object v = get(key, twoKey);
+			final boolean idxFlg = !indexEmpty();
+			if(idxFlg) {
+				v = get(key, twoKey);
+			}
 			keyBuf = _getKey(false, key, twoKey);
 			if(writeBatchFlag) {
 				WriteBatch b = writeBatch();
 				b.remove(keyBuf);
-				super.removeIndex(key, twoKey, v);
+				if(idxFlg) {
+					LevelBuffer.clearBuffer(keyBuf, null);
+					keyBuf = null;
+					super.removeIndex(key, twoKey, v);
+				}
 				return true;
 			}
 			final boolean ret = leveldb.remove(keyBuf);
-			if(ret) {
+			if(idxFlg && ret) {
+				LevelBuffer.clearBuffer(keyBuf, null);
+				keyBuf = null;
 				super.removeIndex(key, twoKey, v);
 			}
 			return ret;
@@ -840,6 +858,13 @@ public class LevelMap extends LevelIndexOperator implements ConvertMap {
 		checkClose();
 		LevelMapIterator ret = null;
 		try {
+			if(key == null) {
+				LeveldbIterator it = leveldb.snapshot();
+				if(reverse) {
+					it.last();
+				}
+				return new LevelMapIterator(reverse, this, it);
+			}
 			ret = new LevelMapIterator(reverse, this, leveldb.snapshot());
 			return _search(ret, key, key2);
 		} catch(LeveldbException le) {
@@ -978,7 +1003,6 @@ public class LevelMap extends LevelIndexOperator implements ConvertMap {
 		 * クローズ処理.
 		 */
 		public void close() {
-			super.close();
 			if (itr != null) {
 				itr.close();
 				itr = null;
@@ -1014,13 +1038,16 @@ public class LevelMap extends LevelIndexOperator implements ConvertMap {
 				throw new NoSuchElementException();
 			}
 			JniBuffer keyBuf = null;
+			JniBuffer valBuf = null;
 			try {
 				keyBuf = LevelBuffer.key();
+				valBuf = LevelBuffer.value();
 				itr.key(keyBuf);
-				this.key = LevelId.get(map.getType(), keyBuf);
-				Object ret = LevelId.get(type, keyBuf);
-				LevelBuffer.clearBuffer(keyBuf, null);
-				keyBuf = null;
+				itr.value(valBuf);
+				this.resultKey = LevelId.get(type, keyBuf);
+				Object ret = LevelValues.decode(valBuf);
+				LevelBuffer.clearBuffer(keyBuf, valBuf);
+				keyBuf = null; valBuf = null;
 				if(reverse) {
 					itr.before();
 				} else {
@@ -1035,7 +1062,7 @@ public class LevelMap extends LevelIndexOperator implements ConvertMap {
 			} catch (Exception e) {
 				throw new LeveldbException(e);
 			} finally {
-				LevelBuffer.clearBuffer(keyBuf, null);
+				LevelBuffer.clearBuffer(keyBuf, valBuf);
 			}
 		}
 	}

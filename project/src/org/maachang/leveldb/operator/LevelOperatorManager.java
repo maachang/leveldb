@@ -11,7 +11,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.maachang.leveldb.JniBuffer;
 import org.maachang.leveldb.LevelBuffer;
 import org.maachang.leveldb.LevelOption;
-import org.maachang.leveldb.Leveldb;
 import org.maachang.leveldb.LeveldbException;
 import org.maachang.leveldb.Time12SequenceId;
 import org.maachang.leveldb.operator.LevelMap.LevelMapIterator;
@@ -195,7 +194,8 @@ public class LevelOperatorManager {
 	}
 
 	// オペレータを作成.
-	protected void _createOperator(JniBuffer valBuf, String name, String uniqueOrigin, int objectType, LevelOption opt) {
+	protected void _createOperator(String name, String uniqueOrigin, int objectType, LevelOption opt) {
+		JniBuffer valBuf = null;
 		try {
 			String uname;
 			switch(objectType) {
@@ -212,40 +212,34 @@ public class LevelOperatorManager {
 				uname = MAP_NAME + uniqueOrigin;
 				break;
 			}
+			// 名前を保存.
+			manager.put(_NAME_HEADER + name, uname);
+			// ユニーク名に、生成オプションを保存.
 			if(opt == null) {
 				// タイプなしで作成.
 				opt = LevelOption.create(LevelOption.TYPE_NONE);
 			}
+			valBuf = LevelBuffer.value();
 			opt.toBuffer(valBuf);
 			manager.put(_UNIQUE_HEADER + uname, valBuf);
-			LevelBuffer.clearBuffer(null, valBuf);
-			valBuf = null;
-			manager.put(_NAME_HEADER + name, uname);
 		} catch (LeveldbException le) {
 			throw le;
 		} catch (Exception e) {
 			throw new LeveldbException(e);
+		} finally {
+			LevelBuffer.clearBuffer(null, valBuf);
 		}
 	}
 	
-	// オペレータ情報の完全削除.
-	protected void _destroyOperator(String name, LevelOption opt) {
-		Leveldb.destroy(basePath + OPERATOR_PATH + name, opt);
-	}
-
 	// 指定オペレータ削除処理.
-	protected boolean _delete(JniBuffer valBuf, String name, String uname) {
+	protected boolean _delete(String name, String uname) {
 		try {
-			LevelOption opt = new LevelOption(valBuf);
-			LevelBuffer.clearBuffer(null, valBuf);
-			valBuf = null;
 			// オペレータがオープンの場合は、強制クローズ.
 			LevelOperator obj = operatorMemManager.get(uname);
 			if (obj != null) {
-				obj.close();
+				obj.deleteComplete();
 				obj = null;
 			}
-			_destroyOperator(uname, opt);
 			manager.remove(_UNIQUE_HEADER + uname);
 			manager.remove(_NAME_HEADER + name);
 			operatorMemManager.remove(uname);
@@ -400,7 +394,6 @@ public class LevelOperatorManager {
 	 * @return [true]の場合、生成成功です.
 	 */
 	public boolean create(String name, int objectType, LevelOption opt) {
-		JniBuffer valBuf = null;
 		rwLock.writeLock().lock();
 		try {
 			closeCheck();
@@ -408,13 +401,11 @@ public class LevelOperatorManager {
 			if (manager.containsKey(_NAME_HEADER + name)) {
 				return false;
 			}
-			valBuf = LevelBuffer.value();
 			String uname = Time12SequenceId.toString(uniqueManager.next());
-			_createOperator(valBuf, name, uname, objectType, opt);
+			_createOperator(name, uname, objectType, opt);
 			return true;
 		} finally {
 			rwLock.writeLock().unlock();
-			LevelBuffer.clearBuffer(null, valBuf);
 		}
 	}
 
@@ -425,7 +416,6 @@ public class LevelOperatorManager {
 	 * @return
 	 */
 	public boolean delete(String name) {
-		JniBuffer valBuf = null;
 		rwLock.writeLock().lock();
 		try {
 			closeCheck();
@@ -437,48 +427,9 @@ public class LevelOperatorManager {
 			if (uname == null) {
 				return false;
 			}
-			valBuf = LevelBuffer.value();
-			return _delete(valBuf, name, uname);
+			return _delete(name, uname);
 		} finally {
 			rwLock.writeLock().unlock();
-			LevelBuffer.clearBuffer(null, valBuf);
-		}
-	}
-	
-	/**
-	 * データの中身を全クリア.
-	 * @param name
-	 * @return
-	 */
-	public boolean trancate(String name) {
-		JniBuffer valBuf = null;
-		rwLock.writeLock().lock();
-		try {
-			closeCheck();
-			// 対象の情報が存在しない場合.
-			if (!manager.containsKey(_NAME_HEADER + name)) {
-				return false;
-			}
-			String uname = getUniqueName(name);
-			if (uname == null) {
-				return false;
-			}
-			valBuf = LevelBuffer.value();
-			if (!manager.getBuffer(valBuf, _UNIQUE_HEADER + uname)) {
-				return false;
-			}
-			// オペレータを再作成することで、高速にデータ削除.
-			LevelOption opt = new LevelOption(valBuf);
-			valBuf.position(0);
-			// オペレータを削除.
-			_delete(valBuf, name, uname);
-			valBuf.position(0);
-			// 新しくオペレータを生成.
-			_createOperator(valBuf, name, uname, _unameByOperatorType(uname), opt);
-			return true;
-		} finally {
-			rwLock.writeLock().unlock();
-			LevelBuffer.clearBuffer(null, valBuf);
 		}
 	}
 	

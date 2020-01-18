@@ -1,7 +1,5 @@
 package org.maachang.leveldb.operator;
 
-import org.maachang.leveldb.JniBuffer;
-import org.maachang.leveldb.LevelBuffer;
 import org.maachang.leveldb.LevelOption;
 import org.maachang.leveldb.Leveldb;
 import org.maachang.leveldb.LeveldbException;
@@ -85,7 +83,7 @@ public abstract class LevelOperator {
 			leveldb = null;
 		}
 	}
-
+	
 	// チェック処理.
 	protected void checkClose() {
 		if (parentCloseFlag.get() || closeFlag.get()) {
@@ -115,30 +113,44 @@ public abstract class LevelOperator {
 		return null;
 	}
 	
-	// Leveldb内容をクリア.
-	protected void clearLeveldb() {
+	/**
+	 * このオペレータを完全破棄.
+	 * @return boolean [true]の場合、削除成功.
+	 */
+	public boolean deleteComplete() {
 		checkClose();
-		JniBuffer key = null;
-		try {
-			// Iteratorで削除するので、超遅い.
-			LeveldbIterator it = leveldb.iterator();
-			key = LevelBuffer.key();
-			while (it.valid()) {
-				if (it.key(key) > 0) {
-					leveldb.remove(key);
-				}
-				LevelBuffer.clearBuffer(key, null);
-				it.next();
-			}
-		} catch (LeveldbException le) {
-			throw le;
-		} catch (Exception e) {
-			throw new LeveldbException(e);
-		} finally {
-			LevelBuffer.clearBuffer(key, null);
+		if(writeBatchFlag) {
+			return false;
 		}
+		if(!closeFlag.setToGetBefore(true)) {
+			String path = leveldb.getPath();
+			LevelOption opt = leveldb.getOption().copyObject();
+			leveldb.close();
+			leveldb = null;
+			Leveldb.destroy(path, opt);
+			return true;
+		}
+		return false;
 	}
-
+	
+	/**
+	 * このオペレータのデータを完全削除.
+	 * @return boolean [true]の場合、データの完全削除が成功しました.
+	 */
+	public boolean trancate() {
+		checkClose();
+		if(writeBatchFlag) {
+			return false;
+		}
+		String path = leveldb.getPath();
+		LevelOption opt = leveldb.getOption().copyObject();
+		leveldb.close();
+		leveldb = null;
+		Leveldb.destroy(path, opt);
+		leveldb = new Leveldb(path, opt);
+		return true;
+	}
+	
 	/**
 	 * WriteBatchオブジェクトを取得.
 	 * 

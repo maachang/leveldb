@@ -10,7 +10,6 @@ import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -1166,7 +1165,6 @@ public final class LevelValues {
 		}
 		case 52: {
 			// Map.
-			Object k, v;
 			len = byte4Int(addr, pos);
 			Map map = new ArrayMap();
 			for (i = 0; i < len; i++) {

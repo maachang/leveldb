@@ -7,14 +7,12 @@ import java.util.Iterator;
  */
 public abstract class LevelIterator<K,V> implements Iterator<V> {
 	protected boolean reverse = false;
-	protected Object key = null;
+	protected Object resultKey = null;
 	
 	/**
 	 * クローズ処理.
 	 */
-	public void close() {
-		key = null;
-	}
+	public abstract void close();
 	
 	/**
 	 * クローズ済みかチェック.
@@ -36,6 +34,6 @@ public abstract class LevelIterator<K,V> implements Iterator<V> {
 	 */
 	@SuppressWarnings("unchecked")
 	public K getKey() {
-		return (K)key;
+		return (K)resultKey;
 	}
 }

@@ -207,7 +207,11 @@ public class LevelLatLon extends LevelIndexOperator {
 					leveldb.put(keyBuf, (JniBuffer) value);
 				}
 				// インデックス処理.
-				super.putIndex(qk, secKey, value);
+				if(!indexEmpty()) {
+					LevelBuffer.clearBuffer(keyBuf, null);
+					keyBuf = null;
+					super.putIndex(qk, secKey, value);
+				}
 			} else {
 				valBuf = LevelBuffer.value(value);
 				if(writeBatchFlag) {
@@ -216,7 +220,11 @@ public class LevelLatLon extends LevelIndexOperator {
 					leveldb.put(keyBuf, valBuf);
 				}
 				// インデックス処理.
-				super.putIndex(qk, secKey, value);
+				if(!indexEmpty()) {
+					LevelBuffer.clearBuffer(keyBuf, valBuf);
+					keyBuf = null; valBuf = null;
+					super.putIndex(qk, secKey, value);
+				}
 			}
 			
 			// セカンドキーがシーケンスIDの場合は、文字変換で返却.
@@ -275,17 +283,27 @@ public class LevelLatLon extends LevelIndexOperator {
 	public boolean remove(long qk, Object secKey) {
 		checkClose();
 		JniBuffer keyBuf = null;
+		Object v = null;
 		try {
-			Object v = get(qk, secKey);
+			final boolean idxFlg = !indexEmpty();
+			if(idxFlg) {
+				v = get(qk, secKey);
+			}
 			keyBuf = _getKey(qk, secKey);
 			if(writeBatchFlag) {
 				WriteBatch b = writeBatch();
 				b.remove(keyBuf);
-				super.removeIndex(qk, secKey, v);
+				if(idxFlg) {
+					LevelBuffer.clearBuffer(keyBuf, null);
+					keyBuf = null;
+					super.removeIndex(qk, secKey, v);
+				}
 				return true;
 			}
 			boolean ret = leveldb.remove(keyBuf);
-			if(ret) {
+			if(idxFlg && ret) {
+				LevelBuffer.clearBuffer(keyBuf, null);
+				keyBuf = null;
 				super.removeIndex(qk, secKey, v);
 			}
 			return ret;
@@ -416,18 +434,18 @@ public class LevelLatLon extends LevelIndexOperator {
 	 */
 	public Object get(long qk, Object secKey) {
 		checkClose();
-		JniBuffer buf = null;
+		JniBuffer valBuf = null;
 		try {
-			buf = LevelBuffer.value();
-			if (getBuffer(buf, qk, secKey)) {
-				return LevelValues.decode(buf);
+			valBuf = LevelBuffer.value();
+			if (getBuffer(valBuf, qk, secKey)) {
+				return LevelValues.decode(valBuf);
 			}
 		} catch (LeveldbException le) {
 			throw le;
 		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			LevelBuffer.clearBuffer(null, buf);
+			LevelBuffer.clearBuffer(null, valBuf);
 		}
 		return null;
 	}
@@ -680,7 +698,6 @@ public class LevelLatLon extends LevelIndexOperator {
 		 * クローズ処理.
 		 */
 		public void close() {
-			super.close();
 			if (itr != null) {
 				itr.close();
 				itr = null;
@@ -737,9 +754,9 @@ public class LevelLatLon extends LevelIndexOperator {
 				}
 				TwoKey tk = (TwoKey)key;
 				if(db.sequenceId != null) {
-					this.key = new Object[] {tk.get(0), Time12SequenceId.toString((byte[])tk.get(1))};
+					this.resultKey = new Object[] {tk.get(0), Time12SequenceId.toString((byte[])tk.get(1))};
 				} else {
-					this.key = new Object[] {tk.get(0), tk.get(1)};
+					this.resultKey = new Object[] {tk.get(0), tk.get(1)};
 				}
 				return val;
 			} catch (LeveldbException le) {
@@ -839,7 +856,6 @@ public class LevelLatLon extends LevelIndexOperator {
 		
 		@Override
 		public void close() {
-			super.close();
 			if(itr != null) {
 				itr.close();
 				itr = null;
@@ -946,10 +962,10 @@ public class LevelLatLon extends LevelIndexOperator {
 			if(key != null) {
 				TwoKey tk = (TwoKey)key;
 				if(db.sequenceId != null) {
-					this.key = new FixedArray<Object>(
+					this.resultKey = new FixedArray<Object>(
 						new Object[] {tk.get(0), Time12SequenceId.toString((byte[])tk.get(1))});
 				} else {
-					this.key = new FixedArray<Object>(
+					this.resultKey = new FixedArray<Object>(
 						new Object[] {tk.get(0), tk.get(1)});
 				}
 				return value;

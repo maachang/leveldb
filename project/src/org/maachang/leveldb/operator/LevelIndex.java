@@ -610,7 +610,7 @@ public class LevelIndex extends LevelOperator {
 			// ロールバック処理.
 			super.rollback();
 			// 全データを削除.
-			super.clearLeveldb();
+			super.trancate();
 			
 			it = parent.snapshot();
 			keyBuf = LevelBuffer.key();
@@ -655,7 +655,6 @@ public class LevelIndex extends LevelOperator {
 		}
 	}
 	
-	
 	/**
 	 * Levelインデックスイテレータ.
 	 */
@@ -681,7 +680,6 @@ public class LevelIndex extends LevelOperator {
 
 		@Override
 		public void close() {
-			super.close();
 			if (itr != null) {
 				itr.close();
 				itr = null;
@@ -745,7 +743,7 @@ public class LevelIndex extends LevelOperator {
 					// インデックスの条件と違うものは取得しない.
 					if(convertColumType(base.columnType,
 						LevelIndex.getValueInColumns(base.indexColumnList, ret)) != null) {
-						this.key = LevelId.get(src.getType(), keyBuf);
+						this.resultKey = LevelId.get(src.getType(), keyBuf);
 						return (Map)ret;
 					}
 				}

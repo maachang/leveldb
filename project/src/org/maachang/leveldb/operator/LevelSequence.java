@@ -153,7 +153,11 @@ public class LevelSequence extends LevelIndexOperator {
 				} else {
 					leveldb.put(keyBuf, (JniBuffer)value);
 				}
-				super.putIndex(key, null, value);
+				if(!indexEmpty()) {
+					LevelBuffer.clearBuffer(keyBuf, null);
+					keyBuf = null;
+					super.putIndex(key, null, value);
+				}
 			} else {
 				valBuf = LevelBuffer.value(value);
 				if(writeBatchFlag) {
@@ -161,7 +165,11 @@ public class LevelSequence extends LevelIndexOperator {
 				} else {
 					leveldb.put(keyBuf, valBuf);
 				}
-				super.putIndex(key, null, value);
+				if(!indexEmpty()) {
+					LevelBuffer.clearBuffer(keyBuf, valBuf);
+					keyBuf = null; valBuf = null;
+					super.putIndex(key, null, value);
+				}
 			}
 			return Time12SequenceId.toString((byte[])key);
 		} catch (LeveldbException le) {
@@ -263,18 +271,18 @@ public class LevelSequence extends LevelIndexOperator {
 	 */
 	public Object get(Object key) {
 		checkClose();
-		JniBuffer buf = null;
+		JniBuffer valBuf = null;
 		try {
-			buf = LevelBuffer.value();
-			if (getBuffer(buf, key)) {
-				return LevelValues.decode(buf);
+			valBuf = LevelBuffer.value();
+			if (getBuffer(valBuf, key)) {
+				return LevelValues.decode(valBuf);
 			}
 		} catch (LeveldbException le) {
 			throw le;
 		} catch (Exception e) {
 			throw new LeveldbException(e);
 		} finally {
-			LevelBuffer.clearBuffer(null, buf);
+			LevelBuffer.clearBuffer(null, valBuf);
 		}
 		return null;
 	}
@@ -289,18 +297,29 @@ public class LevelSequence extends LevelIndexOperator {
 	public String remove(Object key) {
 		checkClose();
 		JniBuffer keyBuf = null;
+		Object v = null;
 		try {
 			if(key instanceof String) {
 				key = Time12SequenceId.toBinary((String)key);
 			}
-			Object v = get(key);
+			final boolean idxFlg = !indexEmpty();
+			if(idxFlg) {
+				v = get(key);
+			}
 			keyBuf = _getKey(false, key);
 			if(writeBatchFlag) {
 				WriteBatch b = writeBatch();
 				b.remove(keyBuf);
-				super.removeIndex(key, null, v);
+				if(idxFlg) {
+					LevelBuffer.clearBuffer(keyBuf, null);
+					keyBuf = null;
+					super.removeIndex(key, null, v);
+				}
 			} else {
-				if(leveldb.remove(keyBuf)) {
+				final boolean delFlg = leveldb.remove(keyBuf);
+				if(idxFlg && delFlg) {
+					LevelBuffer.clearBuffer(keyBuf, null);
+					keyBuf = null;
 					super.removeIndex(key, null, v);
 				}
 			}
@@ -506,7 +525,6 @@ public class LevelSequence extends LevelIndexOperator {
 		 * クローズ処理.
 		 */
 		public void close() {
-			super.close();
 			if (itr != null) {
 				itr.close();
 				itr = null;
@@ -550,7 +568,7 @@ public class LevelSequence extends LevelIndexOperator {
 				itr.value(valBuf);
 				Object ret = LevelId.get(LevelOption.TYPE_FREE, keyBuf);
 				Object val = LevelValues.decode(valBuf);
-				this.key = Time12SequenceId.toString((byte[])ret);
+				this.resultKey = Time12SequenceId.toString((byte[])ret);
 				LevelBuffer.clearBuffer(keyBuf, valBuf);
 				keyBuf = null;
 				valBuf = null;

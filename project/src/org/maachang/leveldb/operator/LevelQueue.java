@@ -289,7 +289,6 @@ public class LevelQueue extends LevelOperator {
 		 */
 		@Override
 		public void close() {
-			super.close();
 			LeveldbIterator i = itr; itr = null;
 			if (i != null) {
 				i.close();
@@ -335,7 +334,7 @@ public class LevelQueue extends LevelOperator {
 				if (!itr.valid()) {
 					close();
 				}
-				this.key = Time12SequenceId.toString(keyBuf.getBinary());
+				this.resultKey = Time12SequenceId.toString(keyBuf.getBinary());
 				Object value = LevelValues.decode(valBuf);
 				LevelBuffer.clearBuffer(keyBuf, valBuf);
 				keyBuf = null; valBuf = null;

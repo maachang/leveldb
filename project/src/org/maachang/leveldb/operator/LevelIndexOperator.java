@@ -1,10 +1,12 @@
 package org.maachang.leveldb.operator;
 
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.maachang.leveldb.JniBuffer;
+import org.maachang.leveldb.LevelBuffer;
 import org.maachang.leveldb.LevelOption;
 import org.maachang.leveldb.LevelValues;
 import org.maachang.leveldb.Leveldb;
@@ -14,6 +16,7 @@ import org.maachang.leveldb.util.Converter;
 import org.maachang.leveldb.util.FileUtil;
 import org.maachang.leveldb.util.FixedSearchArray;
 import org.maachang.leveldb.util.OList;
+import org.maachang.leveldb.util.ObjectList;
 
 /**
  * インデックスがサポートされたオペレータ.
@@ -141,17 +144,20 @@ public abstract class LevelIndexOperator extends LevelOperator {
 			// 現在の全インデックスにデータ登録.
 			LevelIndex idx;
 			final int len = indexList == null ? 0 : indexList.size();
+			if(len > 0 && value instanceof JniBuffer) {
+				JniBuffer buf = null;
+				try {
+					buf = (JniBuffer) value;
+					value = LevelValues.decode(buf);
+				} catch(Exception e) {
+					throw new LeveldbException(e);
+				} finally {
+					LevelBuffer.clearBuffer(null, buf);
+				}
+			}
 			for(int i = 0; i < len; i ++) {
 				if((idx = indexList.get(i)) != null && !idx.isClose()) {
-					if(value instanceof JniBuffer) {
-						try {
-							idx.put(key, twoKey, LevelValues.decode((JniBuffer) value));
-						} catch(Exception e) {
-							throw new LeveldbException(e);
-						}
-					} else {
-						idx.put(key, twoKey, value);
-					}
+					idx.put(key, twoKey, value);
 					break;
 				}
 			}
@@ -167,17 +173,20 @@ public abstract class LevelIndexOperator extends LevelOperator {
 			// 現在の全インデックスにデータ削除.
 			LevelIndex idx;
 			final int len = indexList == null ? 0 : indexList.size();
+			if(len > 0 && value instanceof JniBuffer) {
+				JniBuffer buf = null;
+				try {
+					buf = (JniBuffer) value;
+					value = LevelValues.decode(buf);
+				} catch(Exception e) {
+					throw new LeveldbException(e);
+				} finally {
+					LevelBuffer.clearBuffer(null, buf);
+				}
+			}
 			for(int i = 0; i < len; i ++) {
 				if((idx = indexList.get(i)) != null && !idx.isClose()) {
-					if(value instanceof JniBuffer) {
-						try {
-							idx.remove(key, twoKey, LevelValues.decode((JniBuffer) value));
-						} catch(Exception e) {
-							throw new LeveldbException(e);
-						}
-					} else {
-						idx.remove(key, twoKey, value);
-					}
+					idx.remove(key, twoKey, value);
 					break;
 				}
 			}
@@ -191,20 +200,116 @@ public abstract class LevelIndexOperator extends LevelOperator {
 		boolean cflg = closeFlag.get();
 		super.close();
 		if(cflg) {
-			indexLock.writeLock().lock();
-			try {
-				OList<LevelIndex> lst = indexList;
-				indexList = null;
-				indexColumns = null;
-				final int len = lst == null ? 0 : lst.size();
+			closeIndex();
+		}
+	}
+	
+	// インデックス情報のクローズ.
+	private void closeIndex() {
+		indexLock.writeLock().lock();
+		try {
+			OList<LevelIndex> lst = indexList;
+			indexList = null; indexColumns = null;
+			final int len = lst == null ? 0 : lst.size();
+			for(int i = 0; i < len; i ++) {
+				try {
+					lst.get(i).close();
+				} catch(Exception e) {}
+			}
+		} finally {
+			indexLock.writeLock().unlock();
+		}
+	}
+	
+	@Override
+	public boolean deleteComplete() {
+		if(super.deleteComplete()) {
+			List<Exception> errs = new ObjectList<Exception>();
+			if(deleteIndex(errs)) {
+				if(errs.size() > 0) {
+					if(errs.get(0) instanceof LeveldbException) {
+						throw (LeveldbException)errs.get(0);
+					}
+					throw new LeveldbException(errs.get(0));
+				}
+			}
+			return true;
+		}
+		return false;
+	}
+	
+	// インデックス情報の完全削除処理.
+	// true返却でエラー.
+	private boolean deleteIndex(List<Exception> errs) {
+		checkClose();
+		indexLock.writeLock().lock();
+		try {
+			boolean resultError = false;
+			OList<LevelIndex> list = indexList;
+			if(list != null) {
+				indexList = null; indexColumns = null;
+				final int len = list.size();
+				// 全削除.
 				for(int i = 0; i < len; i ++) {
 					try {
-						lst.get(i).close();
-					} catch(Exception e) {}
+						list.get(i).deleteComplete();
+					} catch(Exception e) {
+						if(errs != null) {
+							errs.add(e);
+						}
+						resultError = true;
+					}
 				}
-			} finally {
-				indexLock.writeLock().unlock();
+				list.clear();
 			}
+			return resultError;
+		} finally {
+			indexLock.writeLock().unlock();
+		}
+	}
+	
+	@Override
+	public boolean trancate() {
+		if(super.trancate()) {
+			List<Exception> errs = new ObjectList<Exception>();
+			if(trancateIndex(errs)) {
+				if(errs.size() > 0) {
+					if(errs.get(0) instanceof LeveldbException) {
+						throw (LeveldbException)errs.get(0);
+					}
+					throw new LeveldbException(errs.get(0));
+				}
+			}
+			return true;
+		}
+		return false;
+	}
+	
+	// インデックス情報のデータ削除.
+	// true返却でエラー.
+	private boolean trancateIndex(List<Exception> errs) {
+		checkClose();
+		indexLock.writeLock().lock();
+		try {
+			boolean resultError = false;
+			OList<LevelIndex> list = indexList;
+			if(list != null) {
+				final int len = list.size();
+				// データ削除.
+				for(int i = 0; i < len; i ++) {
+					try {
+						list.get(i).trancate();
+					} catch(Exception e) {
+						if(errs != null) {
+							errs.add(e);
+						}
+						resultError = true;
+					}
+				}
+			}
+			return resultError;
+		} finally {
+			indexLock.writeLock().unlock();
 		}
 	}
 	
@@ -222,7 +327,7 @@ public abstract class LevelIndexOperator extends LevelOperator {
 					}
 				}
 			} finally {
-				indexLock.writeLock().unlock();
+				indexLock.readLock().unlock();
 			}
 		}
 	}
@@ -241,7 +346,7 @@ public abstract class LevelIndexOperator extends LevelOperator {
 					}
 				}
 			} finally {
-				indexLock.writeLock().unlock();
+				indexLock.readLock().unlock();
 			}
 		}
 	}
@@ -484,6 +589,39 @@ public abstract class LevelIndexOperator extends LevelOperator {
 			len = lst.size();
 			String[] ret = new String[len];
 			System.arraycopy(lst.toArray(), 0, ret, 0, len);
+			return ret;
+		} finally {
+			indexLock.readLock().unlock();
+		}
+	}
+	
+	// インデックスが存在するかチェック.
+	protected boolean indexEmpty() {
+		checkClose();
+		indexLock.readLock().lock();
+		try {
+			return indexList == null || indexList.size() <= 0;
+		} finally {
+			indexLock.readLock().unlock();
+		}
+	}
+	
+	// インデックス生成群の条件を取得.
+	protected Object[] indexInfo() {
+		checkClose();
+		indexLock.readLock().lock();
+		try {
+			LevelIndex idx;
+			int len = indexList == null ? 0 : indexList.size();
+			Object[] ret = new Object[len];
+			for(int i = 0; i < len; i ++) {
+				idx = indexList.get(i);
+				ret[i] = new Object[] {
+					idx.indexColumnName,			// インデックスカラム名.
+					idx.columnType,					// インデックスカラムタイプ.
+					idx.getOption().copyObject()	// 生成オプション.
+				};
+			}
 			return ret;
 		} finally {
 			indexLock.readLock().unlock();
