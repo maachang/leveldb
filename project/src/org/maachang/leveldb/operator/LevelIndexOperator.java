@@ -90,7 +90,8 @@ public abstract class LevelIndexOperator extends LevelOperator {
 			int len = flist.length;
 			OList<String> list = new OList<String>();
 			for(int i = 0; i < len; i ++) {
-				if(path.startsWith(fname = dirPath + flist[i]) &&
+				fname = dirPath + flist[i];
+				if(fname.startsWith(path) &&
 					flist[i].endsWith(LevelIndex.INDEX_FOODER) &&
 					flist[i].lastIndexOf(LevelIndex.INDEX_CUT) != -1 &&
 					FileUtil.isDir(fname)) {
@@ -117,7 +118,7 @@ public abstract class LevelIndexOperator extends LevelOperator {
 					continue;
 				}
 				columnName = fname.substring(pp + 1, p);
-				columnType = fname.substring(p + 1, fname.length() - LevelIndex.INDEX_CUT.length());
+				columnType = fname.substring(p + 1, fname.length() - LevelIndex.INDEX_FOODER.length());
 				if(!Converter.isNumeric(columnType)) {
 					continue;
 				}
