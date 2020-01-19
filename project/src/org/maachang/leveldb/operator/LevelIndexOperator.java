@@ -226,7 +226,8 @@ public abstract class LevelIndexOperator extends LevelOperator {
 	public boolean deleteComplete() {
 		if(super.deleteComplete()) {
 			List<Exception> errs = new ObjectList<Exception>();
-			if(deleteIndex(errs)) {
+			if(deleteAllIndexComplete(errs)) {
+				// エラーの場合は最初のエラーを返却.
 				if(errs.size() > 0) {
 					if(errs.get(0) instanceof LeveldbException) {
 						throw (LeveldbException)errs.get(0);
@@ -239,9 +240,9 @@ public abstract class LevelIndexOperator extends LevelOperator {
 		return false;
 	}
 	
-	// インデックス情報の完全削除処理.
+	// 全インデックス情報の完全削除処理.
 	// true返却でエラー.
-	private boolean deleteIndex(List<Exception> errs) {
+	private boolean deleteAllIndexComplete(List<Exception> errs) {
 		checkClose();
 		indexLock.writeLock().lock();
 		try {
@@ -273,7 +274,8 @@ public abstract class LevelIndexOperator extends LevelOperator {
 	public boolean trancate() {
 		if(super.trancate()) {
 			List<Exception> errs = new ObjectList<Exception>();
-			if(trancateIndex(errs)) {
+			if(trancateAllIndex(errs)) {
+				// エラーの場合は最初のエラーを返却.
 				if(errs.size() > 0) {
 					if(errs.get(0) instanceof LeveldbException) {
 						throw (LeveldbException)errs.get(0);
@@ -286,9 +288,9 @@ public abstract class LevelIndexOperator extends LevelOperator {
 		return false;
 	}
 	
-	// インデックス情報のデータ削除.
+	// 全インデックス情報のデータ削除.
 	// true返却でエラー.
-	private boolean trancateIndex(List<Exception> errs) {
+	private boolean trancateAllIndex(List<Exception> errs) {
 		checkClose();
 		indexLock.writeLock().lock();
 		try {
@@ -323,17 +325,28 @@ public abstract class LevelIndexOperator extends LevelOperator {
 	public void commit() {
 		super.commit();
 		if(writeBatchFlag) {
+			Exception err = null;
 			indexLock.readLock().lock();
 			try {
 				LevelIndex idx;
 				final int len = indexList == null ? 0 : indexList.size();
 				for(int i = 0; i < len; i ++) {
 					if((idx = indexList.get(i)) != null && !idx.isClose()) {
-						idx.commit();
+						try {
+							idx.commit();
+						} catch(Exception e) {
+							err = e;
+						}
 					}
 				}
 			} finally {
 				indexLock.readLock().unlock();
+			}
+			if(err != null) {
+				if(err instanceof LeveldbException) {
+					throw (LeveldbException)err;
+				}
+				throw new LeveldbException(err);
 			}
 		}
 	}
@@ -342,17 +355,28 @@ public abstract class LevelIndexOperator extends LevelOperator {
 	public void rollback() {
 		super.rollback();
 		if(writeBatchFlag) {
+			Exception err = null;
 			indexLock.readLock().lock();
 			try {
 				LevelIndex idx;
 				final int len = indexList == null ? 0 : indexList.size();
 				for(int i = 0; i < len; i ++) {
 					if((idx = indexList.get(i)) != null && !idx.isClose()) {
-						idx.rollback();
+						try {
+							idx.rollback();
+						} catch(Exception e) {
+							err = e;
+						}
 					}
 				}
 			} finally {
 				indexLock.readLock().unlock();
+			}
+			if(err != null) {
+				if(err instanceof LeveldbException) {
+					throw (LeveldbException)err;
+				}
+				throw new LeveldbException(err);
 			}
 		}
 	}

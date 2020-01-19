@@ -293,32 +293,19 @@ public class LevelOperatorManager {
 			
 			switch(_unameByOperatorType(uname)) {
 			case LevelOperator.LEVEL_LAT_LON:
-				if(opt.getType() == LevelOption.TYPE_NONE) {
-					ret = new LevelLatLon(dbName, machineId);
-				} else {
-					ret = new LevelLatLon(dbName, machineId, opt);
-				}
+				ret = new LevelLatLon(dbName, machineId, opt);
 				break;
 			case LevelOperator.LEVEL_SEQUENCE:
-				if(opt.getType() == LevelOption.TYPE_NONE) {
-					ret = new LevelSequence(dbName, machineId);
-				} else {
-					ret = new LevelSequence(dbName, machineId, opt);
-				}
+				ret = new LevelSequence(dbName, machineId, opt);
 				break;
 			case LevelOperator.LEVEL_QUEUE:
-				if(opt.getType() == LevelOption.TYPE_NONE) {
-					ret = new LevelQueue(machineId, dbName);
-				} else {
-					ret = new LevelQueue(machineId, dbName, opt);
-				}
+				ret = new LevelQueue(machineId, dbName, opt);
 				break;
 			case LevelOperator.LEVEL_MAP:
 				if(opt.getType() == LevelOption.TYPE_NONE) {
-					ret = new LevelMap(dbName);
-				} else {
-					ret = new LevelMap(dbName, opt);
+					opt.setType(LevelOption.TYPE_STRING);
 				}
+				ret = new LevelMap(dbName, opt);
 				break;
 			}
 			// キャッシュにセット.

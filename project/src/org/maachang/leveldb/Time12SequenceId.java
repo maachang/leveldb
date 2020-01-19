@@ -180,7 +180,7 @@ public class Time12SequenceId {
 	}
 
 	public final String toString() {
-		return toString(get());
+		return toString(next());
 	}
 
 	/**

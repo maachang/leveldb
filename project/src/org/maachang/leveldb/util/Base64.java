@@ -1,5 +1,7 @@
 package org.maachang.leveldb.util;
 
+import rhigin.util.Base64;
+
 /**
  * Base64.
  */
@@ -245,5 +247,24 @@ public class Base64 {
 			break;
 		}
 		return ret;
+	}
+	
+	/**
+	 * デコードデータ長を取得.
+	 * @param length 対象の長さを設定します.
+	 * @return int デコードデータ長が返却されます.
+	 */
+	public static final int decodeOutSize(String base64) {
+		int i, etc, len;
+		int allLen = base64.length();
+		for (i = allLen - 1, etc = 0; i >= 0; i--) {
+			if (base64.charAt(i) == Base64.REMAINDER_ENC) {
+				etc++;
+			} else {
+				break;
+			}
+		}
+		len = allLen / 4;
+		return (len * 3) - etc;
 	}
 }

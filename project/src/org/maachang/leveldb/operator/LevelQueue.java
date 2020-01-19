@@ -145,7 +145,7 @@ public class LevelQueue extends LevelOperator {
 	public Object get() {
 		return get(null);
 	}
-
+	
 	/**
 	 * 先頭の情報を取得して削除.
 	 * 
@@ -176,11 +176,12 @@ public class LevelQueue extends LevelOperator {
 				}
 			} else {
 				itr = leveldb.iterator();
+				keyBuf = LevelBuffer.key();
+				valBuf = LevelBuffer.value();
 				while(true) {
 					ret = null;
 					if (itr.valid()) {
-						keyBuf = LevelBuffer.key();
-						valBuf = LevelBuffer.value();
+						keyBuf.position(0); valBuf.position(0);
 						itr.key(keyBuf);
 						itr.value(valBuf);
 						if (out != null && out.length >= 1) {
@@ -188,7 +189,7 @@ public class LevelQueue extends LevelOperator {
 						}
 						ret = LevelValues.decode(valBuf);
 						if(!leveldb.remove(keyBuf)) {
-							// 削除に失敗した場合はやり直す.
+							// 削除に失敗した場合はリトライ.
 							continue;
 						}
 					}
