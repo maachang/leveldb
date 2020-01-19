@@ -1,7 +1,5 @@
 package org.maachang.leveldb.util;
 
-import rhigin.util.Base64;
-
 /**
  * Base64.
  */
