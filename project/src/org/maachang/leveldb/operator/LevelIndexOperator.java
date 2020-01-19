@@ -295,11 +295,16 @@ public abstract class LevelIndexOperator extends LevelOperator {
 			boolean resultError = false;
 			OList<LevelIndex> list = indexList;
 			if(list != null) {
+				LevelIndex idx;
 				final int len = list.size();
 				// データ削除.
 				for(int i = 0; i < len; i ++) {
+					idx = list.get(i);
 					try {
-						list.get(i).trancate();
+						idx.trancate();
+						// 現在格納されているインデックス親オブジェクトは、
+						// 一旦クローズされているので、再セットする.
+						idx.parent = leveldb;
 					} catch(Exception e) {
 						if(errs != null) {
 							errs.add(e);
@@ -596,7 +601,7 @@ public abstract class LevelIndexOperator extends LevelOperator {
 		}
 	}
 	
-	// インデックスが存在するかチェック.
+	// インデックスが存在するかチェ)ック.
 	protected boolean indexEmpty() {
 		checkClose();
 		indexLock.readLock().lock();
