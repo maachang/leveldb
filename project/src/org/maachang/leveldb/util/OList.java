@@ -8,9 +8,9 @@ import java.util.Arrays;
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public final class OList<T> {
 	private static final int DEF = 8;
-	private Object[] list;
-	private int length;
-	private int max;
+	protected Object[] list;
+	protected int length;
+	protected int max;
 
 	/**
 	 * 要素を指定して、オブジェクトを作成.

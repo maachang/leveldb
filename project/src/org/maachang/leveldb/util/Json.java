@@ -314,7 +314,7 @@ public final class Json {
 		else if (type == TYPE_MAP) {
 			Map<String, Object> ret;
 			// ret = new HashMap<String, Object>();
-			ret = new ArrayMap();
+			ret = new ArrayMap<String, Object>();
 			String key = null;
 			for (int i = no + 1; i < len; i++) {
 				value = (String) token.get(i);
