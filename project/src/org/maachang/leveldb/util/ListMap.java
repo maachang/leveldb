@@ -15,8 +15,7 @@ import java.util.Map;
  * ArrayMapを利用.
  * 
  * また、AndroidのArrayMapをAndroidMapとして移植したが、格納数が
- * 1000ぐら		Object[] olst = list.toArray();
-いならばAndroidMapの方が速いので、こちらを利用する.
+ * 1000ぐらいならばAndroidMapの方が速いので、こちらを利用する.
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class ListMap<K, V> implements ConvertGet<K> {
@@ -244,9 +243,9 @@ public class ListMap<K, V> implements ConvertGet<K> {
 	 */
 	@Override
 	public String toString() {
+		IndexKeyValue<K, V> kv;
 		StringBuilder buf = new StringBuilder();
 		int len = list.size();
-		IndexKeyValue<K, V> kv;
 		buf.append("{");
 		for (int i = 0; i < len; i++) {
 			kv = list.get(i);
@@ -284,48 +283,4 @@ public class ListMap<K, V> implements ConvertGet<K> {
 	public final V getOriginal(final K n) {
 		return get(n);
 	}
-	
-	/*
-	private static final String randName(Xor128 rand, int len) {
-		int n;
-		int cnt = 0;
-		byte[] ret = new byte[len * 4];
-		for(int i = 0; i < len; i ++) {
-			n = rand.nextInt();
-			ret[cnt++] = (byte)((n & 0xff000000) >> 24);
-			ret[cnt++] = (byte)((n & 0x00ff0000) >> 16);
-			ret[cnt++] = (byte)((n & 0x0000ff00) >> 8);
-			ret[cnt++] = (byte)((n & 0x000000ff) >> 0);
-		}
-		return Base64.encode(ret);
-	}
-	
-	public static final void main(String[] args) {
-		int len = 100000;
-		Xor128 rand = new Xor128(System.nanoTime());
-		String[] key, value;
-		key = new String[len];
-		value = new String[len];
-		
-		for(int i = 0; i < len; i ++) {
-			key[i] = randName(rand, 10);
-			value[i] = randName(rand, 10);
-		}
-		
-		ListMap<String, String> listMap = new ListMap<String, String>();
-		Map<String, String> hashMap = new HashMap<String, String>();
-		for(int i = 0; i < len; i ++) {
-			listMap.put(key[i], value[i]);
-			hashMap.put(key[i], value[i]);
-		}
-		
-		int cnt = 0;
-		for(int i = 0; i < len; i ++) {
-			if(listMap.get(key[i]).equals(hashMap.get(key[i]))) {
-				cnt ++;
-			}
-		}
-		System.out.println("cnt:" + cnt + " " + (cnt == len));
-	}
-	*/
 }
