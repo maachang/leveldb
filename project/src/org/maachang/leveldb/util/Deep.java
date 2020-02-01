@@ -10,7 +10,6 @@ import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -74,7 +73,7 @@ public final class Deep {
 			return ret;
 		} else if (o instanceof Map) {
 			Object key;
-			Map ret = new HashMap();
+			Map ret = new ArrayMap();
 			Map n = (Map) o;
 			Iterator it = n.keySet().iterator();
 			while (it.hasNext()) {

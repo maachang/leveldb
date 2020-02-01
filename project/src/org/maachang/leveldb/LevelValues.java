@@ -1254,15 +1254,15 @@ public final class LevelValues {
 	 * @param c オブジェク配列を設定します.
 	 * @exception Exception 例外.
 	 */
-	public static final void encodeObjectArray(JniBuffer buf, Object... c) throws Exception {
-		head(buf, 50); // 他配列.
-		byte4(buf, 0); // Object配列.
-		int len = c == null ? 0 : c.length;
-		byte4(buf, len); // 長さ.
-		for (int i = 0; i < len; i++) {
-			encodeObject(buf, c[i]);
-		}
-	}
+//	public static final void encodeObjectArray(JniBuffer buf, Object... c) throws Exception {
+//		head(buf, 50); // 他配列.
+//		byte4(buf, 0); // Object配列.
+//		int len = c == null ? 0 : c.length;
+//		byte4(buf, len); // 長さ.
+//		for (int i = 0; i < len; i++) {
+//			encodeObject(buf, c[i]);
+//		}
+//	}
 	
 	/**
 	 * オブジェクト配列をデコード.
@@ -1271,24 +1271,24 @@ public final class LevelValues {
 	 * @return
 	 * @throws Exception
 	 */
-	public static final Object decodeObjectArray(int[] off, JniBuffer buf) throws Exception {
-		long b = buf.address();
-		int length = buf.position();
-		int code = byte1Int(b, off);
-		if(code != 50) {
-			throw new LeveldbException("Object array conversion pattern does not match.");
-		}
-		code = byte4Int(b, off);
-		if(code != 0) {
-			throw new LeveldbException("Object array conversion pattern does not match.");
-		}
-		int len = byte4Int(b, off);
-		Object[] ret = new Object[len];
-		for(int i = 0; i < len; i ++) {
-			ret[i] = decodeObject(off, buf, length);
-		}
-		return ret;
-	}
+//	public static final Object decodeObjectArray(int[] off, JniBuffer buf) throws Exception {
+//		long b = buf.address();
+//		int length = buf.position();
+//		int code = byte1Int(b, off);
+//		if(code != 50) {
+//			throw new LeveldbException("Object array conversion pattern does not match.");
+//		}
+//		code = byte4Int(b, off);
+//		if(code != 0) {
+//			throw new LeveldbException("Object array conversion pattern does not match.");
+//		}
+//		int len = byte4Int(b, off);
+//		Object[] ret = new Object[len];
+//		for(int i = 0; i < len; i ++) {
+//			ret[i] = decodeObject(off, buf, length);
+//		}
+//		return ret;
+//	}
 
 	/**
 	 * 拡張エンコード、デコード処理を行う場合の継承クラス.

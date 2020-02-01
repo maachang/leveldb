@@ -1,5 +1,8 @@
 package org.maachang.leveldb.operator;
 
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import org.maachang.leveldb.LevelOption;
 import org.maachang.leveldb.Leveldb;
 import org.maachang.leveldb.LeveldbException;
@@ -33,6 +36,11 @@ public abstract class LevelOperator {
 	protected LeveldbIterator _snapshot;
 	protected Flag parentCloseFlag = null;
 	protected Flag closeFlag = new Flag();
+	
+	// rwlock.
+	// このオブジェクトはこの上位で呼び出して利用する
+	// ためのものなので、この情報は基本利用しない.
+	protected final ReadWriteLock __rwLock = new ReentrantReadWriteLock();
 	
 	/**
 	 * デストラクタ.
@@ -266,6 +274,14 @@ public abstract class LevelOperator {
 	 */
 	public boolean isWriteBatch() {
 		return writeBatchFlag;
+	}
+	
+	/**
+	 * ReadWriteLockオブジェクトを取得.
+	 * @return
+	 */
+	public ReadWriteLock getLock() {
+		return __rwLock;
 	}
 	
 	/**

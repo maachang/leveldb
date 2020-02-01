@@ -230,6 +230,7 @@ public final class LevelOption {
 	 */
 	public void _createJniBuffer(int[] o, JniBuffer buf) {
 		try {
+			/*
 			long p = buf.address();
 			type = LevelValues.byte4Int(p, o);
 			write_buffer_size = LevelValues.byte4Int(p, o);
@@ -238,6 +239,16 @@ public final class LevelOption {
 			block_cache = LevelValues.byte4Int(p, o);
 			block_restart_interval = LevelValues.byte4Int(p, o);
 			expansion = (Object[])LevelValues.decodeObjectArray(o, buf);
+			*/
+			Object[] value = (Object[])LevelValues.decodeObject(o, buf, buf.position());
+			type = (int)value[0];
+			write_buffer_size = (int)value[1];
+			max_open_files = (int)value[2];
+			block_size = (int)value[3];
+			block_cache = (int)value[4];
+			block_restart_interval = (int)value[5];
+			expansion = (Object[])value[6];
+			
 		} catch(Exception e) {
 			throw new LeveldbException(e);
 		}
@@ -251,6 +262,7 @@ public final class LevelOption {
 	 */
 	public final void toBuffer(JniBuffer out) {
 		try {
+			/*
 			LevelValues.byte4(out, type);
 			LevelValues.byte4(out, write_buffer_size);
 			LevelValues.byte4(out, max_open_files);
@@ -258,6 +270,11 @@ public final class LevelOption {
 			LevelValues.byte4(out, block_cache);
 			LevelValues.byte4(out, block_restart_interval);
 			LevelValues.encodeObjectArray(out, expansion);
+			*/
+			LevelValues.encode(out, new Object[] {
+				type, write_buffer_size, max_open_files, block_size,
+				block_cache, block_restart_interval, expansion
+			});
 		} catch(Exception e) {
 			throw new LeveldbException(e);
 		}

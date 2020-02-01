@@ -183,7 +183,8 @@ public class LevelOperatorManager {
 		String target = _UNIQUE_HEADER + uname;
 		LevelMapIterator it = manager.iterator();
 		while(it.hasNext()) {
-			if((key = (String)it.next()).startsWith(_NAME_HEADER)) {
+			it.next();
+			if((key = (String)it.getKey()).startsWith(_NAME_HEADER)) {
 				value = (String)manager.get(key);
 				if(target.equals(value)) {
 					return key.substring(_NAME_HEADER.length());
@@ -556,7 +557,8 @@ public class LevelOperatorManager {
 				int cnt = 0;
 				it = (LevelMapIterator) manager.snapshot();
 				while (it.hasNext()) {
-					name = (String) it.next();
+					it.next();
+					name = (String)it.getKey();
 					if (name.startsWith(_NAME_HEADER)) {
 						if(offset <= cnt) {
 							ret.add(name.substring(off));
@@ -593,7 +595,8 @@ public class LevelOperatorManager {
 				int ret = 0;
 				it = (LevelMapIterator) manager.snapshot();
 				while (it.hasNext()) {
-					if (((String)it.next()).startsWith(_NAME_HEADER)) {
+					it.next();
+					if (((String)it.getKey()).startsWith(_NAME_HEADER)) {
 						ret ++;
 					}
 				}
