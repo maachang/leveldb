@@ -8,6 +8,9 @@ import org.maachang.leveldb.util.Flag;
  * Leveldb.
  */
 public final class Leveldb {
+	private static final long DEF_TIMEOUT = 1000L;
+	private static final long MIN_TIMEOUT = 150L;
+	private static final long MAX_TIMEOUT = 5000L;
 	protected long addr = 0L;
 	protected String path;
 	protected int type;
@@ -22,9 +25,9 @@ public final class Leveldb {
 	 *            対象のファイル名を設定します.
 	 */
 	public Leveldb(String path) {
-		this(path, null);
+		this(path, null, DEF_TIMEOUT);
 	}
-
+	
 	/**
 	 * コンストラクタ.
 	 * 
@@ -35,31 +38,71 @@ public final class Leveldb {
 	 */
 	@SuppressWarnings("resource")
 	public Leveldb(String path, LevelOption option) {
+		this(path, option, DEF_TIMEOUT);
+	}
+
+	/**
+	 * コンストラクタ.
+	 * 
+	 * @param path
+	 *            対象のファイル名を設定します.
+	 * @param option
+	 *            Leveldbオプションを設定します.
+	 * @param timeout
+	 *            オープン失敗の場合のリトライタイムアウト値を設定します.
+	 */
+	@SuppressWarnings("resource")
+	public Leveldb(String path, LevelOption option, long timeout) {
 		if (path == null || (path = path.trim()).length() <= 0) {
 			throw new LeveldbException("File name to open leveldb does not exist.");
 		} else if (option == null) {
 			option = new LevelOption();
 		}
+		if(timeout < MIN_TIMEOUT) {
+			timeout = MIN_TIMEOUT;
+		} else if(timeout > MAX_TIMEOUT) {
+			timeout = MAX_TIMEOUT;
+		}
 		String s;
 		long a = 0L;
-		JniBuffer b = null;
-		try {
-			s = new File(path).getCanonicalPath();
-			b = new JniBuffer();
-			b.setJniChar(s);
-			a = jni.leveldb_open(b.address(), LevelOption.getLeveldbKeyType(option.type), option.write_buffer_size,
-					option.max_open_files, option.block_size, option.block_restart_interval, option.block_cache);
-			b.destroy();
+		JniBuffer b;
+		long timeoutTime = System.currentTimeMillis() + timeout;
+		// タイムアウトまでリトライを行う.
+		while(true) {
+			s = null;
+			a = 0L;
 			b = null;
-		} catch (Exception e) {
-			throw new LeveldbException(e);
-		} finally {
-			if (b != null) {
+			try {
+				s = new File(path).getCanonicalPath();
+				b = new JniBuffer();
+				b.setJniChar(s);
+				a = jni.leveldb_open(b.address(), LevelOption.getLeveldbKeyType(option.type), option.write_buffer_size,
+						option.max_open_files, option.block_size, option.block_restart_interval, option.block_cache);
 				b.destroy();
+				b = null;
+			} catch (Exception e) {
+				throw new LeveldbException(e);
+			} finally {
+				if (b != null) {
+					b.destroy();
+				}
 			}
-		}
-		if (a == 0L) {
-			throw new LeveldbException("Failed to open Leveldb:" + s);
+			// オープンに失敗した場合.
+			if (a == 0L) {
+				// タイムアウトを超えている場合はエラー返却.
+				if(System.currentTimeMillis() > timeoutTime) {
+					throw new LeveldbException("Failed to open Leveldb:" + s);
+				}
+				// 一定期間待機.
+				try {
+					Thread.sleep(30L);
+				} catch(Exception e) {
+					throw new LeveldbException(e);
+				}
+			// オープンに成功した場合.
+			} else {
+				break;
+			}
 		}
 		this.addr = a;
 		this.path = s;
