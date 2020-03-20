@@ -14,6 +14,7 @@ import org.maachang.leveldb.LevelOption;
 import org.maachang.leveldb.LeveldbException;
 import org.maachang.leveldb.Time12SequenceId;
 import org.maachang.leveldb.operator.LevelMap.LevelMapIterator;
+import org.maachang.leveldb.util.Converter;
 import org.maachang.leveldb.util.FileUtil;
 import org.maachang.leveldb.util.Flag;
 import org.maachang.leveldb.util.ObjectList;
@@ -370,6 +371,13 @@ public class LevelOperatorManager {
 		return create(name, LevelOperator.LEVEL_QUEUE, opt);
 	}
 
+	// ユニーク名を作成.
+	private final String _getUniqueName() {
+		String ret = Time12SequenceId.toString(uniqueManager.next());
+		ret = Converter.changeString(ret, "/", "-");
+		return ret;
+	}
+
 	/**
 	 * 新しいオペレータを生成.
 	 * 
@@ -389,7 +397,7 @@ public class LevelOperatorManager {
 			if (manager.containsKey(_NAME_HEADER + name)) {
 				return false;
 			}
-			String uname = Time12SequenceId.toString(uniqueManager.next());
+			String uname = _getUniqueName();
 			_createOperator(name, uname, objectType, opt);
 			return true;
 		} finally {
