@@ -373,6 +373,9 @@ public class LevelOperatorManager {
 
 	// ユニーク名を作成.
 	private final String _getUniqueName() {
+		// ユニーク名をBase64で生成するが、この時の名前に対して「/」が入るので
+		// オープンに失敗してしまう。
+		// なので、/ の文字列を - に変更する.
 		String ret = Time12SequenceId.toString(uniqueManager.next());
 		ret = Converter.changeString(ret, "/", "-");
 		return ret;
@@ -397,8 +400,7 @@ public class LevelOperatorManager {
 			if (manager.containsKey(_NAME_HEADER + name)) {
 				return false;
 			}
-			String uname = _getUniqueName();
-			_createOperator(name, uname, objectType, opt);
+			_createOperator(name, _getUniqueName(), objectType, opt);
 			return true;
 		} finally {
 			rwLock.writeLock().unlock();
