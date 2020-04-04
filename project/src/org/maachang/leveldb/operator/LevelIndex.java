@@ -80,7 +80,7 @@ public class LevelIndex extends LevelOperator {
 	}
 	
 	// カラム名を文字列に戻す.
-	protected static final String srcColumnNames(String[] list) {
+	public static final String srcColumnNames(String[] list) {
 		if(list == null || list.length == 0) {
 			return null;
 		}
