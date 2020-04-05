@@ -723,7 +723,7 @@ public final class LevelValues {
 		// その他変換コードが設定されている場合.
 		if(ORIGIN_CODE != null) {
 			// オブジェクト変換.
-			o = ORIGIN_CODE.convert(o);
+			o = ORIGIN_CODE.inObject(o);
 			
 			// その他変換コードが設定されている場合.
 			if(ORIGIN_CODE.encode(buf, o)) {
@@ -969,6 +969,15 @@ public final class LevelValues {
 	 * @return Object 変換されたオブジェクトが返却されます.
 	 */
 	public static final Object decodeObject(int[] pos, JniBuffer b, int length) throws Exception {
+		Object ret = _decodeObject(pos, b, length);
+		if(ORIGIN_CODE != null) {
+			return ORIGIN_CODE.outObject(ret);
+		}
+		return ret;
+	}
+	
+	// オブジェクト解析.
+	private static final Object _decodeObject(int[] pos, JniBuffer b, int length) throws Exception {
 		if (length <= pos[0]) {
 			throw new IOException("Processing exceeds the specified length [" + length + " byte]:" + pos[0]);
 		}
@@ -1308,12 +1317,26 @@ public final class LevelValues {
 		protected static final int USE_OBJECT_CODE = 100;
 		
 		/**
-		 * オブジェクトの変換.
+		 * 入力オブジェクトの変換.
+		 * LevelValues.encodeObject で処理される毎に、この処理が呼ばれます.
+		 * 
 		 * @param o オブジェクトを設定します.
 		 * @return Object 変換されたオブジェクトが返却されます.
 		 * @exception Exception 例外.
 		 */
-		public Object convert(Object o) throws Exception {
+		public Object inObject(Object o) throws Exception {
+			return o;
+		}
+		
+		/**
+		 * 出力オブジェクトの変換.
+		 * LevelValues.decodeObject で処理結果毎に、この処理が呼ばれます.
+		 * 
+		 * @param o オブジェクトを設定します.
+		 * @return Object 変換されたオブジェクトが返却されます.
+		 * @exception Exception 例外.
+		 */
+		public Object outObject(Object o) throws Exception {
 			return o;
 		}
 		
