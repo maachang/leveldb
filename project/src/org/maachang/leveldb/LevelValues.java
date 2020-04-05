@@ -1205,6 +1205,7 @@ public final class LevelValues {
 			if(ret != null) {
 				return ret;
 			}
+			ORIGIN_CODE.noneDecode(code);
 		}
 		throw new IOException("Unknown type '" + code + "' detected.");
 	}
@@ -1295,7 +1296,7 @@ public final class LevelValues {
 	 * 
 	 * エンコード時には、必ず
 	 * 
-	 *  head(buf, 81); // objectCode(81番以降をセット).
+	 *  LevelValues.head(buf, USE_OBJECT_CODE); // objectCode(100番以降をセット).
 	 *  オブジェクトを変換.
 	 *  
 	 * のように設定します.
