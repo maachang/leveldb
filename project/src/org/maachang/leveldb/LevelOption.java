@@ -1,15 +1,18 @@
 package org.maachang.leveldb;
 
 import java.lang.reflect.Array;
+import java.util.List;
 import java.util.Map;
 
 import org.maachang.leveldb.util.Alphabet;
 import org.maachang.leveldb.util.Converter;
 import org.maachang.leveldb.util.Json;
+import org.maachang.leveldb.util.ObjectList;
 
 /**
  * LevelOptionオプション.
  */
+@SuppressWarnings("rawtypes")
 public final class LevelOption {
 	
 	/** キー格納タイプ : なし. **/
@@ -96,7 +99,7 @@ public final class LevelOption {
 	protected int block_restart_interval = -1;
 	
 	// 拡張オプション.
-	protected Object[] expansion = null;
+	protected List expansion = null;
 
 	/**
 	 * LevelOption生成.
@@ -143,7 +146,6 @@ public final class LevelOption {
 	 * 
 	 * @param args
 	 */
-	@SuppressWarnings("rawtypes")
 	public LevelOption(Object... args) {
 		int len = 0;
 		if (args == null || (len = args.length) == 0) {
@@ -230,25 +232,14 @@ public final class LevelOption {
 	 */
 	public void _createJniBuffer(int[] o, JniBuffer buf) {
 		try {
-			/*
-			long p = buf.address();
-			type = LevelValues.byte4Int(p, o);
-			write_buffer_size = LevelValues.byte4Int(p, o);
-			max_open_files = LevelValues.byte4Int(p, o);
-			block_size = LevelValues.byte4Int(p, o);
-			block_cache = LevelValues.byte4Int(p, o);
-			block_restart_interval = LevelValues.byte4Int(p, o);
-			expansion = (Object[])LevelValues.decodeObjectArray(o, buf);
-			*/
-			Object[] value = (Object[])LevelValues.decodeObject(o, buf, buf.position());
-			type = (int)value[0];
-			write_buffer_size = (int)value[1];
-			max_open_files = (int)value[2];
-			block_size = (int)value[3];
-			block_cache = (int)value[4];
-			block_restart_interval = (int)value[5];
-			expansion = (Object[])value[6];
-			
+			List value = (List)LevelValues.decodeObject(o, buf, buf.position());
+			type = (int)value.get(0);
+			write_buffer_size = (int)value.get(1);
+			max_open_files = (int)value.get(2);
+			block_size = (int)value.get(3);
+			block_cache = (int)value.get(4);
+			block_restart_interval = (int)value.get(5);
+			expansion = (List)value.get(6);
 		} catch(Exception e) {
 			throw new LeveldbException(e);
 		}
@@ -262,19 +253,10 @@ public final class LevelOption {
 	 */
 	public final void toBuffer(JniBuffer out) {
 		try {
-			/*
-			LevelValues.byte4(out, type);
-			LevelValues.byte4(out, write_buffer_size);
-			LevelValues.byte4(out, max_open_files);
-			LevelValues.byte4(out, block_size);
-			LevelValues.byte4(out, block_cache);
-			LevelValues.byte4(out, block_restart_interval);
-			LevelValues.encodeObjectArray(out, expansion);
-			*/
-			LevelValues.encode(out, new Object[] {
+			LevelValues.encode(out, new ObjectList(
 				type, write_buffer_size, max_open_files, block_size,
 				block_cache, block_restart_interval, expansion
-			});
+			));
 		} catch(Exception e) {
 			throw new LeveldbException(e);
 		}
@@ -806,14 +788,18 @@ public final class LevelOption {
 	 * @param o
 	 */
 	public void setExpansion(Object... o) {
-		expansion = o;
+		if(o == null || o.length == 0) {
+			expansion = null;
+		} else {
+			expansion = new ObjectList(o);
+		}
 	}
 	
 	/**
 	 * 拡張オプションを取得.
 	 * @return
 	 */
-	public Object[] getExpansion() {
+	public List getExpansion() {
 		return expansion;
 	}
 
@@ -835,6 +821,7 @@ public final class LevelOption {
 	 * オブジェクトコピー.
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public final LevelOption copyObject() {
 		LevelOption ret = new LevelOption();
 		ret.type = type;
@@ -844,9 +831,11 @@ public final class LevelOption {
 		ret.block_cache = block_cache;
 		ret.block_restart_interval = block_restart_interval;
 		if(expansion != null) {
-			int len = expansion.length;
-			Object[] ex = new Object[len];
-			System.arraycopy(expansion, 0, ex, 0, len);
+			int len = expansion.size();
+			List ex = new ObjectList();
+			for(int i = 0; i < len; i ++) {
+				ex.add(expansion.get(i));
+			}
 			ret.expansion = ex;
 		}
 		return ret;

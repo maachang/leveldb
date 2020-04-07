@@ -132,7 +132,7 @@ public final class LevelValues {
 		}
 		return decodeObject(outOff, b, len);
 	}
-
+	
 	/** 1バイトバイナリ変換. **/
 	public static final void byte1(JniBuffer buf, int b) throws Exception {
 		buf.write((b & 0xff));
@@ -983,8 +983,6 @@ public final class LevelValues {
 		}
 		return ret;
 	}
-	
-	// オブジェクト解析.
 	private static final Object _decodeObject(int[] pos, JniBuffer b, int length) throws Exception {
 		if (length <= pos[0]) {
 			throw new IOException("Processing exceeds the specified length [" + length + " byte]:" + pos[0]);
@@ -1303,7 +1301,7 @@ public final class LevelValues {
 //		int len = byte4Int(b, off);
 //		Object[] ret = new Object[len];
 //		for(int i = 0; i < len; i ++) {
-//			ret[i] = decodeObject(off, buf, length);
+//			ret[i] = decodeObjectByOrigin(off, buf, length);
 //		}
 //		return ret;
 //	}
@@ -1338,7 +1336,7 @@ public final class LevelValues {
 		
 		/**
 		 * 出力オブジェクトの変換.
-		 * LevelValues.decodeObject で処理結果毎に、この処理が呼ばれます.
+		 * LevelValues.decodeObject で処理される毎に、この処理が呼ばれます.
 		 * 
 		 * @param o オブジェクトを設定します.
 		 * @return Object 変換されたオブジェクトが返却されます.
