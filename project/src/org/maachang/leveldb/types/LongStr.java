@@ -285,6 +285,10 @@ public final class LongStr extends TwoKey {
 	 * @return String 文字列が返却されます.
 	 */
 	public final String toString() {
-		return new StringBuilder("[num64-str]").append(one).append(",").append(two).toString();
+		return new StringBuilder("[num64-str]")
+				.append(one)
+				.append(" : ")
+				.append(two)
+				.toString();
 	}
 }

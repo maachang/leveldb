@@ -296,6 +296,10 @@ public final class LongBin extends TwoKey {
 	 * @return String 文字列が返却されます.
 	 */
 	public final String toString() {
-		return new StringBuilder("[num64-bin]").append(one).append(BinaryUtil.binaryToHexString(two)).toString();
+		return new StringBuilder("[num64-bin]")
+				.append(one)
+				.append(" : ")
+				.append(BinaryUtil.binaryToHexString(two))
+				.toString();
 	}
 }

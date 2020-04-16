@@ -562,33 +562,16 @@ public final class JniIO {
 	/**
 	 * UTF16文字列のバイナリ変換長を取得.
 	 * 
-	 * @param value
-	 *            対象の文字列を設定します.
 	 * @param len
 	 *            文字列の長さを設定します.
 	 * @return int バイナリ変換される文字列の長さを設定します.
 	 */
-	public static final int utf16Length(final String value, final int len) {
+	public static final int utf16Length(final int len) {
 		return len == 0 ? 0 : (len << 1);
 	}
 
 	/**
-	 * UTF16文字列のバイナリ変換長を取得.
-	 * 
-	 * @param value
-	 *            対象の文字列を設定します.
-	 * @param off
-	 *            文字列のオフセット値を設定します.
-	 * @param len
-	 *            文字列の長さを設定します.
-	 * @return int バイナリ変換される文字列の長さを設定します.
-	 */
-	public static final int utf16Length(final String value, final int off, final int len) {
-		return len == 0 ? 0 : (len << 1);
-	}
-
-	/**
-	 * utf16変換.
+	 * utf16変換して、Nativeメモリに書き込み.
 	 * 
 	 * @param address
 	 *            対象のアドレスを設定します.
@@ -606,7 +589,7 @@ public final class JniIO {
 	}
 
 	/**
-	 * utf16変換.
+	 * utf16変換して、Nativeメモリに書き込み.
 	 * 
 	 * @param address
 	 *            対象のアドレスを設定します.
@@ -627,7 +610,7 @@ public final class JniIO {
 	}
 
 	/**
-	 * utf16変換.
+	 * utf16変換して、Nativeメモリに書き込み.
 	 * 
 	 * @param address
 	 *            対象のアドレスを設定します.
@@ -653,23 +636,23 @@ public final class JniIO {
 		long p = address + index;
 		char c;
 		if (UnsafeMode) {
-			for (int i = off; i < len; i++) {
-				c = value.charAt(i);
+			for (int i = 0; i < len; i++) {
+				c = value.charAt(off + i);
 				unsafe.putByte(p, (byte) ((c & 0xff00) >> 8));
-				unsafe.putByte(p + 1, (byte) c);
+				unsafe.putByte(p + 1, (byte)(c & 0x00ff));
 				p += 2;
 			}
 		} else {
-			for (int i = off; i < len; i++) {
-				c = value.charAt(i);
+			for (int i = 0; i < len; i++) {
+				c = value.charAt(off + i);
 				jni.putByte(p, (byte) ((c & 0xff00) >> 8));
-				jni.putByte(p + 1, (byte) c);
+				jni.putByte(p + 1, (byte)(c & 0x00ff));
 				p += 2;
 			}
 		}
 		return len << 1;
 	}
-
+	
 	/**
 	 * utf16変換.
 	 * 

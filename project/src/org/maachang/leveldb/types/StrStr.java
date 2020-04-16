@@ -86,19 +86,22 @@ public final class StrStr extends TwoKey {
 	public final void create(JniBuffer buf, int off, int len) throws Exception {
 		long addr = buf.address() + off;
 
+		// データ長の位置にセット.
+		len -= 4;
+
 		// one.
-		int oneLen = (int) (JniIO.getShortE(addr, 0) & 0x0000ffff);
-		if (oneLen == 0) {
+		int oneLen = (int) (JniIO.getIntE(addr, len) & 0x7fffffff);
+		if(oneLen == 0) {
 			one = "";
 		} else {
-			one = JniIO.getUtf16(addr, 2, oneLen);
+			one = JniIO.getUtf16(addr, 0, oneLen);
 		}
 
 		// two.
-		if (len <= oneLen + 2) {
+		if (len <= oneLen) {
 			two = "";
 		} else {
-			two = JniIO.getUtf16(addr, 2 + oneLen, len - (oneLen + 2));
+			two = JniIO.getUtf16(addr, oneLen, len - oneLen);
 		}
 	}
 
@@ -108,7 +111,7 @@ public final class StrStr extends TwoKey {
 	 * @return int バイナリ長が返却されます.
 	 */
 	public final int toBufferLength() {
-		return JniIO.utf16Length(one) + JniIO.utf16Length(two) + 2;
+		return JniIO.utf16Length(one) + JniIO.utf16Length(two) + 4;
 	}
 
 	/**
@@ -138,19 +141,20 @@ public final class StrStr extends TwoKey {
 		// それぞれの長さを取得.
 		int len = JniIO.utf16Length((String) one);
 		int len2 = JniIO.utf16Length((String) two);
-		long addr = buf.recreate(true, pos + len + len2 + 2);
+		long addr = buf.recreate(true, pos + len + len2 + 4);
 
 		// one.
-		JniIO.putShort(addr, pos, (short) len);
-		if (len != 0) {
-			JniIO.putUtf16(addr, pos + 2, (String) one);
+		if(len != 0) {
+			JniIO.putUtf16(addr, pos, (String) one);
 		}
 
 		// two.
 		if (len2 != 0) {
-			JniIO.putUtf16(addr, pos + len + 2, (String) two);
+			JniIO.putUtf16(addr, pos + len, (String) two);
 		}
-		buf.addPosition(len + len2 + 2);
+		// oneとtwoの後に４バイトでoneのデータ長をセット.
+		JniIO.putInt(addr, pos + len + len2, len);
+		buf.addPosition(len + len2 + 4);
 	}
 
 	/**
@@ -282,7 +286,11 @@ public final class StrStr extends TwoKey {
 	 * @return String 文字列が返却されます.
 	 */
 	public final String toString() {
-		return new StringBuilder("[str-str]").append(one).append(",").append(two).toString();
+		return new StringBuilder("[str-str]")
+				.append(one)
+				.append(" : ")
+				.append(two)
+				.toString();
 	}
 
 }

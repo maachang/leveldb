@@ -648,7 +648,7 @@ public abstract class LevelIndexOperator extends LevelOperator {
 				idx = indexList.get(i);
 				ret[i] = new Object[] {
 					idx.indexColumnName,			// インデックスカラム名.
-					idx.columnType,					// インデックスカラムタイプ.
+					idx.indexColumnType,			// インデックスカラムタイプ.
 					idx.getOption().copyObject()	// 生成オプション.
 				};
 			}

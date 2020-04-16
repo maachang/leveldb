@@ -12,7 +12,9 @@ import org.maachang.leveldb.LevelValues;
 import org.maachang.leveldb.Leveldb;
 import org.maachang.leveldb.LeveldbException;
 import org.maachang.leveldb.LeveldbIterator;
+import org.maachang.leveldb.types.TwoKey;
 import org.maachang.leveldb.util.Alphabet;
+import org.maachang.leveldb.util.BinaryUtil;
 import org.maachang.leveldb.util.Converter;
 import org.maachang.leveldb.util.ObjectList;
 
@@ -51,8 +53,9 @@ public class LevelIndex extends LevelOperator {
 	
 	protected Leveldb parent; // インデックス元のLeveldbオブジェクト.
 	protected int parentType; // インデックス元のLeveldbキータイプ.
-	protected int columnType; // インデックスカラムタイプ.
-	protected int levelOptionType; // インデックスカラムタイプ(Leveldb用).
+	protected int indexColumnType; // インデックスカラムタイプ.
+	protected int indexColumnLvType; // インデックスカラムのLeveldb用タイプ.
+	protected int indexKeyType; // インデックスのカラムタイプ.
 	protected String indexColumnName; // インデックスカラム名.
 	protected String[] indexColumnList; // インデックスカラム名(hoge.moge.abcのように階層設定可能).
 	
@@ -189,10 +192,10 @@ public class LevelIndex extends LevelOperator {
 	 * @param parent インデックス元のLeveldbオブジェクト.
 	 */
 	public LevelIndex(int columnType, String columnName, Leveldb parent) {
-		int levelOptionType = convertColumTypeByLevelOptionType(columnType);
+		int indexColumnLvType = convertColumTypeByLevelOptionType(columnType);
 		String[] list = columnNames(columnName);
 		columnName = srcColumnNames(list);
-		String columnString = LevelOption.stringType(levelOptionType);
+		String columnString = LevelOption.stringType(indexColumnLvType);
 		int indexKeyType = LevelOption.convertType(columnString + "-" + "binary");
 		LevelOption pOpt = parent.getOption();
 		LevelOption opt = LevelOption.create(
@@ -214,8 +217,9 @@ public class LevelIndex extends LevelOperator {
 		
 		this.parent = parent;
 		this.parentType = pOpt.getType();
-		this.columnType = columnType;
-		this.levelOptionType = levelOptionType;
+		this.indexColumnType = columnType;
+		this.indexColumnLvType = indexColumnLvType;
+		this.indexKeyType = indexKeyType;
 		this.indexColumnList = list;
 		this.indexColumnName = columnName;
 	}
@@ -231,8 +235,9 @@ public class LevelIndex extends LevelOperator {
 		super.init(idx, idx.leveldb, false, true);
 		this.parent = idx.leveldb;
 		this.parentType = idx.parentType;
-		this.columnType = idx.columnType;
-		this.levelOptionType = idx.levelOptionType;
+		this.indexColumnType = idx.indexColumnType;
+		this.indexColumnLvType = idx.indexColumnLvType;
+		this.indexKeyType = idx.indexKeyType;
 		this.indexColumnList = idx.indexColumnList;
 		this.indexColumnName = idx.indexColumnName;
 	}
@@ -243,7 +248,7 @@ public class LevelIndex extends LevelOperator {
 	 */
 	public int getColumnType() {
 		checkClose();
-		return columnType;
+		return indexColumnType;
 	}
 	
 	/**
@@ -261,8 +266,6 @@ public class LevelIndex extends LevelOperator {
 		try {
 			keyBuf = LevelBuffer.key(type, key1, key2);
 			byte[] ret = keyBuf.getBinary();
-			LevelBuffer.clearBuffer(keyBuf, null);
-			keyBuf = null;
 			return ret;
 		} catch (LeveldbException le) {
 			throw le;
@@ -354,7 +357,7 @@ public class LevelIndex extends LevelOperator {
 	protected boolean putDirectValue(Object key, Object twoKey, Object value) {
 		checkClose();
 		// インデックスカラムがnullの場合はインデックス化しない.
-		Object columnValue = convertColumType(columnType, value);
+		Object columnValue = convertColumType(indexColumnType, value);
 		if(columnValue == null) {
 			return false;
 		}
@@ -364,7 +367,7 @@ public class LevelIndex extends LevelOperator {
 			// keyをバイナリ変換して、indexKeyとして[column, binary]の２キーをキーとする.
 			// valueには、keyをバイナリ変換したものをセットする.
 			byte[] keyBin = keyBinary(parentType, key, twoKey);
-			keyBuf = LevelBuffer.key(levelOptionType, columnValue, keyBin);
+			keyBuf = LevelBuffer.key(indexKeyType, columnValue, keyBin);
 			valBuf = LevelBuffer.value();
 			valBuf.setBinary(keyBin);
 			if(writeBatchFlag) {
@@ -446,7 +449,7 @@ public class LevelIndex extends LevelOperator {
 	protected boolean removeDirectValue(Object key, Object twoKey, Object value) {
 		checkClose();
 		// インデックスカラムがnullの場合はインデックス化しない.
-		Object columnValue = convertColumType(columnType, value);
+		Object columnValue = convertColumType(indexColumnType, value);
 		if(columnValue == null) {
 			return false;
 		}
@@ -454,7 +457,7 @@ public class LevelIndex extends LevelOperator {
 		try {
 			// keyをバイナリ変換して、indexKeyとして[column, binary]の２キーをキーとする.
 			byte[] keyBin = keyBinary(parentType, key, twoKey);
-			keyBuf = LevelBuffer.key(levelOptionType, columnValue, keyBin);
+			keyBuf = LevelBuffer.key(indexKeyType, columnValue, keyBin);
 			if(writeBatchFlag) {
 				writeBatch().remove(keyBuf);
 			} else {
@@ -511,12 +514,11 @@ public class LevelIndex extends LevelOperator {
 		checkClose();
 		LevelIndexIterator ret = null;
 		try {
-			Object columnValue = convertColumType(columnType, value);
+			Object columnValue = convertColumType(indexColumnType, value);
 			ret = new LevelIndexIterator(reverse, this, leveldb.snapshot());
 			if(columnValue != null) {
 				return _search(ret, columnValue);
-			}
-			if(reverse) {
+			} else if(reverse) {
 				ret.itr.last();
 			}
 			return ret;
@@ -534,7 +536,9 @@ public class LevelIndex extends LevelOperator {
 	}
 	
 	// ゼロバイナリ.
-	private static final byte[] ZERO_BIN = new byte[0];
+	private static final byte[] MIN_BIN = new byte[] {
+		//(byte)0
+	};
 	
 	// 最大データ長バイナリ
 	private static final byte[] MAX_BIN = new byte[]{
@@ -550,27 +554,51 @@ public class LevelIndex extends LevelOperator {
 		LeveldbIterator lv = ret.itr;
 		boolean reverse = ret.reverse;
 		JniBuffer keyBuf = null;
+		
 		try {
 			if(reverse) {
-				keyBuf = LevelBuffer.key(levelOptionType, columnValue, MAX_BIN);
+				keyBuf = LevelBuffer.key(indexKeyType, columnValue, MAX_BIN);
 			} else {
-				keyBuf = LevelBuffer.key(levelOptionType, columnValue, ZERO_BIN);
+				keyBuf = LevelBuffer.key(indexKeyType, columnValue, MIN_BIN);
 			}
 			lv.seek(keyBuf);
-			LevelBuffer.clearBuffer(keyBuf, null);
-			if(lv.valid() && reverse) {
-				// 逆カーソル移動の場合は、対象keyより大きな値の条件の手前まで移動.
-				Comparable c, cc;
-				c = (Comparable)LevelId.id(levelOptionType, columnValue, MAX_BIN);
-				while(lv.valid()) {
-					lv.key(keyBuf);
-					cc = (Comparable)LevelId.get(levelOptionType, keyBuf);
-					LevelBuffer.clearBuffer(keyBuf, null);
-					if(c.compareTo(cc) < 0) {
-						lv.before();
-						break;
+			if(lv.valid()) {
+				if(reverse) {
+					// 逆カーソル移動の場合は、対象keyより大きな値の条件の手前まで移動.
+					Comparable c;
+					TwoKey tw;
+					c = (Comparable)LevelId.id(indexKeyType, columnValue, MAX_BIN);
+					while(lv.valid()) {
+						keyBuf.position(0);
+						lv.key(keyBuf);
+						tw = (TwoKey)LevelId.get(indexKeyType, keyBuf);
+						if(c.compareTo(tw.get(0)) < 0) {
+							lv.before();
+							break;
+						}
+						lv.next();
 					}
-					lv.next();
+					if(!lv.valid()) {
+						lv.last();
+					}
+				} else {
+					// 通常カーソル移動の場合は、対象keyより小さな値の条件の最初の位置まで移動.
+					Comparable c;
+					TwoKey tw;
+					c = (Comparable)LevelId.id(indexKeyType, columnValue, MIN_BIN);
+					while(lv.valid()) {
+						keyBuf.position(0);
+						lv.key(keyBuf);
+						tw = (TwoKey)LevelId.get(indexKeyType, keyBuf);
+						if(c.compareTo(tw.get(0)) > 0) {
+							lv.next();
+							break;
+						}
+						lv.before();
+					}
+					if(!lv.valid()) {
+						lv.first();
+					}
 				}
 			}
 			return ret;
@@ -621,23 +649,29 @@ public class LevelIndex extends LevelOperator {
 					it.value(valBuf);
 					it.next();
 					value = LevelValues.decode(valBuf);
+					valBuf.position(0);
 					// インデックス元のvalueがMapじゃない場合、カラムが存在しない場合は処理しない.
 					if(!(value instanceof Map) ||
 						(value = getValueInColumns(indexColumnList, value)) == null ||
-						(value = convertColumType(columnType, value)) == null) {
+						(value = convertColumType(indexColumnType, value)) == null) {
 						continue;
 					}
 					// キーには、インデックスvalueとインデックス元のキー情報を設定.
 					keyBin = keyBuf.getBinary();
-					keyBuf = LevelBuffer.key(levelOptionType, value, keyBin);
+					keyBuf.position(0);
+					keyBuf = LevelBuffer.key(indexKeyType, value, keyBin);
 					// value に インデックス元のキー情報を設定.
 					valBuf.setBinary(keyBin);
+					keyBin = null;
 					leveldb.put(keyBuf, valBuf);
 					ret ++;
 				} catch (Exception e) {
 					if(outError != null && outError.size() < MAX_ERROR) {
 						outError.add(e);
 					}
+				} finally {
+					keyBuf.position(0);
+					valBuf.position(0);
 				}
 			}
 			it.close();
@@ -660,14 +694,14 @@ public class LevelIndex extends LevelOperator {
 	 */
 	@SuppressWarnings({ "rawtypes" })
 	public static final class LevelIndexIterator extends LevelIterator<Object, Map> {
-		LevelIndex base;
-		Leveldb src;
-		Leveldb index;
-		LeveldbIterator itr;
+		LevelIndex base; // インデックスオブジェクト.
+		Leveldb parent; // インデックス元のleveldb.
+		Leveldb index; // インデックスのleveldb.
+		LeveldbIterator itr; // インデックスのイテレータ.
 		
 		LevelIndexIterator(boolean r, LevelIndex o, LeveldbIterator i) {
 			base = o;
-			src = o.parent;
+			parent = o.parent;
 			index = o.leveldb;
 			reverse = r;
 			itr = i;
@@ -727,6 +761,13 @@ public class LevelIndex extends LevelOperator {
 						itr.before();
 					} else {
 						itr.next();
+						if(valBuf == null) {
+							valBuf = LevelBuffer.value();
+						} else {
+							valBuf.position(0);
+						}
+						itr.value(valBuf);
+						valBuf.position(0);
 					}
 					if (!itr.valid()) {
 						close();
@@ -736,14 +777,14 @@ public class LevelIndex extends LevelOperator {
 					} else {
 						valBuf.position(0);
 					}
-					if(src.get(valBuf, keyBuf) == 0) {
+					if(parent.get(valBuf, keyBuf) == 0) {
 						continue;
 					}
 					ret = LevelValues.decode(valBuf);
 					// インデックスの条件と違うものは取得しない.
-					if(convertColumType(base.columnType,
+					if(convertColumType(base.indexColumnType,
 						LevelIndex.getValueInColumns(base.indexColumnList, ret)) != null) {
-						this.resultKey = LevelId.get(src.getType(), keyBuf);
+						this.resultKey = LevelId.get(parent.getType(), keyBuf);
 						return (Map)ret;
 					}
 				}

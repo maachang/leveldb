@@ -82,7 +82,7 @@ public final class LevelId {
 	/** typeに対する変換処理. **/
 	private static final ConvertCall[] _CALL = new ConvertCall[] {
 
-		// [0]文字列.
+		// [0]String.
 		new ConvertCall() {
 			public final Object id(Object value, Object value2) {
 				if (value == null) {
@@ -180,20 +180,23 @@ public final class LevelId {
 			public final void get(Object[] out, JniBuffer buf) throws Exception {
 				int len = buf.position();
 				long addr = buf.address();
-
+				
+				// データ長の位置にセット.
+				len -= 4;
+				
 				// one.
-				int oneLen = (int) (JniIO.getShortE(addr, 0) & 0x0000ffff);
-				if (oneLen == 0) {
+				int oneLen = (int) (JniIO.getIntE(addr, len) & 0x7fffffff);
+				if(oneLen == 0) {
 					out[0] = "";
 				} else {
-					out[0] = JniIO.getUtf16(addr, 2, oneLen);
+					out[0] = JniIO.getUtf16(addr, 0, oneLen);
 				}
 
 				// two.
-				if (len <= oneLen + 2) {
+				if (len <= oneLen) {
 					out[1] = "";
 				} else {
-					out[1] = JniIO.getUtf16(addr, 2 + oneLen, len - (oneLen + 2));
+					out[1] = JniIO.getUtf16(addr, oneLen, len - oneLen);
 				}
 			}
 		},
@@ -221,18 +224,22 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf) throws Exception {
+				int len = buf.position();
 				long addr = buf.address();
+				
+				// データ長の位置にセット.
+				len -= 4;
 
 				// one.
-				int oneLen = (int) (JniIO.getShortE(addr, 0) & 0x0000ffff);
-				if (oneLen == 0) {
+				int oneLen = (int) (JniIO.getIntE(addr, len) & 0x7fffffff);
+				if(oneLen == 0) {
 					out[0] = "";
 				} else {
-					out[0] = JniIO.getUtf16(addr, 2, oneLen);
+					out[0] = JniIO.getUtf16(addr, 0, oneLen);
 				}
 
 				// two.
-				out[1] = JniIO.getIntE(addr, 2 + oneLen);
+				out[1] = JniIO.getIntE(addr, oneLen);
 			}
 		},
 		// [5]String-Long.
@@ -259,18 +266,22 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf) throws Exception {
+				int len = buf.position();
 				long addr = buf.address();
+				
+				// データ長の位置にセット.
+				len -= 4;
 
 				// one.
-				int oneLen = (int) (JniIO.getShortE(addr, 0) & 0x0000ffff);
-				if (oneLen == 0) {
+				int oneLen = (int) (JniIO.getIntE(addr, len) & 0x7fffffff);
+				if(oneLen == 0) {
 					out[0] = "";
 				} else {
-					out[0] = JniIO.getUtf16(addr, 2, oneLen);
+					out[0] = JniIO.getUtf16(addr, 0, oneLen);
 				}
 
 				// two.
-				out[1] = JniIO.getLongE(addr, 2 + oneLen);
+				out[1] = JniIO.getLongE(addr, oneLen);
 			}
 		},
 		// [6]Integer-String.
@@ -508,8 +519,11 @@ public final class LevelId {
 				int len = buf.position();
 				long addr = buf.address();
 
+				// データ長の位置にセット.
+				len -= 4;
+
 				// one.
-				int oneLen = (int) (JniIO.getShortE(addr, 0) & 0x0000ffff);
+				int oneLen = (int) (JniIO.getIntE(addr, len) & 0x7fffffff);
 				if (oneLen == 0) {
 					out[0] = "";
 				} else {
@@ -517,12 +531,12 @@ public final class LevelId {
 				}
 
 				// two.
-				if (len <= oneLen + 2) {
+				if (len <= oneLen) {
 					out[1] = TwoKey.NONE;
 				} else {
-					len -= (oneLen + 2);
+					len -= oneLen;
 					out[1] = new byte[len];
-					JniIO.getBinary(addr, 2 + oneLen, (byte[]) out[1], 0, len);
+					JniIO.getBinary(addr, oneLen, (byte[]) out[1], 0, len);
 				}
 			}
 		},
@@ -542,7 +556,7 @@ public final class LevelId {
 				}
 				value = Converter.isNumeric(value) ? Converter.convertInt(value) : 0;
 				value2 = value2 == null || !(value2 instanceof byte[]) ? TwoKey.NONE : value2;
-				StrBin.convertBuffer(value, (byte[]) value2, buf);
+				IntBin.convertBuffer(value, (byte[]) value2, buf);
 			}
 
 			public final Object get(JniBuffer buf) throws Exception {
@@ -582,7 +596,7 @@ public final class LevelId {
 				}
 				value = Converter.isNumeric(value) ? Converter.convertLong(value) : 0L;
 				value2 = value2 == null || !(value2 instanceof byte[]) ? TwoKey.NONE : value2;
-				StrBin.convertBuffer(value, (byte[]) value2, buf);
+				LongBin.convertBuffer(value, (byte[]) value2, buf);
 			}
 
 			public final Object get(JniBuffer buf) throws Exception {
@@ -633,20 +647,23 @@ public final class LevelId {
 				int len = buf.position();
 				long addr = buf.address();
 
+				// データ長の位置にセット.
+				len -= 4;
+
 				// one.
-				int oneLen = (int) (JniIO.getShortE(addr, 0) & 0x0000ffff);
+				int oneLen = (int) (JniIO.getIntE(addr, len) & 0x7fffffff);
 				if (oneLen == 0) {
 					out[0] = TwoKey.NONE;
 				} else {
 					out[0] = new byte[oneLen];
-					JniIO.getBinary(addr, 2, (byte[]) out[0], 0, oneLen);
+					JniIO.getBinary(addr, 0, (byte[]) out[0], 0, oneLen);
 				}
 
 				// two.
-				if (len <= oneLen + 2) {
+				if (len <= oneLen) {
 					out[1] = "";
 				} else {
-					out[1] = JniIO.getUtf16(addr, 2 + oneLen, len - (oneLen + 2));
+					out[1] = JniIO.getUtf16(addr, oneLen, len - oneLen);
 				}
 			}
 		},
@@ -674,19 +691,23 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf) throws Exception {
+				int len = buf.position();
 				long addr = buf.address();
 
+				// データ長の位置にセット.
+				len -= 4;
+
 				// one.
-				int oneLen = (int) (JniIO.getShortE(addr, 0) & 0x0000ffff);
+				int oneLen = (int) (JniIO.getIntE(addr, len) & 0x7fffffff);
 				if (oneLen == 0) {
 					out[0] = TwoKey.NONE;
 				} else {
 					out[0] = new byte[oneLen];
-					JniIO.getBinary(addr, 2, (byte[]) out[0], 0, oneLen);
+					JniIO.getBinary(addr, 0, (byte[]) out[0], 0, oneLen);
 				}
 
 				// two.
-				out[1] = JniIO.getIntE(addr, 2 + oneLen);
+				out[1] = JniIO.getIntE(addr, oneLen);
 			}
 		},
 		// [17]Binary-Long.
@@ -713,19 +734,23 @@ public final class LevelId {
 			}
 
 			public final void get(Object[] out, JniBuffer buf) throws Exception {
+				int len = buf.position();
 				long addr = buf.address();
+				
+				// データ長の位置にセット.
+				len -= 4;
 
 				// one.
-				int oneLen = (int) (JniIO.getShortE(addr, 0) & 0x0000ffff);
+				int oneLen = (int) (JniIO.getIntE(addr, len) & 0x7fffffff);
 				if (oneLen == 0) {
 					out[0] = TwoKey.NONE;
 				} else {
 					out[0] = new byte[oneLen];
-					JniIO.getBinary(addr, 2, (byte[]) out[0], 0, oneLen);
+					JniIO.getBinary(addr, 0, (byte[]) out[0], 0, oneLen);
 				}
 
 				// two.
-				out[1] = JniIO.getLongE(addr, 2 + oneLen);
+				out[1] = JniIO.getLongE(addr, oneLen);
 			}
 		},
 		// [18]Binary-Binary.
@@ -754,23 +779,26 @@ public final class LevelId {
 			public final void get(Object[] out, JniBuffer buf) throws Exception {
 				int len = buf.position();
 				long addr = buf.address();
+				
+				// データ長の位置にセット.
+				len -= 4;
 
 				// one.
-				int oneLen = (int) (JniIO.getShortE(addr, 0) & 0x0000ffff);
+				int oneLen = (int) (JniIO.getIntE(addr, len) & 0x7fffffff);
 				if (oneLen == 0) {
 					out[0] = TwoKey.NONE;
 				} else {
 					out[0] = new byte[oneLen];
-					JniIO.getBinary(addr, 2, (byte[]) out[0], 0, oneLen);
+					JniIO.getBinary(addr, 0, (byte[]) out[0], 0, oneLen);
 				}
 
 				// two.
-				if (len <= oneLen + 2) {
+				if (len <= oneLen) {
 					out[1] = TwoKey.NONE;
 				} else {
-					len -= (oneLen + 2);
+					len -= oneLen;
 					out[1] = new byte[len];
-					JniIO.getBinary(addr, 2 + oneLen, (byte[]) out[1], 0, len);
+					JniIO.getBinary(addr, oneLen, (byte[]) out[1], 0, len);
 				}
 			}
 		},

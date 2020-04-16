@@ -88,23 +88,26 @@ public final class BinBin extends TwoKey {
 	 */
 	public final void create(JniBuffer buf, int off, int len) throws Exception {
 		long addr = buf.address() + off;
+		
+		// データ長の位置にセット.
+		len -= 4;
 
 		// one.
-		int oneLen = (int) (JniIO.getShortE(addr, 0) & 0x0000ffff);
+		int oneLen = (int) (JniIO.getIntE(addr, len) & 0x7fffffff);
 		if (oneLen == 0) {
 			one = NONE;
 		} else {
 			one = new byte[oneLen];
-			JniIO.getBinary(addr, 2, one, 0, oneLen);
+			JniIO.getBinary(addr, 0, one, 0, oneLen);
 		}
 
 		// two.
-		if (len <= oneLen + 2) {
+		if (len <= oneLen) {
 			two = NONE;
 		} else {
-			len -= (oneLen + 2);
+			len -= oneLen;
 			two = new byte[len];
-			JniIO.getBinary(addr, 2 + oneLen, two, 0, len);
+			JniIO.getBinary(addr, oneLen, two, 0, len);
 		}
 	}
 
@@ -114,7 +117,7 @@ public final class BinBin extends TwoKey {
 	 * @return int バイナリ長が返却されます.
 	 */
 	public final int toBufferLength() {
-		return one.length + +two.length + 2;
+		return one.length + +two.length + 4;
 	}
 
 	/**
@@ -144,19 +147,20 @@ public final class BinBin extends TwoKey {
 		// それぞれの長さを取得.
 		int len = ((byte[]) one).length;
 		int len2 = ((byte[]) two).length;
-		long addr = buf.recreate(true, pos + len + len2 + 2);
+		long addr = buf.recreate(true, pos + len + len2 + 4);
 
 		// one.
-		JniIO.putShort(addr, pos, (short) len);
 		if (len != 0) {
-			JniIO.putBinary(addr, pos + 2, (byte[]) one, 0, len);
+			JniIO.putBinary(addr, pos, (byte[]) one, 0, len);
 		}
 
 		// two.
 		if (len2 != 0) {
-			JniIO.putBinary(addr, pos + len + 2, (byte[]) two, 0, len2);
+			JniIO.putBinary(addr, pos + len, (byte[]) two, 0, len2);
 		}
-		buf.addPosition(len + len2 + 2);
+		// oneとtwoの後に４バイトでoneのデータ長をセット.
+		JniIO.putInt(addr, pos + len + len2, len);
+		buf.addPosition(len + len2 + 4);
 	}
 
 	/**
@@ -280,7 +284,10 @@ public final class BinBin extends TwoKey {
 	 * @return String 文字列が返却されます.
 	 */
 	public final String toString() {
-		return new StringBuilder("[bin-bin]").append(BinaryUtil.binaryToHexString(one)).append(BinaryUtil.binaryToHexString(two))
+		return new StringBuilder("[bin-bin]")
+				.append(BinaryUtil.binaryToHexString(one))
+				.append(" : ")
+				.append(BinaryUtil.binaryToHexString(two))
 				.toString();
 	}
 }

@@ -113,7 +113,7 @@ public:
         if( src < dest ) {
             return -1 ;
         }
-        if( src > dest ) {
+        else if( src > dest ) {
             return 1 ;
         }
         return 0 ;
@@ -137,7 +137,7 @@ public:
         if( src < dest ) {
             return -1 ;
         }
-        if( src > dest ) {
+        else if( src > dest ) {
             return 1 ;
         }
         return 0 ;
@@ -155,30 +155,33 @@ public:
     // if a > b: positive result +1 
     // else: zero result          0
     inline int Compare(const leveldb::Slice& a, const leveldb::Slice& b) const {
-        int aSize,bSize,nA,nB,min,ret ;
+        int aLen, bLen, aSize, bSize, nA, nB, min, ret ;
+
         const char* aData = a.data() ;
         const char* bData = b.data() ;
+
+        aLen = a.size() - 4 ;
+        bLen = b.size() - 4 ;
         
-        // 文字列の場合、最初の文字列は、２バイトデータで格納されている.
-        // 純粋な文字列をチェックして、その値が同一の場合は
-        // 元の長さで判別する.
-        aSize = decodeFixed16( aData ) ;
-        bSize = decodeFixed16( bData ) ;
+        // 先頭の文字列長は、size() - 4 の位置に 32bit整数で格納されている.
+        aSize = decodeFixed32( aData + aLen ) ;
+        bSize = decodeFixed32( bData + bLen ) ;
         min = ( aSize < bSize ) ? aSize : bSize ;
-        if( ( ret = memcmp( aData+2, bData+2, min ) ) == 0 ) {
-            return aSize - bSize ;
-        }
-        else {
-            return ret ;
+        if( ( ret = memcmp( aData, bData, min ) ) == 0 ) {
+            if(aSize != bSize) {
+                return aSize - bSize ;
+            }
+        } else {
+            return ret;
         }
         
         // 次の領域に対して文字列でチェックする.
         // 純粋な文字列をチェックして、その値が同一の場合は
         // 元の長さで判別する.
-        nA = a.size() - ( 2 + aSize ) ;
-        nB = b.size() - ( 2 + bSize ) ;
+        nA = aLen - aSize ;
+        nB = bLen - bSize ;
         min = ( nA < nB ) ? nA : nB ;
-        if( ( ret = memcmp( aData+( 2 + aSize ), bData+( 2 + bSize ), min ) ) == 0 ) {
+        if( ( ret = memcmp( aData + aSize, bData + bSize, min ) ) == 0 ) {
             return nA - nB ;
         }
         return ret ;
@@ -196,26 +199,29 @@ public:
     // if a > b: positive result +1 
     // else: zero result          0
     inline int Compare(const leveldb::Slice& a, const leveldb::Slice& b) const {
-        int aSize,bSize,nA,nB,min,ret ;
+        int aLen, bLen, aSize, bSize, nA, nB, min, ret ;
+        
         const char* aData = a.data() ;
         const char* bData = b.data() ;
         
-        // 文字列の場合、最初の文字列は、２バイトデータで格納されている.
-        // 純粋な文字列をチェックして、その値が同一の場合は
-        // 元の長さで判別する.
-        aSize = decodeFixed16( aData ) ;
-        bSize = decodeFixed16( bData ) ;
+        aLen = a.size() - 4 ;
+        bLen = b.size() - 4 ;
+        
+        // 先頭の文字列長は、size() - 4 の位置に 32bit整数で格納されている.
+        aSize = decodeFixed32( aData + aLen ) ;
+        bSize = decodeFixed32( bData + bLen ) ;
         min = ( aSize < bSize ) ? aSize : bSize ;
-        if( ( ret = memcmp( aData+2, bData+2, min ) ) == 0 ) {
-            return aSize - bSize ;
-        }
-        else {
-            return ret ;
+        if( ( ret = memcmp( aData, bData, min ) ) == 0 ) {
+            if(aSize != bSize) {
+                return aSize - bSize ;
+            }
+        } else {
+            return ret;
         }
         
         // 次の領域に対して32ビット整数でチェックする.
-        nA = decodeFixed32( aData + ( 2 + aSize ) ) ;
-        nB = decodeFixed32( bData + ( 2 + bSize ) ) ;
+        nA = decodeFixed32( aData + aSize ) ;
+        nB = decodeFixed32( bData + bSize ) ;
         if( nA != nB ) {
             return ( nA < nB ) ? -1 : 1 ;
         }
@@ -234,27 +240,30 @@ public:
     // if a > b: positive result +1 
     // else: zero result          0
     inline int Compare(const leveldb::Slice& a, const leveldb::Slice& b) const {
-        int aSize,bSize,min,ret ;
-        jlong nnA,nnB ;
+        int aLen, bLen, aSize, bSize, min, ret ;
+        jlong nnA, nnB ;
+
         const char* aData = a.data() ;
         const char* bData = b.data() ;
         
-        // 文字列の場合、最初の文字列は、２バイトデータで格納されている.
-        // 純粋な文字列をチェックして、その値が同一の場合は
-        // 元の長さで判別する.
-        aSize = decodeFixed16( aData ) ;
-        bSize = decodeFixed16( bData ) ;
+        aLen = a.size() - 4 ;
+        bLen = b.size() - 4 ;
+
+        // 先頭の文字列長は、size() - 4 の位置に 32bit整数で格納されている.
+        aSize = decodeFixed32( aData + aLen ) ;
+        bSize = decodeFixed32( bData + bLen ) ;
         min = ( aSize < bSize ) ? aSize : bSize ;
-        if( ( ret = memcmp( aData+2, bData+2, min ) ) == 0 ) {
-            return aSize - bSize ;
-        }
-        else {
-            return ret ;
+        if( ( ret = memcmp( aData, bData, min ) ) == 0 ) {
+            if(aSize != bSize) {
+                return aSize - bSize ;
+            }
+        } else {
+            return ret;
         }
         
         // 次の領域に対して64ビット整数でチェックする.
-        nnA = decodeFixed64( aData + ( 2 + aSize ) ) ;
-        nnB = decodeFixed64( bData + ( 2 + bSize ) ) ;
+        nnA = decodeFixed64( aData + aSize ) ;
+        nnB = decodeFixed64( bData + bSize ) ;
         if( nnA != nnB ) {
             return ( nnA < nnB ) ? -1 : 1 ;
         }
@@ -274,6 +283,7 @@ public:
     // else: zero result          0
     inline int Compare(const leveldb::Slice& a, const leveldb::Slice& b) const {
         int aSize,bSize,nA,nB,min,ret ;
+
         const char* aData = a.data() ;
         const char* bData = b.data() ;
         
@@ -377,6 +387,7 @@ public:
     inline int Compare(const leveldb::Slice& a, const leveldb::Slice& b) const {
         int aSize,bSize,min,ret ;
         jlong nnA,nnB ;
+
         const char* aData = a.data() ;
         const char* bData = b.data() ;
         
@@ -395,10 +406,7 @@ public:
         if( ( ret = memcmp( aData+8, bData+8, min ) ) == 0 ) {
             return aSize - bSize ;
         }
-        else {
-            return ret ;
-        }
-        return 0 ;
+        return ret ;
     }
     inline const char* Name() const { return (const char*)"n64StrKey" ; } ;
     inline void FindShortestSeparator(std::string*, const leveldb::Slice&) const {}
@@ -415,6 +423,7 @@ public:
     inline int Compare(const leveldb::Slice& a, const leveldb::Slice& b) const {
         int nA,nB ;
         jlong nnA,nnB ;
+
         const char* aData = a.data() ;
         const char* bData = b.data() ;
         
@@ -448,6 +457,7 @@ public:
     // else: zero result          0
     inline int Compare(const leveldb::Slice& a, const leveldb::Slice& b) const {
         jlong nnA,nnB ;
+
         const char* aData = a.data() ;
         const char* bData = b.data() ;
         

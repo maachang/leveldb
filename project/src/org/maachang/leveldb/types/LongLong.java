@@ -282,6 +282,10 @@ public final class LongLong extends TwoKey {
 	 * @return String 文字列が返却されます.
 	 */
 	public final String toString() {
-		return new StringBuilder("[num64-num64]").append(one).append(",").append(two).toString();
+		return new StringBuilder("[num64-num64]")
+				.append(one)
+				.append(" : ")
+				.append(two)
+				.toString();
 	}
 }

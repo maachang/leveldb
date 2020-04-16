@@ -90,17 +90,20 @@ public final class BinInt extends TwoKey {
 	public final void create(JniBuffer buf, int off, int len) throws Exception {
 		long addr = buf.address() + off;
 
+		// データ長の位置にセット.
+		len -= 4;
+
 		// one.
-		int oneLen = (int) (JniIO.getShortE(addr, 0) & 0x0000ffff);
+		int oneLen = (int) (JniIO.getIntE(addr, len) & 0x7fffffff);
 		if (oneLen == 0) {
 			one = NONE;
 		} else {
 			one = new byte[oneLen];
-			JniIO.getBinary(addr, 2, one, 0, oneLen);
+			JniIO.getBinary(addr, 0, one, 0, oneLen);
 		}
 
 		// two.
-		two = JniIO.getIntE(addr, 2 + oneLen);
+		two = JniIO.getIntE(addr, oneLen);
 	}
 
 	/**
@@ -109,7 +112,7 @@ public final class BinInt extends TwoKey {
 	 * @return int バイナリ長が返却されます.
 	 */
 	public final int toBufferLength() {
-		return one.length + 6;
+		return one.length + 8;
 	}
 
 	/**
@@ -138,17 +141,18 @@ public final class BinInt extends TwoKey {
 
 		// それぞれの長さを取得.
 		int len = ((byte[]) one).length;
-		long addr = buf.recreate(true, pos + len + 6);
+		long addr = buf.recreate(true, pos + len + 8);
 
 		// one.
-		JniIO.putShort(addr, pos, (short) len);
 		if (len != 0) {
-			JniIO.putBinary(addr, pos + 2, (byte[]) one, 0, len);
+			JniIO.putBinary(addr, pos, (byte[]) one, 0, len);
 		}
 
 		// two.
-		JniIO.putInt(addr, pos + len + 2, (Integer) two);
-		buf.addPosition(len + 6);
+		JniIO.putInt(addr, pos + len, (Integer) two);
+		// oneとtwoの後に４バイトでoneのデータ長をセット.
+		JniIO.putInt(addr, pos + len + 4, len);
+		buf.addPosition(len + 8);
 	}
 
 	/**
@@ -276,6 +280,10 @@ public final class BinInt extends TwoKey {
 	 * @return String 文字列が返却されます.
 	 */
 	public final String toString() {
-		return new StringBuilder("[bin-num32]").append(BinaryUtil.binaryToHexString(one)).append(two).toString();
+		return new StringBuilder("[bin-num32]")
+				.append(BinaryUtil.binaryToHexString(one))
+				.append(" : ")
+				.append(two)
+				.toString();
 	}
 }

@@ -275,6 +275,10 @@ public final class IntStr extends TwoKey {
 	 * @return String 文字列が返却されます.
 	 */
 	public final String toString() {
-		return new StringBuilder("[num32-str]").append(one).append(",").append(two).toString();
+		return new StringBuilder("[num32-str]")
+				.append(one)
+				.append(" : ")
+				.append(two)
+				.toString();
 	}
 }
