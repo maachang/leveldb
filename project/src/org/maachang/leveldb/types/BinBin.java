@@ -117,7 +117,7 @@ public final class BinBin extends TwoKey {
 	 * @return int バイナリ長が返却されます.
 	 */
 	public final int toBufferLength() {
-		return one.length + +two.length + 4;
+		return one.length + two.length + 4;
 	}
 
 	/**

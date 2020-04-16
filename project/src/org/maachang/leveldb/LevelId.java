@@ -527,7 +527,7 @@ public final class LevelId {
 				if (oneLen == 0) {
 					out[0] = "";
 				} else {
-					out[0] = JniIO.getUtf16(addr, 2, oneLen);
+					out[0] = JniIO.getUtf16(addr, 0, oneLen);
 				}
 
 				// two.
