@@ -699,6 +699,8 @@ public class LevelIndex extends LevelOperator {
 		Leveldb index; // インデックスのleveldb.
 		LeveldbIterator itr; // インデックスのイテレータ.
 		
+		Map value = null; // _nextで取得したデータ.
+		
 		LevelIndexIterator(boolean r, LevelIndex o, LeveldbIterator i) {
 			base = o;
 			parent = o.parent;
@@ -732,25 +734,39 @@ public class LevelIndex extends LevelOperator {
 
 		@Override
 		public boolean hasNext() {
-			if (base.isClose() || itr == null || !itr.valid()) {
-				close();
-				return false;
+			if(this.value != null) {
+				return true;
 			}
-			return true;
+			return _next();
 		}
 		
 		@Override
 		public Map next() {
+			if(this.value == null) {
+				if(!_next()) {
+					throw new NoSuchElementException();
+				}
+			}
+			Map ret = this.value;
+			this.value = null;
+			return ret;
+		}
+		
+		public boolean _next() {
 			if (base.isClose() || itr == null || !itr.valid()) {
 				close();
-				throw new NoSuchElementException();
+				return false;
 			}
-			Object ret;
+			Object v;
 			JniBuffer keyBuf = null;
 			JniBuffer valBuf = null;
 			try {
 				// mapの情報で、インデックスを含むものだけを取得.
 				while(true) {
+					if (!itr.valid()) {
+						close();
+						return false;
+					}
 					if(keyBuf == null) {
 						keyBuf = LevelBuffer.key();
 					} else {
@@ -761,16 +777,6 @@ public class LevelIndex extends LevelOperator {
 						itr.before();
 					} else {
 						itr.next();
-						if(valBuf == null) {
-							valBuf = LevelBuffer.value();
-						} else {
-							valBuf.position(0);
-						}
-						itr.value(valBuf);
-						valBuf.position(0);
-					}
-					if (!itr.valid()) {
-						close();
 					}
 					if(valBuf == null) {
 						valBuf = LevelBuffer.value();
@@ -780,12 +786,16 @@ public class LevelIndex extends LevelOperator {
 					if(parent.get(valBuf, keyBuf) == 0) {
 						continue;
 					}
-					ret = LevelValues.decode(valBuf);
+					v = LevelValues.decode(valBuf);
 					// インデックスの条件と違うものは取得しない.
 					if(convertColumType(base.indexColumnType,
-						LevelIndex.getValueInColumns(base.indexColumnList, ret)) != null) {
+						LevelIndex.getValueInColumns(base.indexColumnList, v)) != null) {
 						this.resultKey = LevelId.get(parent.getType(), keyBuf);
-						return (Map)ret;
+						this.value = (Map)v;
+						if (!itr.valid()) {
+							close();
+						}
+						return true;
 					}
 				}
 			} catch (LeveldbException le) {
