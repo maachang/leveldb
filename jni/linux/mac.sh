@@ -1,7 +1,7 @@
 #!/bin/sh
 
 clear
-LIB_VERSION = "0.0.1"
+LIB_VERSION="0.0.1"
 LIB_NAME="leveldb-${LIB_VERSION}.dylib"
 rm -Rf ${LIB_NAME}
 
