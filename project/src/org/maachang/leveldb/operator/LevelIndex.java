@@ -14,7 +14,6 @@ import org.maachang.leveldb.LeveldbException;
 import org.maachang.leveldb.LeveldbIterator;
 import org.maachang.leveldb.types.TwoKey;
 import org.maachang.leveldb.util.Alphabet;
-import org.maachang.leveldb.util.BinaryUtil;
 import org.maachang.leveldb.util.Converter;
 import org.maachang.leveldb.util.ObjectList;
 
