@@ -15,6 +15,7 @@ import org.maachang.leveldb.LeveldbIterator;
 import org.maachang.leveldb.types.TwoKey;
 import org.maachang.leveldb.util.Alphabet;
 import org.maachang.leveldb.util.Converter;
+import org.maachang.leveldb.util.Json;
 import org.maachang.leveldb.util.ObjectList;
 
 /**
@@ -241,6 +242,17 @@ public class LevelIndex extends LevelOperator {
 		this.indexColumnName = idx.indexColumnName;
 	}
 	
+	@Override
+	public String toString() {
+		return new StringBuilder("indexColumn: ")
+			.append(indexColumnName)
+			.append(" indexKeyType: ")
+			.append(indexKeyType)
+			.append(" isClose: ")
+			.append(isClose())
+			.toString();
+	}
+	
 	/**
 	 * インデックス対象のカラムタイプを取得.
 	 * @return
@@ -277,7 +289,7 @@ public class LevelIndex extends LevelOperator {
 	
 	// valueがMapの場合、カラム名の情報を取得する.
 	@SuppressWarnings("rawtypes")
-	private static final Object getValueInColumns(String[] columnNames, Object value) {
+	private static final Object getValueInColumns(final String[] columnNames, Object value) {
 		// valueがMapじゃない場合はインデックス化しない.
 		// もしくは、指定カラム名が存在しない場合は、インデックス化しない.
 		int len = columnNames.length;

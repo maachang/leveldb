@@ -15,6 +15,7 @@ import org.maachang.leveldb.operator.LevelIndex.LevelIndexIterator;
 import org.maachang.leveldb.util.Converter;
 import org.maachang.leveldb.util.FileUtil;
 import org.maachang.leveldb.util.FixedSearchArray;
+import org.maachang.leveldb.util.Json;
 import org.maachang.leveldb.util.OList;
 import org.maachang.leveldb.util.ObjectList;
 
@@ -159,7 +160,6 @@ public abstract class LevelIndexOperator extends LevelOperator {
 			for(int i = 0; i < len; i ++) {
 				if((idx = indexList.get(i)) != null && !idx.isClose()) {
 					idx.put(key, twoKey, value);
-					break;
 				}
 			}
 		} finally {
@@ -188,7 +188,6 @@ public abstract class LevelIndexOperator extends LevelOperator {
 			for(int i = 0; i < len; i ++) {
 				if((idx = indexList.get(i)) != null && !idx.isClose()) {
 					idx.remove(key, twoKey, value);
-					break;
 				}
 			}
 		} finally {
@@ -222,6 +221,7 @@ public abstract class LevelIndexOperator extends LevelOperator {
 		}
 	}
 	
+	// このオペレータを完全破棄.
 	@Override
 	public boolean deleteComplete() {
 		if(super.deleteComplete()) {
