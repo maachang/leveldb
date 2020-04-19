@@ -288,11 +288,11 @@ public final class LevelValues {
 	 *                例外.
 	 */
 	public static final void stringBinary(JniBuffer buf, String s) throws Exception {
-		int len = JniIO.utf16Length(s);
+		int len = NativeString.nativeLength(s);
 		buf.recreate(true, buf.position() + len + 7);
 		byte4(buf, len);
 		if (len != 0) {
-			buf.addPosition(JniIO.putUtf16(buf.address(), buf.position(), s));
+			buf.addPosition(NativeString.toNative(buf.address(), buf.position(), s));
 		}
 	}
 
@@ -556,7 +556,7 @@ public final class LevelValues {
 		if (len == 0) {
 			return "";
 		}
-		String ret = JniIO.getUtf16(b, pos[0], len);
+		String ret = NativeString.toJava(b, pos[0], len);
 		pos[0] += len;
 		return ret;
 	}

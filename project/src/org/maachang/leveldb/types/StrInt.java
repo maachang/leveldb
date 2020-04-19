@@ -3,6 +3,7 @@ package org.maachang.leveldb.types;
 import org.maachang.leveldb.JniBuffer;
 import org.maachang.leveldb.JniIO;
 import org.maachang.leveldb.LevelOption;
+import org.maachang.leveldb.NativeString;
 import org.maachang.leveldb.util.Converter;
 
 /**
@@ -94,7 +95,7 @@ public final class StrInt extends TwoKey {
 		if (oneLen == 0) {
 			one = "";
 		} else {
-			one = JniIO.getUtf16(addr, 0, oneLen);
+			one = NativeString.toJava(addr, 0, oneLen);
 		}
 
 		// two.
@@ -107,7 +108,7 @@ public final class StrInt extends TwoKey {
 	 * @return int バイナリ長が返却されます.
 	 */
 	public final int toBufferLength() {
-		return JniIO.utf16Length(one) + 8;
+		return NativeString.nativeLength(one) + 8;
 	}
 
 	/**
@@ -135,12 +136,12 @@ public final class StrInt extends TwoKey {
 		int pos = buf.position();
 
 		// それぞれの長さを取得.
-		int len = JniIO.utf16Length((String) one);
+		int len = NativeString.nativeLength((String) one);
 		long addr = buf.recreate(true, pos + len + 8);
 
 		// one.
 		if(len != 0) {
-			JniIO.putUtf16(addr, pos, (String) one);
+			NativeString.toNative(addr, pos, (String) one);
 		}
 
 		// two.

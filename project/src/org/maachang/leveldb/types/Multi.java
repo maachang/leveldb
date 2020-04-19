@@ -6,6 +6,7 @@ import org.maachang.leveldb.JniBuffer;
 import org.maachang.leveldb.JniIO;
 import org.maachang.leveldb.LevelOption;
 import org.maachang.leveldb.LeveldbException;
+import org.maachang.leveldb.NativeString;
 import org.maachang.leveldb.util.OList;
 
 /**
@@ -149,7 +150,7 @@ public class Multi extends AbstractList<Object> implements LevelKey<Object> {
 			n = "";
 		}
 		list.add(n);
-		binaryLength += (n.length() << 1) + 2;
+		binaryLength += NativeString.nativeLength(n) + 2;
 		return this;
 	}
 
@@ -300,8 +301,9 @@ public class Multi extends AbstractList<Object> implements LevelKey<Object> {
 					oLen = MAX_DATA_LENGTH;
 				}
 				putString(ret, off, s, oLen);
-				off += oLen << 1;
-				putEndLength(ret, endOff - 2, TYPE_STRING, oLen << 1);
+				int nLen = NativeString.nativeLength(s);
+				off += nLen;
+				putEndLength(ret, endOff - 2, TYPE_STRING, nLen);
 				endOff -= 2;
 			}
 		}
@@ -376,8 +378,9 @@ public class Multi extends AbstractList<Object> implements LevelKey<Object> {
 					oLen = MAX_DATA_LENGTH;
 				}
 				putString(addr, off, s, oLen);
-				off += oLen << 1;
-				putEndLength(addr, endOff - 2, TYPE_STRING, oLen << 1);
+				int nLen = NativeString.nativeLength(s);
+				off += nLen;
+				putEndLength(addr, endOff - 2, TYPE_STRING, nLen);
 				endOff -= 2;
 			}
 		}
@@ -408,8 +411,7 @@ public class Multi extends AbstractList<Object> implements LevelKey<Object> {
 		}
 		binaryLength = binary.length - 1;
 
-		char[] c;
-		int j, oneLen, off, endOff, n;
+		int oneLen, off, endOff, n;
 		long l;
 		off = 0;
 		endOff = binaryLength - 1;
@@ -426,14 +428,12 @@ public class Multi extends AbstractList<Object> implements LevelKey<Object> {
 				if (oneLen == 0) {
 					list.add("");
 				} else {
-					oneLen >>= 1;
-					c = new char[oneLen];
-					for (j = 0; j < oneLen; j++) {
-						c[j] = (char) (((binary[off] << 8) & 0xff00) | (binary[off + 1] & 0x00ff));
-						off += 2;
+					try {
+						list.add(NativeString.toJava(binary, off, oneLen));
+						off += oneLen;
+					} catch(Exception e) {
+						throw new LeveldbException(e);
 					}
-					list.add(new String(c, 0, oneLen));
-					c = null;
 				}
 				break;
 
@@ -496,8 +496,7 @@ public class Multi extends AbstractList<Object> implements LevelKey<Object> {
 		}
 		binaryLength = buf.position() - 1;
 
-		char[] c;
-		int j, oneLen, off, endOff, n;
+		int oneLen, off, endOff, n;
 		long l;
 		off = 0;
 		endOff = binaryLength - 1;
@@ -514,14 +513,12 @@ public class Multi extends AbstractList<Object> implements LevelKey<Object> {
 				if (oneLen == 0) {
 					list.add("");
 				} else {
-					oneLen >>= 1;
-					c = new char[oneLen];
-					for (j = 0; j < oneLen; j++) {
-						c[j] = (char) (((JniIO.get(addr, off) << 8) & 0xff00) | (JniIO.get(addr, off + 1) & 0x00ff));
-						off += 2;
+					try {
+						list.add(NativeString.toJava(addr, off, oneLen));
+						off += oneLen;
+					} catch(Exception e) {
+						throw new LeveldbException(e);
 					}
-					list.add(new String(c, 0, oneLen));
-					c = null;
 				}
 				break;
 
@@ -567,11 +564,11 @@ public class Multi extends AbstractList<Object> implements LevelKey<Object> {
 
 	/** 文字列をセット. **/
 	private static final void putString(byte[] b, int pos, String s, int len) {
-		char c;
-		for (int i = 0; i < len; i++) {
-			b[pos] = (byte) (((c = s.charAt(i)) & 0xff00) >> 8);
-			b[pos + 1] = (byte) c;
-			pos += 2;
+		try {
+			byte[] n = NativeString.toNative(s, 0, len);
+			System.arraycopy(n, 0, b, pos, n.length);
+		} catch(Exception e) {
+			throw new LeveldbException(e);
 		}
 	}
 
@@ -607,11 +604,10 @@ public class Multi extends AbstractList<Object> implements LevelKey<Object> {
 
 	/** 文字列をセット(JniBuffer). **/
 	private static final void putString(long addr, int pos, String s, int len) {
-		char c;
-		for (int i = 0; i < len; i++) {
-			JniIO.put(addr, pos, (byte) (((c = s.charAt(i)) & 0xff00) >> 8));
-			JniIO.put(addr, pos + 1, (byte) c);
-			pos += 2;
+		try {
+			NativeString.toNative(addr, pos, s, 0, len);
+		} catch(Exception e) {
+			throw new LeveldbException(e);
 		}
 	}
 

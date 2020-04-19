@@ -4,6 +4,7 @@ import org.maachang.leveldb.JniBuffer;
 import org.maachang.leveldb.JniIO;
 import org.maachang.leveldb.LevelOption;
 import org.maachang.leveldb.LeveldbException;
+import org.maachang.leveldb.NativeString;
 import org.maachang.leveldb.util.BinaryUtil;
 import org.maachang.leveldb.util.Converter;
 
@@ -104,7 +105,7 @@ public final class BinStr extends TwoKey {
 		if (len <= oneLen) {
 			two = "";
 		} else {
-			two = JniIO.getUtf16(addr, oneLen, len - oneLen);
+			two = NativeString.toJava(addr, oneLen, len - oneLen);
 		}
 	}
 
@@ -114,7 +115,7 @@ public final class BinStr extends TwoKey {
 	 * @return int バイナリ長が返却されます.
 	 */
 	public final int toBufferLength() {
-		return one.length + +JniIO.utf16Length(two) + 4;
+		return one.length + NativeString.nativeLength(two) + 4;
 	}
 
 	/**
@@ -143,7 +144,7 @@ public final class BinStr extends TwoKey {
 
 		// それぞれの長さを取得.
 		int len = ((byte[]) one).length;
-		int len2 = JniIO.utf16Length((String) two);
+		int len2 = NativeString.nativeLength((String) two);
 		long addr = buf.recreate(true, pos + len + len2 + 4);
 
 		// one.
@@ -153,7 +154,7 @@ public final class BinStr extends TwoKey {
 
 		// two.
 		if (len2 != 0) {
-			JniIO.putUtf16(addr, pos + len, (String) two);
+			NativeString.toNative(addr, pos + len, (String) two);
 		}
 		// oneとtwoの後に４バイトでoneのデータ長をセット.
 		JniIO.putInt(addr, pos + len + len2, len);

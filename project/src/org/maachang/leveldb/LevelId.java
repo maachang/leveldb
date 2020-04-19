@@ -92,7 +92,6 @@ public final class LevelId {
 			}
 
 			public final void buf(JniBuffer buf, Object value, Object value2) throws Exception {
-
 				buf.setString(value == null ? "" : Converter.convertString(value));
 			}
 
@@ -189,14 +188,14 @@ public final class LevelId {
 				if(oneLen == 0) {
 					out[0] = "";
 				} else {
-					out[0] = JniIO.getUtf16(addr, 0, oneLen);
+					out[0] = NativeString.toJava(addr, 0, oneLen);
 				}
 
 				// two.
 				if (len <= oneLen) {
 					out[1] = "";
 				} else {
-					out[1] = JniIO.getUtf16(addr, oneLen, len - oneLen);
+					out[1] = NativeString.toJava(addr, oneLen, len - oneLen);
 				}
 			}
 		},
@@ -235,7 +234,7 @@ public final class LevelId {
 				if(oneLen == 0) {
 					out[0] = "";
 				} else {
-					out[0] = JniIO.getUtf16(addr, 0, oneLen);
+					out[0] = NativeString.toJava(addr, 0, oneLen);
 				}
 
 				// two.
@@ -277,7 +276,7 @@ public final class LevelId {
 				if(oneLen == 0) {
 					out[0] = "";
 				} else {
-					out[0] = JniIO.getUtf16(addr, 0, oneLen);
+					out[0] = NativeString.toJava(addr, 0, oneLen);
 				}
 
 				// two.
@@ -318,7 +317,7 @@ public final class LevelId {
 				if (len <= 4) {
 					out[1] = "";
 				} else {
-					out[1] = JniIO.getUtf16(addr, 4, len - 4);
+					out[1] = NativeString.toJava(addr, 4, len - 4);
 				}
 			}
 		},
@@ -422,7 +421,7 @@ public final class LevelId {
 				if (len <= 8) {
 					out[1] = "";
 				} else {
-					out[1] = JniIO.getUtf16(addr, 8, len - 8);
+					out[1] = NativeString.toJava(addr, 8, len - 8);
 				}
 			}
 		},
@@ -527,7 +526,7 @@ public final class LevelId {
 				if (oneLen == 0) {
 					out[0] = "";
 				} else {
-					out[0] = JniIO.getUtf16(addr, 0, oneLen);
+					out[0] = NativeString.toJava(addr, 0, oneLen);
 				}
 
 				// two.
@@ -663,7 +662,7 @@ public final class LevelId {
 				if (len <= oneLen) {
 					out[1] = "";
 				} else {
-					out[1] = JniIO.getUtf16(addr, oneLen, len - oneLen);
+					out[1] = NativeString.toJava(addr, oneLen, len - oneLen);
 				}
 			}
 		},
