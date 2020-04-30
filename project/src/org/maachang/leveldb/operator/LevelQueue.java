@@ -134,6 +134,46 @@ public class LevelQueue extends LevelOperator {
 			LevelBuffer.clearBuffer(keyBuf, valBuf);
 		}
 	}
+	
+	/**
+	 * データセット.
+	 * @param key 対象のキーを設定します.
+	 * @param value 対象の要素を設定します.
+	 */
+	public void set(Object key, Object value) {
+		checkClose();
+		JniBuffer keyBuf = null;
+		JniBuffer valBuf = null;
+		try {
+			if(key instanceof String) {
+				keyBuf = LevelBuffer.key(LevelOption.TYPE_FREE, Time12SequenceId.toBinary((String)key));
+			} else if(key instanceof byte[] && ((byte[])key).length == Time12SequenceId.ID_LENGTH) {
+				keyBuf = LevelBuffer.key(LevelOption.TYPE_FREE, key);
+			} else {
+				throw new LeveldbException("The specified key is not a sequence id.");
+			}
+			if(value instanceof JniBuffer) {
+				if(writeBatchFlag) {
+					writeBatch().put(keyBuf, (JniBuffer)value);
+				} else {
+					leveldb.put(keyBuf, (JniBuffer)value);
+				}
+			} else {
+				valBuf = LevelBuffer.value(value);
+				if(writeBatchFlag) {
+					writeBatch().put(keyBuf, valBuf);
+				} else {
+					leveldb.put(keyBuf, valBuf);
+				}
+			}
+		} catch (LeveldbException le) {
+			throw le;
+		} catch (Exception e) {
+			throw new LeveldbException(e);
+		} finally {
+			LevelBuffer.clearBuffer(keyBuf, valBuf);
+		}
+	}
 
 	/**
 	 * 先頭の情報を取得して削除.
@@ -261,7 +301,7 @@ public class LevelQueue extends LevelOperator {
 						bkey = Time12SequenceId.toBinary((String)key);
 					}
 					if(bkey == null || bkey.length != Time12SequenceId.ID_LENGTH) {
-						throw new LeveldbException("指定されたシーケンスIDの解釈に失敗しました.");
+						throw new LeveldbException("Failed to interpret the specified sequence ID.");
 					}
 					buf = LevelBuffer.key(LevelOption.TYPE_FREE, bkey);
 					bkey = null;

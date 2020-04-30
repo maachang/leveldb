@@ -197,10 +197,9 @@ public abstract class LevelIndexOperator extends LevelOperator {
 	
 	@Override
 	public void close() {
-		boolean cflg = closeFlag.get();
-		super.close();
-		if(cflg) {
+		if(closeFlag.get()) {
 			closeIndex();
+			super.close();
 		}
 	}
 	
@@ -224,20 +223,17 @@ public abstract class LevelIndexOperator extends LevelOperator {
 	// このオペレータを完全破棄.
 	@Override
 	public boolean deleteComplete() {
-		if(super.deleteComplete()) {
-			List<Exception> errs = new ObjectList<Exception>();
-			if(deleteAllIndexComplete(errs)) {
-				// エラーの場合は最初のエラーを返却.
-				if(errs.size() > 0) {
-					if(errs.get(0) instanceof LeveldbException) {
-						throw (LeveldbException)errs.get(0);
-					}
-					throw new LeveldbException(errs.get(0));
-				}
+		List<Exception> errs = new ObjectList<Exception>();
+		deleteAllIndexComplete(errs);
+		boolean ret = super.deleteComplete();
+		// エラーの場合は最初のエラーを返却.
+		if(errs.size() > 0) {
+			if(errs.get(0) instanceof LeveldbException) {
+				throw (LeveldbException)errs.get(0);
 			}
-			return true;
+			throw new LeveldbException(errs.get(0));
 		}
-		return false;
+		return ret;
 	}
 	
 	// 全インデックス情報の完全削除処理.
@@ -274,14 +270,13 @@ public abstract class LevelIndexOperator extends LevelOperator {
 	public boolean trancate() {
 		if(super.trancate()) {
 			List<Exception> errs = new ObjectList<Exception>();
-			if(trancateAllIndex(errs)) {
-				// エラーの場合は最初のエラーを返却.
-				if(errs.size() > 0) {
-					if(errs.get(0) instanceof LeveldbException) {
-						throw (LeveldbException)errs.get(0);
-					}
-					throw new LeveldbException(errs.get(0));
+			trancateAllIndex(errs);
+			// エラーの場合は最初のエラーを返却.
+			if(errs.size() > 0) {
+				if(errs.get(0) instanceof LeveldbException) {
+					throw (LeveldbException)errs.get(0);
 				}
+				throw new LeveldbException(errs.get(0));
 			}
 			return true;
 		}
@@ -620,6 +615,33 @@ public abstract class LevelIndexOperator extends LevelOperator {
 			String[] ret = new String[len];
 			System.arraycopy(lst.toArray(), 0, ret, 0, len);
 			return ret;
+		} finally {
+			indexLock.readLock().unlock();
+		}
+	}
+	
+	/**
+	 * インデックスタイプとインデックスカラム名を取得.
+	 * @param column インデックスカラム名を設定します.
+	 * @return Object[] [0]インデックスタイプ, [1]インデックスカラム名が返却されます.
+	 */
+	public Object[] getIndexConfig(String... column) {
+		checkClose();
+		if(column == null || column.length == 0) {
+			throw new NullPointerException();
+		}
+		final String idxColumn = LevelIndex.srcColumnNames(column);
+		indexLock.readLock().lock();
+		try {
+			final int no = indexColumns == null ? -1 : indexColumns.search(idxColumn);
+			if(no == -1) {
+				return null;
+			}
+			LevelIndex idx = indexList.get(no);
+			return new Object[] {
+				idx.getColumnType(),
+				idx.getColumnName()
+			};
 		} finally {
 			indexLock.readLock().unlock();
 		}
