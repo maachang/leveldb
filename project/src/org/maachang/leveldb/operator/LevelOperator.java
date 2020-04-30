@@ -98,6 +98,13 @@ public abstract class LevelOperator {
 			throw new LeveldbException("The object has already been cleared.");
 		}
 	}
+	
+	// このオブジェクトのクローズチェック.
+	protected void checkThisClose() {
+		if (closeFlag.get()) {
+			throw new LeveldbException("The object has already been cleared.");
+		}
+	}
 
 	// バッチ情報を作成.
 	protected WriteBatch writeBatch() {
@@ -126,7 +133,7 @@ public abstract class LevelOperator {
 	 * @return boolean [true]の場合、削除成功.
 	 */
 	public boolean deleteComplete() {
-		checkClose();
+		checkThisClose();
 		if(writeBatchFlag) {
 			return false;
 		}

@@ -223,23 +223,24 @@ public abstract class LevelIndexOperator extends LevelOperator {
 	// このオペレータを完全破棄.
 	@Override
 	public boolean deleteComplete() {
-		List<Exception> errs = new ObjectList<Exception>();
-		deleteAllIndexComplete(errs);
-		boolean ret = super.deleteComplete();
-		// エラーの場合は最初のエラーを返却.
-		if(errs.size() > 0) {
-			if(errs.get(0) instanceof LeveldbException) {
-				throw (LeveldbException)errs.get(0);
+		if(super.deleteComplete()) {
+			List<Exception> errs = new ObjectList<Exception>();
+			deleteAllIndexComplete(errs);
+			// エラーの場合は最初のエラーを返却.
+			if(errs.size() > 0) {
+				if(errs.get(0) instanceof LeveldbException) {
+					throw (LeveldbException)errs.get(0);
+				}
+				throw new LeveldbException(errs.get(0));
 			}
-			throw new LeveldbException(errs.get(0));
+			return true;
 		}
-		return ret;
+		return false;
 	}
 	
 	// 全インデックス情報の完全削除処理.
 	// true返却でエラー.
 	private boolean deleteAllIndexComplete(List<Exception> errs) {
-		checkClose();
 		indexLock.writeLock().lock();
 		try {
 			boolean resultError = false;
@@ -286,7 +287,6 @@ public abstract class LevelIndexOperator extends LevelOperator {
 	// 全インデックス情報のデータ削除.
 	// true返却でエラー.
 	private boolean trancateAllIndex(List<Exception> errs) {
-		checkClose();
 		indexLock.writeLock().lock();
 		try {
 			boolean resultError = false;
