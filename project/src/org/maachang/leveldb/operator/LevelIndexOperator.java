@@ -15,7 +15,6 @@ import org.maachang.leveldb.operator.LevelIndex.LevelIndexIterator;
 import org.maachang.leveldb.util.Converter;
 import org.maachang.leveldb.util.FileUtil;
 import org.maachang.leveldb.util.FixedSearchArray;
-import org.maachang.leveldb.util.Json;
 import org.maachang.leveldb.util.OList;
 import org.maachang.leveldb.util.ObjectList;
 

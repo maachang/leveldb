@@ -622,4 +622,12 @@ public class LevelOperatorManager {
 			rwLock.readLock().unlock();
 		}
 	}
+	
+	/**
+	 * ReadWriteLockを取得.
+	 * @return
+	 */
+	public ReadWriteLock getReadWriteLock() {
+		return rwLock;
+	}
 }

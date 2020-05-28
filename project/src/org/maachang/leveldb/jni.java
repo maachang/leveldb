@@ -133,7 +133,7 @@ final class jni {
 
 	/** 対象OSの最適なライブラリを読み込む. **/
 	public static final String targetDynamincLib(boolean mode, String lib) {
-		String sp = System.getProperty("file.separator");
+		final String sp = System.getProperty("file.separator");
 		File targetDir = null;
 		targetDir = new File(
 				new StringBuilder().append(System.getProperty("user.home")).append(sp).append(DEFAULT_DIR).toString());
