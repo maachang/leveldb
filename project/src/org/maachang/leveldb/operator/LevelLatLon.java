@@ -1,6 +1,5 @@
 package org.maachang.leveldb.operator;
 
-import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.maachang.leveldb.JniBuffer;
@@ -15,9 +14,9 @@ import org.maachang.leveldb.LeveldbIterator;
 import org.maachang.leveldb.Time12SequenceId;
 import org.maachang.leveldb.WriteBatch;
 import org.maachang.leveldb.types.TwoKey;
-import org.maachang.leveldb.util.FixedArray;
 import org.maachang.leveldb.util.GeoLine;
 import org.maachang.leveldb.util.GeoQuadKey;
+import org.maachang.leveldb.util.Json;
 
 /**
  * 緯度経度での範囲検索を行うLeveldb.
@@ -66,12 +65,15 @@ public class LevelLatLon extends LevelIndexOperator {
 	public LevelLatLon(String name, int machineId, LevelOption option) {
 		int type = LevelOption.checkType(option.getType());
 		if(type != LevelOption.TYPE_NONE) {
+			// 単一キー以外もしくは、マルチタイプの場合はエラー.
 			if(LevelOption.typeMode(type) != 1 || type == LevelOption.TYPE_MULTI) {
 				throw new LeveldbException("Only the \"one key\" condition can be set for the second key.");
 			}
+			// キーが指定されている場合は、quadKey + 単一キー.
 			type = LevelOption.convertType("number64-" + LevelOption.stringType(type));
 			option.setType(type);
 		} else {
+			// キーが設定されていない場合は、quadKey + シーケンスID
 			sequenceId = new Time12SequenceId(machineId);
 			option = LevelOption.create(LevelOption.TYPE_N64_BIN);
 		}
@@ -79,7 +81,7 @@ public class LevelLatLon extends LevelIndexOperator {
 		// leveldbをクローズしてwriteBatchで処理しない.
 		super.init(null, db, true, false);
 		this.type = option.getType();
-		this.minKey = getMinKey(type);
+		this.minKey = getMinKey(this.type);
 		this.machineId = machineId;
 		
 		// インデックス初期化.
@@ -104,15 +106,17 @@ public class LevelLatLon extends LevelIndexOperator {
 		super.initIndex(latlon);
 	}
 	
+	private static final byte[] MIN_BINARY = new byte[0];
+	
 	// LeveQuadKeyIterator にわたすセカンドキーを取得.
 	private static final Object getMinKey(int type) {
 		int secType = LevelOption.getSecondKeyType(type);
-		if(secType != -1) {
+		if(secType != LevelOption.TYPE_NONE) {
 			switch(secType) {
 			case LevelOption.TYPE_STRING: return "";
 			case LevelOption.TYPE_NUMBER32: return Integer.MIN_VALUE;
 			case LevelOption.TYPE_NUMBER64: return Long.MIN_VALUE;
-			case LevelOption.TYPE_FREE: return new byte[0];
+			case LevelOption.TYPE_FREE: return MIN_BINARY;
 			}
 		}
 		return null;
@@ -754,9 +758,10 @@ public class LevelLatLon extends LevelIndexOperator {
 				}
 				TwoKey tk = (TwoKey)key;
 				if(db.sequenceId != null) {
-					this.resultKey = new Object[] {tk.get(0), Time12SequenceId.toString((byte[])tk.get(1))};
+					this.resultKey = new Object[] {
+						tk.get(0), Time12SequenceId.toString((byte[])tk.get(1)), 0};
 				} else {
-					this.resultKey = new Object[] {tk.get(0), tk.get(1)};
+					this.resultKey = new Object[] {tk.get(0), tk.get(1), 0};
 				}
 				return val;
 			} catch (LeveldbException le) {
@@ -816,7 +821,7 @@ public class LevelLatLon extends LevelIndexOperator {
 	/**
 	 * 範囲検索用LevelQuadKeyDb用Iterator.
 	 */
-	public class LeveQKSearchIterator extends LevelIterator<List<Object>, Object> {
+	public class LeveQKSearchIterator extends LevelIterator<Object[], Object> {
 		protected LevelLatLon db;
 		protected LeveldbIterator itr;
 		protected int type;
@@ -829,6 +834,7 @@ public class LevelLatLon extends LevelIndexOperator {
 		protected boolean endFlag;
 		protected Object nowKey;
 		protected Object nowValue;
+		protected Integer nowDistance;
 		
 		protected LeveQKSearchIterator(long qk, Object secKey, int distance, LevelLatLon db, boolean snapshot) {
 			double[] latLon = GeoQuadKey.latLon(qk);
@@ -839,7 +845,7 @@ public class LevelLatLon extends LevelIndexOperator {
 			this.itr = snapshot ? db.leveldb.snapshot() : db.leveldb.iterator();
 			this.type = db.type;
 			this.latM = GeoLine.getLat(latLon[0]);
-			this.lonM = GeoLine.getLat(latLon[1]);
+			this.lonM = GeoLine.getLon(latLon[1]);
 			this.distance = distance;
 			this.secKey = secKey;
 			
@@ -869,7 +875,7 @@ public class LevelLatLon extends LevelIndexOperator {
 			return itr == null || itr.isClose();
 		}
 		
-		private void _next() {
+		private boolean _next() {
 			db.checkClose();
 			if(endFlag) {
 				close();
@@ -878,6 +884,7 @@ public class LevelLatLon extends LevelIndexOperator {
 			}
 			Object key;
 			long nowQk;
+			int nowDs;
 			double[] latLon = new double[2];
 			boolean nextRead = nowCount == -1;
 			JniBuffer keyBuf = null;
@@ -894,7 +901,8 @@ public class LevelLatLon extends LevelIndexOperator {
 							close();
 							nowKey = null;
 							nowValue = null;
-							return;
+							nowDistance = null;
+							return false;
 						}
 						LevelId.buf(type, keyBuf, list[nowCount << 1], secKey);
 						itr.seek(keyBuf);
@@ -909,14 +917,14 @@ public class LevelLatLon extends LevelIndexOperator {
 					key = LevelId.get(type, keyBuf);
 					keyBuf.position(0);
 					nowQk = (Long)((TwoKey)key).get(0);
-					// 終端を検出した場合.
+					// その枠の終端を検出した場合.
 					if(nowQk > list[(nowCount << 1) + 1]) {
 						nextRead = true;
 						continue;
 					}
 					// 取得した位置情報は、distanceの範囲内かチェック.
 					GeoQuadKey.latLon(latLon, nowQk);
-					if(GeoLine.getFast(latM, lonM, GeoLine.getLat(latLon[0]), GeoLine.getLon(latLon[1])) > distance) {
+					if((nowDs = GeoLine.getFast(latM, lonM, GeoLine.getLat(latLon[0]), GeoLine.getLon(latLon[1]))) > distance) {
 						// 次の情報でリトライ.
 						itr.next();
 						continue;
@@ -926,12 +934,12 @@ public class LevelLatLon extends LevelIndexOperator {
 					// 今回の情報をセット.
 					this.nowKey = key;
 					this.nowValue = LevelValues.decode(valBuf);
+					this.nowDistance = nowDs;
 					LevelBuffer.clearBuffer(keyBuf, valBuf);
-					keyBuf = null;
-					valBuf = null;
+					keyBuf = null; valBuf = null;
 					// 次の情報を読み込む.
 					itr.next();
-					return;
+					return true;
 				}
 			} catch (LeveldbException le) {
 				throw le;
@@ -958,15 +966,16 @@ public class LevelLatLon extends LevelIndexOperator {
 			}
 			Object key = this.nowKey;
 			Object value = this.nowValue;
+			Integer dist = this.nowDistance;
 			_next();
 			if(key != null) {
 				TwoKey tk = (TwoKey)key;
 				if(db.sequenceId != null) {
-					this.resultKey = new FixedArray<Object>(
-						new Object[] {tk.get(0), Time12SequenceId.toString((byte[])tk.get(1))});
+					this.resultKey = new Object[] {
+						tk.get(0), Time12SequenceId.toString((byte[])tk.get(1)), dist};
 				} else {
-					this.resultKey = new FixedArray<Object>(
-						new Object[] {tk.get(0), tk.get(1)});
+					this.resultKey = new Object[] {
+						tk.get(0), tk.get(1), dist};
 				}
 				return value;
 			}
