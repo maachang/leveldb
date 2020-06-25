@@ -16,7 +16,6 @@ import org.maachang.leveldb.WriteBatch;
 import org.maachang.leveldb.types.TwoKey;
 import org.maachang.leveldb.util.GeoLine;
 import org.maachang.leveldb.util.GeoQuadKey;
-import org.maachang.leveldb.util.Json;
 
 /**
  * 緯度経度での範囲検索を行うLeveldb.
@@ -818,6 +817,8 @@ public class LevelLatLon extends LevelIndexOperator {
 		return new LeveQKSearchIterator(qk, minKey, distance, this, false);
 	}
 	
+	/** distanceにかける係数. **/
+	private static final double DISTANCE_CODE = 1.003d;
 	/**
 	 * 範囲検索用LevelQuadKeyDb用Iterator.
 	 */
@@ -846,7 +847,7 @@ public class LevelLatLon extends LevelIndexOperator {
 			this.type = db.type;
 			this.latM = GeoLine.getLat(latLon[0]);
 			this.lonM = GeoLine.getLon(latLon[1]);
-			this.distance = distance;
+			this.distance = (int)((double)distance * DISTANCE_CODE);
 			this.secKey = secKey;
 			
 			this.list = searchList;

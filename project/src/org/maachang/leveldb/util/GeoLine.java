@@ -184,15 +184,10 @@ public final class GeoLine {
 	 * @return 大まかな直線距離が返却されます.
 	 */
 	public static final int getFast(final int ax, final int ay, final int bx, final int by) {
-
 		// 精度はあまり高めでないが、高速で近似値を計算できる.
 		final int dx, dy;
-		if ((dx = (ax > bx) ? ax - bx : bx - ax) < (dy = (ay > by) ? ay - by : by - ay)) {
-			return (((dy << 8) + (dy << 3) - (dy << 4) - (dy << 1) + (dx << 7) - (dx << 5) + (dx << 3)
-					- (dx << 1)) >> 8);
-		} else {
-			return (((dx << 8) + (dx << 3) - (dx << 4) - (dx << 1) + (dy << 7) - (dy << 5) + (dy << 3)
-					- (dy << 1)) >> 8);
-		}
+		return ((dx = (ax > bx) ? ax - bx : bx - ax) < (dy = (ay > by) ? ay - by : by - ay)) ?
+			(((dy << 8) + (dy << 3) - (dy << 4) - (dy << 1) + (dx << 7) - (dx << 5) + (dx << 3) - (dx << 1)) >> 8) :
+			(((dx << 8) + (dx << 3) - (dx << 4) - (dx << 1) + (dy << 7) - (dy << 5) + (dy << 3) - (dy << 1)) >> 8);
 	}
 }

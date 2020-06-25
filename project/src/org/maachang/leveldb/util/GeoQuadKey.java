@@ -58,7 +58,7 @@ public final class GeoQuadKey {
 	
 	/** 緯度経度を四捨五入. **/
 	protected static final double r(final double n) {
-		return Math.round(n * 1000000d) / 1000000d;
+		return (double)((long)((n + 0.0000005d) * 1000000d)) / 1000000d;
 	}
 
 	/** 緯度経度から、QuadKeyを生成. **/
@@ -102,12 +102,10 @@ public final class GeoQuadKey {
 				yy |= mask;
 				break;
 			}
-
 		}
 		final double mapSize = (double) (256L << (long) detail);
 		final double x = ((double) (xx << 8) / mapSize) - 0.5d;
 		final double y = 0.5d - ((double) (yy << 8) / mapSize);
-
 		out[0] = r(90 - 360 * Math.atan(Math.exp(-y * 2 * PI)) / PI);
 		out[1] = r(360 * x);
 	}
@@ -248,7 +246,6 @@ public final class GeoQuadKey {
 	 *            経度を設定します.
 	 */
 	public static final void searchCode(long[] out, int detail, double lat, double lon) {
-
 		// 検索データの中心データを作成.
 		final double sLat = Math.sin(r(lat) * SIN_LAT_PI);
 		final double x = (r(lon) + 180d) / 360d;
@@ -257,32 +254,59 @@ public final class GeoQuadKey {
 		final int xx = ((int) (x * mapSize + 0.5d)) >> 8;
 		final int yy = ((int) (y * mapSize + 0.5d)) >> 8;
 
+		//□□□
+		//□■□
+		//□□□
 		// 中心データを作成.
 		createSearchData(out, 0, detail, xx, yy);
 
+		//□□□
+		//□□■
+		//□□□
 		// 中心より右のデータを作成.
-		createSearchData(out, 2, detail, xx, yy + 1);
+		createSearchData(out, 2, detail, xx + 1, yy);
 
+		//□□□
+		//□□□
+		//□■□
 		// 中心より下のデータを作成.
-		createSearchData(out, 4, detail, xx + 1, yy);
+		createSearchData(out, 4, detail, xx, yy + 1);
 
+		//□□□
+		//■□□
+		//□□□
 		// 中心より左のデータを作成.
-		createSearchData(out, 6, detail, xx, yy - 1);
+		createSearchData(out, 6, detail, xx - 1, yy);
 
+		//□■□
+		//□□□
+		//□□□
 		// 中心より上のデータを作成.
-		createSearchData(out, 8, detail, xx - 1, yy);
+		createSearchData(out, 8, detail, xx, yy - 1);
 		
+		//□□□
+		//□□□
+		//□□■
 		// 中心より右下のデータを作成.
 		createSearchData(out, 10, detail, xx + 1, yy + 1);
 
+		//□□□
+		//□□□
+		//■□□
 		// 中心より左下のデータを作成.
-		createSearchData(out, 12, detail, xx + 1, yy - 1);
+		createSearchData(out, 12, detail, xx - 1, yy + 1);
 
+		//■□□
+		//□□□
+		//□□□
 		// 中心より左上のデータを作成.
 		createSearchData(out, 14, detail, xx - 1, yy - 1);
 
+		//□□■
+		//□□□
+		//□□□
 		// 中心より右上のデータを作成.
-		createSearchData(out, 16, detail, xx - 1, yy + 1);
+		createSearchData(out, 16, detail, xx + 1, yy - 1);
 	}
 
 	/**
